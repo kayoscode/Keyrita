@@ -1,13 +1,6 @@
 ﻿using Keyrita.Util;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.DirectoryServices;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Keyrita.Settings
 {
@@ -35,19 +28,51 @@ namespace Keyrita.Settings
     }
 
     /// <summary>
+    /// Notifies gui elements about changes.
+    /// </summary>
+    public class ChangeNotification
+    {
+        public delegate void ChangeNotif(SettingBase settingChanged);
+        protected List<ChangeNotif> Notifications = new List<ChangeNotif>();
+
+        public void AddGui(ChangeNotif notificationFunc)
+        {
+            Notifications.Add(notificationFunc);
+        }
+
+        public void NotifyGui(SettingBase setting)
+        {
+            foreach(var gui in Notifications)
+            {
+                try
+                {
+                    gui(setting);
+                }
+                catch(Exception e)
+                {
+                    LTrace.LogError("The gui encountered a seriuos error processing a change notification.");
+                }
+            }
+        }
+    }
+
+    /// <summary>
     /// Base class for all settings to derive from.
     /// Settings are designed to automatically update when one of
     /// the settings they depend upon's values change.
     /// </summary>
     public abstract class SettingBase : ISetting
     {
-        public INotifyPropertyChanged mValueChanged;
+        public ChangeNotification ValueChangedNotifications = new ChangeNotification();
+        public ChangeNotification LimitsChangedNotifications = new ChangeNotification();
 
         protected delegate void SettingAction();
 
         public IReadOnlyList<SettingBase> Dependents => mDependents;
         private List<SettingBase> mDependents = new List<SettingBase>();
         private eSettingAttributes mAttributes = eSettingAttributes.None;
+
+        public string SettingName => mSettingName;
         private string mSettingName;
 
         public void AddDependent(SettingBase setting)
@@ -88,6 +113,10 @@ namespace Keyrita.Settings
             {
                 SetDependencies();
                 SetToDefault();
+                ChangeLimits();
+                SetToNewLimits();
+                LimitsChangedNotifications.NotifyGui(this);
+
                 mFinalized = true;
             }
             else
@@ -148,14 +177,14 @@ namespace Keyrita.Settings
         {
             try
             {
-                // Perform the seting action.
-                action();
-
                 // Notify dependents if we changed.
                 if (ValueHasChanged)
                 {
+                    // Perform the seting action.
+                    action();
+
                     // Notify GUIs.
-                    mValueChanged.
+                    ValueChangedNotifications.NotifyGui(this);
 
                     LTrace.LogInfo($"{mSettingName}: {description}");
 
@@ -163,6 +192,7 @@ namespace Keyrita.Settings
                     {
                         dependent.ChangeLimits();
                         dependent.SetToNewLimits();
+                        dependent.LimitsChangedNotifications.NotifyGui(dependent);
                         dependent.TrySetToPending();
                     }
                 }

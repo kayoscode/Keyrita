@@ -10,7 +10,13 @@ namespace Keyrita.Settings
     public class KeyboardSettings : IKeyboardSettings
     {
         public IEnumValueSetting KeyboardShape { get; } =
-            new KeyboardShapeSetting("Keyboard Shape");
+            new KeyboardShapeSetting();
+    }
+
+    public class MeasurementSettings : IMeasurementSettings
+    {
+        public IOnOffSetting ShowAnnotations { get; } =
+            new KeyboardShowAnnotations();
     }
 
     /// <summary>
@@ -19,6 +25,7 @@ namespace Keyrita.Settings
     public class SettingState
     {
         public static KeyboardSettings KeyboardSettings { get; private set; }
+        public static MeasurementSettings MeasurementSettings { get; private set; }
 
         /// <summary>
         /// Initializes the global settings.
@@ -38,6 +45,11 @@ namespace Keyrita.Settings
             // Bigram frequency setting.
             // Trigram frequency setting.
             // Most common words setting.
+
+            // Settings for measurements.
+            MeasurementSettings = new MeasurementSettings();
+            // Active measurement list.
+            // Selected measurement.
         }
     }
 }

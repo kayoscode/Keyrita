@@ -9,13 +9,18 @@ namespace Keyrita
     /// <summary>
     /// Interaction logic for DropdownList.xaml
     /// </summary>
-    public partial class DropdownList : UserControl
+    public partial class SetComboBox : UserControl
     {
-        public DropdownList()
+        public SetComboBox()
         {
             InitializeComponent();
-            Setting = SettingState.KeyboardSettings.KeyboardShape as EnumValueSetting;
 
+            Setting = SettingState.KeyboardSettings.KeyboardShape as EnumValueSetting;
+            LTrace.Assert(Setting != null);
+        }
+
+        private void SettingUpdated(SettingBase changedSetting)
+        {
             SyncWithSetting();
         }
 
@@ -30,6 +35,8 @@ namespace Keyrita
                 mComboBox.Items.Add(item);
             }
 
+            mComboBox.IsEnabled = Setting.ValidTokens.Count > 1;
+
             SetSelection();
         }
 
@@ -37,7 +44,9 @@ namespace Keyrita
         {
             if(Setting.HasValue)
             {
+                mComboBox.SelectionChanged -= ComboBox_SelectionChanged;
                 mComboBox.SelectedIndex = Setting.GetIndexOfSelection();
+                mComboBox.SelectionChanged += ComboBox_SelectionChanged;
             }
         }
 
@@ -52,6 +61,26 @@ namespace Keyrita
             }
         }
 
-        public EnumValueSetting Setting;
+        /// <summary>
+        /// The setting which this control is linked to.
+        /// </summary>
+        public EnumValueSetting Setting
+        {
+            get
+            {
+                return mSetting;
+            }
+            set
+            {
+                mSetting = value;
+                mSetting.ValueChangedNotifications.AddGui(SettingUpdated);
+                mSetting.LimitsChangedNotifications.AddGui(SettingUpdated);
+
+                mSettingName.Text = Setting.SettingName;
+                SyncWithSetting();
+            }
+        }
+
+        private EnumValueSetting mSetting;
     }
 }

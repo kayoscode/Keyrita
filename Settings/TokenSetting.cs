@@ -34,12 +34,13 @@ namespace Keyrita.Settings
 
     public abstract class EnumValueSetting : SettingBase
     {
-        public INotifyCollectionChanged mValidSetChanged;
+        public INotifyCollectionChanged mValidTokensChanged;
 
         protected EnumValueSetting(string settingName, Enum defaultValue, eSettingAttributes attributes) 
             : base(settingName, attributes)
         {
             DefaultValue = defaultValue;
+            DesiredValue = DefaultValue;
         }
 
         public Enum Value { get; private set; }
@@ -71,6 +72,10 @@ namespace Keyrita.Settings
                 if(Value != null && PendingValue != null)
                 {
                     return !PendingValue.Equals(Value);
+                }
+                else if(Value == null && PendingValue != null)
+                {
+                    return true;
                 }
 
                 return false;
@@ -145,6 +150,13 @@ namespace Keyrita.Settings
 
         protected override void SetToNewLimits()
         {
+            if(mValidTokens.Contains(DesiredValue))
+            {
+                PendingValue = DesiredValue;
+                TrySetToPending();
+                return;
+            }
+
             if (!mValidTokens.Contains(Value))
             {
                 if(mValidTokens.Contains(DefaultValue))
@@ -210,7 +222,7 @@ namespace Keyrita.Settings
     /// <summary>
     /// Setting holding an on or off state.
     /// </summary>
-    public abstract class OnOffSetting : EnumValueSetting<eOnOff>, IEnumValueSetting
+    public abstract class OnOffSetting : EnumValueSetting<eOnOff>, IEnumValueSetting, IOnOffSetting
     {
         public OnOffSetting(string settingName, eSettingAttributes attributes) 
             : this(settingName, eOnOff.Off, attributes)

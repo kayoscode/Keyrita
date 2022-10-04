@@ -6,10 +6,12 @@
         xmlns:local="clr-namespace:Keyrita"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        <local:DropdownList Width="100"
-                            Height="20">
-            
-        </local:DropdownList>
-    </Grid>
+    <StackPanel>
+        <local:SetComboBox Width="100"
+                            Height="50">
+        </local:SetComboBox>
+        <local:SetCheckBox Width="100" 
+                           Height="50">
+        </local:SetCheckBox>
+    </StackPanel>
 </Window>
