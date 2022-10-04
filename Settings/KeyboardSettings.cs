@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Keyrita.Gui;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,8 +9,11 @@ namespace Keyrita.Settings
 {
     public enum eKeyboardShape
     {
+        [UIData("ANSI")]
         ANSI,
+        [UIData("ISO")]
         ISO,
+        [UIData("JIS")]
         JIS,
     }
 
@@ -18,7 +22,7 @@ namespace Keyrita.Settings
     /// </summary>
     public interface IKeyboardSettings
     {
-        IEnumValueSetting<eKeyboardShape> KeyboardShape { get; }
+        IEnumValueSetting KeyboardShape { get; }
     }
 
     /// <summary>

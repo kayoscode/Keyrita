@@ -7,6 +7,9 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-
+        <local:DropdownList Width="100"
+                            Height="20">
+            
+        </local:DropdownList>
     </Grid>
 </Window>

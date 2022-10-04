@@ -32,9 +32,10 @@ namespace Keyrita.Util
 
         private static UIDataAttribute CacheUIText(this Enum token)
         {
-            // Get the display data and cache the result.
-            var data = Attribute.GetCustomAttribute(token.GetType(), typeof(UIDataAttribute))
-                as UIDataAttribute;
+            var type = token.GetType();
+            var memInfo = type.GetMember(token.ToString());
+            var attributes = memInfo[0].GetCustomAttributes(typeof(UIDataAttribute), false);
+            var data = (attributes.Length > 0) ? (UIDataAttribute)attributes[0] : null;
 
             if(data == null)
             {

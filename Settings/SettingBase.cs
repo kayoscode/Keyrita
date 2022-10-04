@@ -1,6 +1,8 @@
 ﻿using Keyrita.Util;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.DirectoryServices;
 using System.Linq;
@@ -39,6 +41,8 @@ namespace Keyrita.Settings
     /// </summary>
     public abstract class SettingBase : ISetting
     {
+        public INotifyPropertyChanged mValueChanged;
+
         protected delegate void SettingAction();
 
         public IReadOnlyList<SettingBase> Dependents => mDependents;
@@ -56,12 +60,11 @@ namespace Keyrita.Settings
         /// </summary>
         /// <param name="settingName">The name of the setting for logs.</param>
         /// <param name="attributes">Attributes affecting the behavior of the setting.</param>
-        public SettingBase(string settingName, 
+        public SettingBase(string settingName,
             eSettingAttributes attributes)
         {
             this.mAttributes = attributes;
             this.mSettingName = settingName;
-            SetToDefault();
 
             SettingsSystem.RegisterSetting(this);
         }
@@ -79,11 +82,12 @@ namespace Keyrita.Settings
         /// <summary>
         /// Does final initialization (post construction).
         /// </summary>
-        public void Finalize()
+        public void FinalizeSetting()
         {
-            if(!mFinalized)
+            if (!mFinalized)
             {
                 SetDependencies();
+                SetToDefault();
                 mFinalized = true;
             }
             else
@@ -91,7 +95,7 @@ namespace Keyrita.Settings
                 LTrace.Assert(false, $"Setting {mSettingName} has already been finalized");
             }
         }
-        private bool mFinalized = false; 
+        private bool mFinalized = false;
 
         /// <summary>
         /// When one of the values of a dependent changes, 
@@ -148,11 +152,14 @@ namespace Keyrita.Settings
                 action();
 
                 // Notify dependents if we changed.
-                if(ValueHasChanged)
+                if (ValueHasChanged)
                 {
+                    // Notify GUIs.
+                    mValueChanged.
+
                     LTrace.LogInfo($"{mSettingName}: {description}");
 
-                    foreach(SettingBase dependent in mDependents) 
+                    foreach (SettingBase dependent in mDependents)
                     {
                         dependent.ChangeLimits();
                         dependent.SetToNewLimits();

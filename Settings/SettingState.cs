@@ -9,7 +9,7 @@ namespace Keyrita.Settings
 {
     public class KeyboardSettings : IKeyboardSettings
     {
-        public IEnumValueSetting<eKeyboardShape> KeyboardShape { get; } =
+        public IEnumValueSetting KeyboardShape { get; } =
             new KeyboardShapeSetting("Keyboard Shape");
     }
 

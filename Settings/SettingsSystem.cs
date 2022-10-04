@@ -28,7 +28,7 @@ namespace Keyrita.Settings
         {
             foreach (SettingBase setting in mSettings)
             {
-                setting.Finalize();
+                setting.FinalizeSetting();
             }
 
             Dictionary<SettingBase, bool> checkedSettings = new();

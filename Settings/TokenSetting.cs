@@ -2,6 +2,8 @@
 using Keyrita.Util;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,32 +26,38 @@ namespace Keyrita.Settings
     /// Readonly interface to an enum value setting.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IEnumValueSetting<TEnum> : ISetting
+    public interface IEnumValueSetting : ISetting
     {
-        TEnum Value { get; }
-        TEnum DefaultValue { get; }
+        Enum Value { get; }
+        Enum DefaultValue { get; }
     }
 
-    /// <summary>
-    /// A setting which can hold one of the values of an enumeration.
-    /// </summary>
-    public abstract class EnumValueSetting<TEnum> : SettingBase, IEnumValueSetting<TEnum>
+    public abstract class EnumValueSetting : SettingBase
     {
-        protected EnumValueSetting(string settingName, TEnum defaultValue, eSettingAttributes attributes) 
+        public INotifyCollectionChanged mValidSetChanged;
+
+        protected EnumValueSetting(string settingName, Enum defaultValue, eSettingAttributes attributes) 
             : base(settingName, attributes)
         {
             DefaultValue = defaultValue;
-            ValidTokens = EnumUtils.GetTokens(typeof(TEnum)).Cast<TEnum>().ToList();
         }
 
-        public TEnum Value { get; private set; }
+        public Enum Value { get; private set; }
 
-        public virtual TEnum DefaultValue { get; private set; }
+        public virtual Enum DefaultValue { get; private set; }
 
-        private TEnum DesiredValue { get; set; }
-        private TEnum PendingValue { get; set; }
+        protected Enum DesiredValue { get; set; }
+        protected Enum PendingValue { get; set; }
 
-        private IList<TEnum> ValidTokens { get; } = new List<TEnum>();
+        protected IList<Enum> mValidTokens { get; } = new List<Enum>();
+        public IReadOnlyList<Enum> ValidTokens
+        {
+            get
+            {
+                IReadOnlyList<Enum> validTokens = (IReadOnlyList<Enum>)mValidTokens;
+                return validTokens;
+            }
+        }
 
         /// <summary>
         /// Whether there is a specific value in this setting.
@@ -60,16 +68,55 @@ namespace Keyrita.Settings
         {
             get
             {
-                return !PendingValue.Equals(Value);
+                if(Value != null && PendingValue != null)
+                {
+                    return !PendingValue.Equals(Value);
+                }
+
+                return false;
             }
         }
 
-        public void Set(TEnum value)
+        /// <summary>
+        /// Attempts to set the value of the setting.
+        /// </summary>
+        /// <param name="value"></param>
+        public void Set(Enum value)
         {
             this.DesiredValue = value;
             this.PendingValue = value;
 
             TrySetToPending();
+        }
+
+        /// <summary>
+        /// Returns the enum value which is at the given index.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public Enum GetTokenAtIndex(int index)
+        {
+            if(index < mValidTokens.Count)
+            {
+                return mValidTokens[index];
+            }
+
+            LTrace.Assert(false);
+            return null;
+        }
+
+        /// <summary>
+        /// Returns the index of the currently selected item.
+        /// </summary>
+        /// <returns></returns>
+        public int GetIndexOfSelection()
+        {
+            if(HasValue)
+            {
+                return mValidTokens.IndexOf(Value);
+            }
+
+            return -1;
         }
 
         public override void Load()
@@ -93,21 +140,23 @@ namespace Keyrita.Settings
         protected override void SetToDefault()
         {
             PendingValue = DefaultValue;
+            TrySetToPending();
         }
 
         protected override void SetToNewLimits()
         {
-            if (!ValidTokens.Contains(Value))
+            if (!mValidTokens.Contains(Value))
             {
-                if(ValidTokens.Contains(DefaultValue))
+                if(mValidTokens.Contains(DefaultValue))
                 {
                     SetToDefault();
                 }
                 else
                 {
-                    if(ValidTokens.Count > 0)
+                    if(mValidTokens.Count > 0)
                     {
-                        PendingValue = ValidTokens.First<TEnum>();
+                        PendingValue = mValidTokens.First<Enum>();
+                        TrySetToPending();
                     }
                     else
                     {
@@ -120,12 +169,31 @@ namespace Keyrita.Settings
         protected override void TrySetToPending()
         {
             // If the values don't match, we need to initialize a new setting transaction.
-            if (!PendingValue.Equals(Value))
+            if (!PendingValue.Equals(Value) && mValidTokens.Contains(PendingValue))
             {
                 SettingTransaction($"Setting token value from {Value} to {PendingValue}", () =>
                 {
                     Value = PendingValue;
+                    HasValue = true;
                 });
+            }
+        }
+    }
+
+    /// <summary>
+    /// A setting which can hold one of the values of an enumeration.
+    /// </summary>
+    public abstract class EnumValueSetting<TEnum> : EnumValueSetting, IEnumValueSetting
+        where TEnum: Enum
+    {
+        protected EnumValueSetting(string settingName, TEnum defaultValue, eSettingAttributes attributes)
+            : base(settingName, defaultValue, attributes)
+        {
+            mValidTokens.Clear();
+
+            foreach (TEnum token in EnumUtils.GetTokens(typeof(TEnum)))
+            {
+                mValidTokens.Add(token);
             }
         }
     }
@@ -133,7 +201,7 @@ namespace Keyrita.Settings
     /// <summary>
     /// Readonly interface to an on off setting.
     /// </summary>
-    public interface IOnOffSetting : IEnumValueSetting<eOnOff>
+    public interface IOnOffSetting : IEnumValueSetting
     {
         bool IsOn { get; }
         bool IsOff { get; }
@@ -142,7 +210,7 @@ namespace Keyrita.Settings
     /// <summary>
     /// Setting holding an on or off state.
     /// </summary>
-    public abstract class OnOffSetting : EnumValueSetting<eOnOff>, IEnumValueSetting<eOnOff>
+    public abstract class OnOffSetting : EnumValueSetting<eOnOff>, IEnumValueSetting
     {
         public OnOffSetting(string settingName, eSettingAttributes attributes) 
             : this(settingName, eOnOff.Off, attributes)
@@ -154,7 +222,7 @@ namespace Keyrita.Settings
         {
         }
 
-        public bool IsOn => HasValue && Value == eOnOff.On;
-        public bool IsOff => HasValue && Value == eOnOff.Off;
+        public bool IsOn => HasValue && Value.Equals(eOnOff.On);
+        public bool IsOff => HasValue && Value.Equals(eOnOff.Off);
     }
 }
