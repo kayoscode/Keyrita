@@ -9,13 +9,32 @@
                            Height="1000"
                            MinWidth="1200"
                            MinHeight="900">
-    <Grid>
-        <Grid.ColumnDefinitions>
+   <DockPanel>
+      <Menu DockPanel.Dock="Top">
+         <MenuItem Header="File">
+            <MenuItem Header="_New" />
+            <MenuItem Header="_Open" />
+            <MenuItem Header="_Save" />
+         </MenuItem>
+         <MenuItem Header="Edit">
+            <MenuItem Header="_Undo"/>
+            <MenuItem Header="_Redo"/>
+            <Separator></Separator>
+            <MenuItem Header="Settings"></MenuItem>
+         </MenuItem>
+         <MenuItem Header="Analyze">
+            <MenuItem Header="_Configure"/>
+            <MenuItem Header="_Measurements"/>
+            <MenuItem Header="Generate"></MenuItem>
+         </MenuItem>
+      </Menu>
+      <Grid>
+         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"></ColumnDefinition>
             <ColumnDefinition Width="Auto"></ColumnDefinition>
             <ColumnDefinition Width="*"></ColumnDefinition>
-        </Grid.ColumnDefinitions>
-        <StackPanel Grid.Column="0"
+         </Grid.ColumnDefinitions>
+         <StackPanel Grid.Column="0"
                     HorizontalAlignment="Left"
                     Margin="25, 0, 25, 0">
             <local:SetComboBox Width="150"
@@ -30,25 +49,26 @@
             <local:SetCheckBox Width="150"
                            Height="50"
                            x:Name="mShowAnnotations"/>
-        </StackPanel>
+         </StackPanel>
 
-        <Separator Grid.Column="1"
+         <Separator Grid.Column="1"
                    Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"></Separator>
 
-        <Grid Grid.Column="2"
+         <Grid Grid.Column="2"
               HorizontalAlignment="Center">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
+               <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
+               <RowDefinition Height="*"/>
+               <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <local:KeyboardControl Grid.Column="0"
                                    Grid.Row="0"
                                    x:Name="mKeyboardControl"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center"/>
-        </Grid>
-    </Grid>
+         </Grid>
+      </Grid>
+   </DockPanel>
 </Window>
