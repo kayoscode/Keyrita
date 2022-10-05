@@ -7,6 +7,12 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
+    <Compile Update="Controls\Key.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Controls\KeyboardControl.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Controls\SetComboBox.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -15,6 +21,12 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Page Update="Controls\Key.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Controls\KeyboardControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Controls\SetCheckBox.xaml">
       <SubType>Designer</SubType>
     </Page>

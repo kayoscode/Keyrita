@@ -15,6 +15,8 @@ namespace Keyrita
             mKeyboardShape.Setting = KeyboardShapeSetting;
             mLanguage.Setting = LanguageSetting;
             mShowAnnotations.Setting = ShowAnnotationsSetting;
+
+            mKeyboardControl.KeyboardState = SettingState.KeyboardSettings.KeyboardState;
         }
 
         private EnumValueSetting KeyboardShapeSetting =>

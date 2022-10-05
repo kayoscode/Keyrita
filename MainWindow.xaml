@@ -6,16 +6,46 @@
         xmlns:local="clr-namespace:Keyrita"
         mc:Ignorable="d"
         Title="MainWindow" Width="1440"
-                           Height="1000">
-    <StackPanel>
-        <local:SetComboBox Width="150"
+                           Height="1000"
+                           MinWidth="1200"
+                           MinHeight="900">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"></ColumnDefinition>
+            <ColumnDefinition Width="Auto"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="0"
+                    HorizontalAlignment="Left"
+                    Margin="25, 0, 25, 0">
+            <local:SetComboBox Width="150"
                            Height="50"
                            x:Name="mKeyboardShape"/>
-        <local:SetComboBox Width="150"
+            <local:SetComboBox Width="150"
                            Height="50"
                            x:Name="mLanguage"/>
-        <local:SetCheckBox Width="150"
+            <local:SetCheckBox Width="150"
                            Height="50"
                            x:Name="mShowAnnotations"/>
-    </StackPanel>
+        </StackPanel>
+
+        <Separator Grid.Column="1"
+                   Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"></Separator>
+
+        <Grid Grid.Column="2"
+              HorizontalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <local:KeyboardControl Grid.Column="0"
+                                   Grid.Row="0"
+                                   x:Name="mKeyboardControl"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+        </Grid>
+    </Grid>
 </Window>

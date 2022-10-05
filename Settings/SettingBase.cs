@@ -196,8 +196,10 @@ namespace Keyrita.Settings
                         dependent.ChangeLimits();
                         dependent.SetToNewLimits();
                         dependent.LimitsChangedNotifications.NotifyGui(dependent);
-                        dependent.TrySetToPending();
                     }
+
+                    // Perform a generic action when the value of a setting changes.
+                    Action();
                 }
             }
             catch (Exception e)

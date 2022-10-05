@@ -46,12 +46,36 @@ namespace Keyrita.Settings
             // Starting with the lowest dependents, resolve first value
             // Check for circular dependencies.
             checkedSettings.Clear();
+
+            Dictionary<SettingBase, bool> resolvedDependents = new();
+            Dictionary<SettingBase, bool> resolvedDependencies = new();
+
             foreach(SettingBase setting in mSettings)
             {
-                ResolveDependencies(setting, checkedSettings);
+                // Make sure all the dependent settings are resolved before we initialize this one.
+                ResolveDependents(setting, resolvedDependents);
+                ResolveDependencies(setting, resolvedDependencies);
             }
 
             Finalized = true;
+        }
+
+        private static void ResolveDependents(SettingBase setting, 
+            Dictionary<SettingBase, bool> checkedSettings)
+        {
+            if(checkedSettings.TryGetValue(setting, out bool value))
+            {
+                return;
+            }
+
+            foreach(SettingBase dependent in setting.Dependents)
+            {
+                ResolveDependents(dependent, checkedSettings);
+            }
+
+            setting.FinalizeSetting();
+
+            checkedSettings[setting] = true;
         }
 
         private static void ResolveDependencies(SettingBase setting, 
@@ -66,8 +90,6 @@ namespace Keyrita.Settings
             {
                 ResolveDependencies(dependency, checkedSettings);
             }
-
-            setting.FinalizeSetting();
 
             checkedSettings[setting] = true;
         }
