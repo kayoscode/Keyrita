@@ -11,12 +11,15 @@ namespace Keyrita.Settings
     {
         public IEnumValueSetting KeyboardShape { get; } =
             new KeyboardShapeSetting();
+
+        public IEnumValueSetting KeyboardLanguage { get; } =
+            new KeyboardLanguageSetting();
     }
 
     public class MeasurementSettings : IMeasurementSettings
     {
         public IOnOffSetting ShowAnnotations { get; } =
-            new KeyboardShowAnnotations();
+            new KeyboardShowAnnotationsSetting();
     }
 
     /// <summary>

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Configuration;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Navigation;
@@ -30,40 +31,42 @@ namespace Keyrita.Settings
     {
         Enum Value { get; }
         Enum DefaultValue { get; }
+        bool HasValue { get; }
     }
 
     public abstract class EnumValueSetting : SettingBase
     {
-        public INotifyCollectionChanged mValidTokensChanged;
-
         protected EnumValueSetting(string settingName, Enum defaultValue, eSettingAttributes attributes) 
+            : this(settingName, attributes)
+        {
+            mDefaultValue = defaultValue;
+        }
+
+        protected EnumValueSetting(string settingName, eSettingAttributes attributes)
             : base(settingName, attributes)
         {
-            DefaultValue = defaultValue;
-            DesiredValue = DefaultValue;
+        }
+
+        public override void PreInitialization()
+        {
+            base.PreInitialization();
         }
 
         public Enum Value { get; private set; }
 
-        public virtual Enum DefaultValue { get; private set; }
+        public virtual Enum DefaultValue => mDefaultValue;
+        private Enum mDefaultValue;
 
         protected Enum DesiredValue { get; set; }
         protected Enum PendingValue { get; set; }
 
-        protected IList<Enum> mValidTokens { get; } = new List<Enum>();
-        public IReadOnlyList<Enum> ValidTokens
-        {
-            get
-            {
-                IReadOnlyList<Enum> validTokens = (IReadOnlyList<Enum>)mValidTokens;
-                return validTokens;
-            }
-        }
+        protected List<Enum> mValidTokens { get; } = new List<Enum>();
+        public IReadOnlyList<Enum> ValidTokens => mValidTokens;
 
         /// <summary>
         /// Whether there is a specific value in this setting.
         /// </summary>
-        public override bool HasValue { get; protected set; }
+        public override bool HasValue => Value != null;
 
         protected override bool ValueHasChanged
         {
@@ -145,6 +148,7 @@ namespace Keyrita.Settings
         protected override void SetToDefault()
         {
             PendingValue = DefaultValue;
+            DesiredValue = DefaultValue;
             TrySetToPending();
         }
 
@@ -170,9 +174,8 @@ namespace Keyrita.Settings
                         PendingValue = mValidTokens.First<Enum>();
                         TrySetToPending();
                     }
-                    else
                     {
-                        HasValue = false;
+                        PendingValue = null;
                     }
                 }
             }
@@ -186,7 +189,6 @@ namespace Keyrita.Settings
                 SettingTransaction($"Setting token value from {Value} to {PendingValue}", () =>
                 {
                     Value = PendingValue;
-                    HasValue = true;
                 });
             }
         }

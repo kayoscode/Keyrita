@@ -25,9 +25,6 @@ namespace Keyrita
         public SetCheckBox()
         {
             InitializeComponent();
-
-            Setting = SettingState.MeasurementSettings.ShowAnnotations as OnOffSetting;
-            LTrace.Assert(Setting != null);
         }
 
         private void SettingUpdated(SettingBase changedSetting)
@@ -56,6 +53,40 @@ namespace Keyrita
             mSetting.Set(eOnOff.Off);
         }
 
+        private static readonly DependencyProperty SettingProperty =
+            DependencyProperty.Register(nameof(Setting),
+                                        typeof(OnOffSetting),
+                                        typeof(SetCheckBox),
+                                        new PropertyMetadata(OnSettingChanged));
+
+        private static void OnSettingChanged(DependencyObject source,
+                                             DependencyPropertyChangedEventArgs e)
+        {
+            var control = source as SetCheckBox;
+            control.UpdateSetting(e.NewValue as OnOffSetting);
+        }
+
+        private void UpdateSetting(OnOffSetting newValue)
+        {
+            // Unregister setting change listeners.
+            if (mSetting != null)
+            {
+                mSetting.ValueChangedNotifications.Remove(SettingUpdated);
+                mSetting.LimitsChangedNotifications.Remove(SettingUpdated);
+            }
+
+            mSetting = newValue;
+
+            if(mSetting != null)
+            {
+                mSetting.ValueChangedNotifications.AddGui(SettingUpdated);
+                mSetting.LimitsChangedNotifications.AddGui(SettingUpdated);
+
+                mSettingName.Text = Setting.SettingName;
+                SyncWithSetting();
+            }
+        }
+
         /// <summary>
         /// The setting which this control is linked to.
         /// </summary>
@@ -67,12 +98,7 @@ namespace Keyrita
             }
             set
             {
-                mSetting = value;
-                mSetting.ValueChangedNotifications.AddGui(SettingUpdated);
-                mSetting.LimitsChangedNotifications.AddGui(SettingUpdated);
-
-                mSettingName.Text = Setting.SettingName;
-                SyncWithSetting();
+                SetValue(SettingProperty, value);
             }
         }
 

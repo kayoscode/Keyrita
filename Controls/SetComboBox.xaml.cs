@@ -2,6 +2,7 @@
 using Keyrita.Util;
 using System;
 using System.ComponentModel;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace Keyrita
@@ -14,9 +15,6 @@ namespace Keyrita
         public SetComboBox()
         {
             InitializeComponent();
-
-            Setting = SettingState.KeyboardSettings.KeyboardShape as EnumValueSetting;
-            LTrace.Assert(Setting != null);
         }
 
         private void SettingUpdated(SettingBase changedSetting)
@@ -61,6 +59,40 @@ namespace Keyrita
             }
         }
 
+        private static readonly DependencyProperty SettingProperty =
+            DependencyProperty.Register(nameof(Setting),
+                                        typeof(EnumValueSetting),
+                                        typeof(SetComboBox),
+                                        new PropertyMetadata(OnSettingChanged));
+
+        private static void OnSettingChanged(DependencyObject source,
+                                             DependencyPropertyChangedEventArgs e)
+        {
+            SetComboBox control = source as SetComboBox;
+            control.UpdateSetting(e.NewValue as EnumValueSetting);
+        }
+
+        private void UpdateSetting(EnumValueSetting newValue)
+        {
+            // Unregister setting change listeners.
+            if (mSetting != null)
+            {
+                mSetting.ValueChangedNotifications.Remove(SettingUpdated);
+                mSetting.LimitsChangedNotifications.Remove(SettingUpdated);
+            }
+
+            mSetting = newValue;
+
+            if(mSetting != null)
+            {
+                mSetting.ValueChangedNotifications.AddGui(SettingUpdated);
+                mSetting.LimitsChangedNotifications.AddGui(SettingUpdated);
+
+                mSettingName.Text = Setting.SettingName;
+                SyncWithSetting();
+            }
+        }
+
         /// <summary>
         /// The setting which this control is linked to.
         /// </summary>
@@ -72,12 +104,7 @@ namespace Keyrita
             }
             set
             {
-                mSetting = value;
-                mSetting.ValueChangedNotifications.AddGui(SettingUpdated);
-                mSetting.LimitsChangedNotifications.AddGui(SettingUpdated);
-
-                mSettingName.Text = Setting.SettingName;
-                SyncWithSetting();
+                SetValue(SettingProperty, value);
             }
         }
 

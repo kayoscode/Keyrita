@@ -6,10 +6,26 @@
              xmlns:local="clr-namespace:Keyrita"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <StackPanel>
-        <TextBlock Name="mSettingName"></TextBlock>
-        <CheckBox Name="mCheckBox" 
-                  Checked="mCheckBox_Checked"
-                  Unchecked="mCheckBox_Unchecked"/>
-    </StackPanel>
+    <Grid ShowGridLines="False">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Column="1" 
+                   Grid.Row="0"
+                   Name="mSettingName"
+                   Margin="3,0,0,0"
+                   VerticalAlignment="Center"></TextBlock>
+
+        <CheckBox  Grid.Column="0"
+                   Grid.Row="0"
+                   Name="mCheckBox" 
+                   Checked="mCheckBox_Checked"
+                   Unchecked="mCheckBox_Unchecked"
+                   VerticalAlignment="Center"/>
+    </Grid>
 </UserControl>

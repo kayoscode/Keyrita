@@ -1,17 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Keyrita.Settings;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Keyrita
 {
@@ -23,6 +11,19 @@ namespace Keyrita
         public MainWindow()
         {
             InitializeComponent();
+
+            mKeyboardShape.Setting = KeyboardShapeSetting;
+            mLanguage.Setting = LanguageSetting;
+            mShowAnnotations.Setting = ShowAnnotationsSetting;
         }
+
+        private EnumValueSetting KeyboardShapeSetting =>
+            SettingState.KeyboardSettings.KeyboardShape as EnumValueSetting;
+
+        private EnumValueSetting LanguageSetting =>
+            SettingState.KeyboardSettings.KeyboardLanguage as EnumValueSetting;
+        
+        private OnOffSetting ShowAnnotationsSetting =>
+            SettingState.MeasurementSettings.ShowAnnotations as OnOffSetting;
     }
 }

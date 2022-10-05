@@ -40,6 +40,11 @@ namespace Keyrita.Settings
             Notifications.Add(notificationFunc);
         }
 
+        public void Remove(ChangeNotif changeNotif)
+        {
+            Notifications.Remove(changeNotif);
+        }
+
         public void NotifyGui(SettingBase setting)
         {
             foreach(var gui in Notifications)
@@ -70,6 +75,9 @@ namespace Keyrita.Settings
 
         public IReadOnlyList<SettingBase> Dependents => mDependents;
         private List<SettingBase> mDependents = new List<SettingBase>();
+        public IReadOnlyList<SettingBase> Dependencies => mDependencies;
+        protected List<SettingBase> mDependencies = new List<SettingBase>();
+
         private eSettingAttributes mAttributes = eSettingAttributes.None;
 
         public string SettingName => mSettingName;
@@ -78,6 +86,7 @@ namespace Keyrita.Settings
         public void AddDependent(SettingBase setting)
         {
             mDependents.Add(setting);
+            setting.mDependencies.Add(this);
         }
 
         /// <summary>
@@ -94,7 +103,7 @@ namespace Keyrita.Settings
             SettingsSystem.RegisterSetting(this);
         }
 
-        public abstract bool HasValue { get; protected set; }
+        public abstract bool HasValue { get; }
 
         /// <summary>
         /// This is where you target specific settings in which you want to know if they change.
@@ -107,24 +116,18 @@ namespace Keyrita.Settings
         /// <summary>
         /// Does final initialization (post construction).
         /// </summary>
-        public void FinalizeSetting()
+        public virtual void PreInitialization()
         {
-            if (!mFinalized)
-            {
-                SetDependencies();
-                SetToDefault();
-                ChangeLimits();
-                SetToNewLimits();
-                LimitsChangedNotifications.NotifyGui(this);
-
-                mFinalized = true;
-            }
-            else
-            {
-                LTrace.Assert(false, $"Setting {mSettingName} has already been finalized");
-            }
+            SetDependencies();
         }
-        private bool mFinalized = false;
+
+        /// <summary>
+        /// Finally set the value to default, and handle pending/desired values.
+        /// </summary>
+        public virtual void FinalizeSetting()
+        {
+            SetToDefault();
+        }
 
         /// <summary>
         /// When one of the values of a dependent changes, 
@@ -201,8 +204,6 @@ namespace Keyrita.Settings
             {
                 LTrace.LogError("A serious error has occurred in a setting transaction");
             }
-
-            LTrace.LogInfo($"{mSettingName}");
         }
     }
 }

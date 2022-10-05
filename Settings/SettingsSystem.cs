@@ -26,9 +26,9 @@ namespace Keyrita.Settings
 
         public static void FinalizeSettingSystem()
         {
-            foreach (SettingBase setting in mSettings)
+            foreach(SettingBase setting in mSettings)
             {
-                setting.FinalizeSetting();
+                setting.PreInitialization();
             }
 
             Dictionary<SettingBase, bool> checkedSettings = new();
@@ -43,7 +43,33 @@ namespace Keyrita.Settings
                 }
             }
 
+            // Starting with the lowest dependents, resolve first value
+            // Check for circular dependencies.
+            checkedSettings.Clear();
+            foreach(SettingBase setting in mSettings)
+            {
+                ResolveDependencies(setting, checkedSettings);
+            }
+
             Finalized = true;
+        }
+
+        private static void ResolveDependencies(SettingBase setting, 
+            Dictionary<SettingBase, bool> checkedSettings)
+        {
+            if(checkedSettings.TryGetValue(setting, out bool value))
+            {
+                return;
+            }
+
+            foreach(SettingBase dependency in setting.Dependencies)
+            {
+                ResolveDependencies(dependency, checkedSettings);
+            }
+
+            setting.FinalizeSetting();
+
+            checkedSettings[setting] = true;
         }
 
         private static bool CheckForCircularDependenciesOnSetting(SettingBase setting, 
@@ -72,6 +98,7 @@ namespace Keyrita.Settings
 
             clashStack.Pop();
             checkedSettings[setting] = false;
+            
             return false;
         }
     }
