@@ -55,13 +55,6 @@ namespace Keyrita.Settings
         {
         }
 
-        /// <summary>
-        /// To force the value to be something else, set mLimitValue here
-        /// </summary>
-        protected override sealed void ChangeLimits()
-        {
-        }
-
         protected override void SetToDefault()
         {
             mPendingValue = mDefaultValue;

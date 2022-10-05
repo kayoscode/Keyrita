@@ -12,12 +12,16 @@ namespace Keyrita
         {
             InitializeComponent();
 
+            mKeyboardDisplay.Setting = KeyboardDisplaySetting;
             mKeyboardShape.Setting = KeyboardShapeSetting;
             mLanguage.Setting = LanguageSetting;
             mShowAnnotations.Setting = ShowAnnotationsSetting;
 
             mKeyboardControl.KeyboardState = SettingState.KeyboardSettings.KeyboardState;
         }
+
+        private EnumValueSetting KeyboardDisplaySetting =>
+            SettingState.KeyboardSettings.KeyboardDisplay as EnumValueSetting;
 
         private EnumValueSetting KeyboardShapeSetting =>
             SettingState.KeyboardSettings.KeyboardShape as EnumValueSetting;

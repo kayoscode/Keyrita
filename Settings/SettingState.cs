@@ -23,6 +23,9 @@ namespace Keyrita.Settings
 
         public KeyboardStateSetting KeyboardState { get; } =
             new KeyboardStateSetting();
+
+        public EnumValueSetting KeyboardDisplay { get; } =
+            new KeyboardDisplaySetting();
     }
 
     /// <summary>

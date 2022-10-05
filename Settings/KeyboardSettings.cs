@@ -26,6 +26,23 @@ namespace Keyrita.Settings
     }
 
     /// <summary>
+    /// Modifies how the keybaord is shown in the UI.
+    /// </summary>
+    public enum eKeyboardDisplay
+    {
+        /// <summary>
+        /// Displays the keyboard as a 3x10 grid.
+        /// </summary>
+        [UIData("Grid")]
+        GridView,
+        /// <summary>
+        /// Displays the keyboard with the same offsets you would expect from a real keyboard.
+        /// </summary>
+        [UIData("Standard")]
+        StandardView,
+    }
+
+    /// <summary>
     /// The shape of the keyboard setting.
     /// </summary>
     public class KeyboardShapeSetting : EnumValueSetting<eKeyboardShape>
@@ -59,6 +76,17 @@ namespace Keyrita.Settings
 
                 return eKeyboardShape.ISO;
             }
+        }
+    }
+
+    /// <summary>
+    /// The way the keyboard is displayed to the user.
+    /// </summary>
+    public class KeyboardDisplaySetting : EnumValueSetting<eKeyboardDisplay>
+    {
+        public KeyboardDisplaySetting()
+            : base("Keyboard View", eKeyboardDisplay.StandardView, eSettingAttributes.None)
+        {
         }
     }
 
@@ -105,7 +133,25 @@ namespace Keyrita.Settings
         {
             LTrace.Assert(rowIndex < 3, "Only three rows supported");
 
+            this.rowIndex = rowIndex;
             mDefaultValue = STANDARD_ROW_OFFSETS[rowIndex];
+        }
+
+        protected override void SetDependencies()
+        {
+            SettingState.KeyboardSettings.KeyboardDisplay.AddDependent(this);
+        }
+
+        protected override void ChangeLimits()
+        {
+            if (SettingState.KeyboardSettings.KeyboardDisplay.Value.Equals(eKeyboardDisplay.GridView))
+            {
+                mLimitValue = 0.0;
+            }
+            else
+            {
+                mLimitValue = STANDARD_ROW_OFFSETS[rowIndex];
+            }
         }
     }
 

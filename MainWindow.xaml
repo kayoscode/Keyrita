@@ -20,6 +20,9 @@
                     Margin="25, 0, 25, 0">
             <local:SetComboBox Width="150"
                            Height="50"
+                           x:Name="mKeyboardDisplay"/>
+            <local:SetComboBox Width="150"
+                           Height="50"
                            x:Name="mKeyboardShape"/>
             <local:SetComboBox Width="150"
                            Height="50"
