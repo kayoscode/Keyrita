@@ -10,6 +10,10 @@
         <TextBlock Name="mSettingName"
                    Margin="0,0,0,3"></TextBlock>
         <ComboBox Name="mComboBox" 
-                  SelectionChanged="ComboBox_SelectionChanged"/>
+                  SelectionChanged="ComboBox_SelectionChanged"
+                  HorizontalAlignment="Stretch"
+                  HorizontalContentAlignment="Stretch"
+                  VerticalContentAlignment="Center"
+                  VerticalAlignment="Center"/>
     </StackPanel>
 </UserControl>

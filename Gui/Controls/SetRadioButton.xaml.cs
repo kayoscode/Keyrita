@@ -32,8 +32,12 @@ namespace Keyrita.Gui.Controls
                 RadioButton item = new RadioButton();
                 item.GroupName = mSetting.SettingName;
                 item.Content = token.UIText();
-
                 item.Checked += mRadioButton_SelectionChanged;
+
+                item.HorizontalAlignment = HorizontalAlignment.Stretch;
+                item.HorizontalContentAlignment = HorizontalAlignment.Stretch;
+                item.VerticalAlignment = VerticalAlignment.Center;
+                item.VerticalContentAlignment = VerticalAlignment.Center;
 
                 mRadioButton.Children.Add(item);
             }

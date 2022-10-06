@@ -30,6 +30,10 @@ namespace Keyrita.Gui.Controls
             {
                 ComboBoxItem item = new ComboBoxItem();
                 item.Content = token.UIText();
+                item.HorizontalAlignment = HorizontalAlignment.Stretch;
+                item.HorizontalContentAlignment = HorizontalAlignment.Stretch;
+                item.VerticalAlignment = VerticalAlignment.Center;
+                item.VerticalContentAlignment = VerticalAlignment.Center;
                 mComboBox.Items.Add(item);
             }
 
