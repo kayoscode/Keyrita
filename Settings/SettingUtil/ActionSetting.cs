@@ -17,8 +17,13 @@ namespace Keyrita.Settings.SettingUtil
     /// </summary>
     public abstract class ActionSetting : SettingBase
     {
-        public ActionSetting(string settingName)
-            : base(settingName, eSettingAttributes.None)
+        /// <summary>
+        /// Standard constructor.
+        /// </summary>
+        /// <param name="settingName"></param>
+        /// <param name="sInstanceId"></param>
+        public ActionSetting(string settingName, Enum sInstanceId = null)
+            : base(settingName, eSettingAttributes.None, sInstanceId)
         {
         }
 

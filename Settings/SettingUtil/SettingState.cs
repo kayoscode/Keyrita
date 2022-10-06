@@ -4,6 +4,7 @@ using Keyrita.Util;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -61,12 +62,33 @@ namespace Keyrita.Settings.SettingUtil
     }
 
     /// <summary>
+    /// Actions which can be done by a user.
+    /// </summary>
+    public class UserActions
+    {
+        public IReadOnlyDictionary<eKeyboardReflectDirection, ActionSetting> ReflectActions => mReflectActions;
+
+        private Dictionary<eKeyboardReflectDirection, ActionSetting> mReflectActions =
+            new Dictionary<eKeyboardReflectDirection, ActionSetting>();
+
+        public UserActions()
+        {
+            foreach (eKeyboardReflectDirection dir in 
+                     Utils.GetTokens<eKeyboardReflectDirection>())
+            {
+                mReflectActions[dir] = new UserActionReflect(dir);
+            }
+        }
+    }
+
+    /// <summary>
     /// A static class handling settings.
     /// </summary>
     public class SettingState
     {
         public static KeyboardSettings KeyboardSettings { get; private set; }
         public static MeasurementSettings MeasurementSettings { get; private set; }
+        public static UserActions UserActions { get; private set; }
 
         /// <summary>
         /// Action setings which open each available dialog.
@@ -99,11 +121,13 @@ namespace Keyrita.Settings.SettingUtil
             // Selected measurement.
 
             // Create the settings which open dialogs.
-            IEnumerable<Enum> allDialogs = Utils.GetTokens(typeof(eDlgId));
+            IEnumerable<eDlgId> allDialogs = Utils.GetTokens<eDlgId>();
             foreach(eDlgId dialog in allDialogs)
             {
                 mOpenDialogSettings[dialog] = new OpenDlgSetting(dialog);
             }
+
+            UserActions = new UserActions();
         }
     }
 }

@@ -29,8 +29,9 @@ namespace Keyrita.Settings.SettingUtil
         /// </summary>
         /// <param name="settingName"></param>
         /// <param name="attributes"></param>
-        public ElementSetSetting(string settingName, eSettingAttributes attributes) :
-            base(settingName, attributes)
+        /// <param name="instance"></param>
+        public ElementSetSetting(string settingName, eSettingAttributes attributes, Enum instance = null) :
+            base(settingName, attributes, instance)
         {
         }
 

@@ -22,9 +22,17 @@ namespace Keyrita.Gui.Controls
             SettingState.OpenDialogSettings[Dialog].OpenDialog();
         }
 
-        protected DependencyProperty DialogProperty = DependencyProperty.Register(nameof(Dialog),
+        protected static readonly DependencyProperty DialogProperty = DependencyProperty.Register(nameof(Dialog),
             typeof(eDlgId),
-            typeof(MenuItemOpenDlg));
+            typeof(MenuItemOpenDlg),
+            new PropertyMetadata(OnSettingChanged));
+
+        protected static void OnSettingChanged(DependencyObject source,
+                                               DependencyPropertyChangedEventArgs e)
+        {
+            MenuItemOpenDlg dlg = (MenuItemOpenDlg)source;
+            dlg.Dialog = (eDlgId)e.NewValue;
+        }
 
         public eDlgId Dialog
         {

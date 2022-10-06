@@ -38,6 +38,11 @@ namespace Keyrita
             mShowAnnotations.Setting = ShowAnnotationsSetting;
 
             mKeyboardControl.KeyboardState = SettingState.KeyboardSettings.KeyboardState;
+
+            // Menu item actions.
+            mFlipVertMenuItem.Action = SettingState.UserActions.ReflectActions[eKeyboardReflectDirection.Vertical];
+            mFlipHorzMenuItem.Action = SettingState.UserActions.ReflectActions[eKeyboardReflectDirection.Horizontal];
+            mFlipBothMenuItem.Action = SettingState.UserActions.ReflectActions[eKeyboardReflectDirection.Both];
         }
 
         private static void SystemParameters_StaticPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -64,10 +69,6 @@ namespace Keyrita
 
         private OnOffSetting ShowAnnotationsSetting =>
             SettingState.MeasurementSettings.ShowAnnotations as OnOffSetting;
-
-        private void MenuItem_Click(object sender, RoutedEventArgs e)
-        {
-        }
 
         protected void LoadSettings(object sender, RoutedEventArgs e)
         {

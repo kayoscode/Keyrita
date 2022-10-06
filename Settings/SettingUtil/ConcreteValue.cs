@@ -26,8 +26,9 @@ namespace Keyrita.Settings.SettingUtil
     {
         public ConcreteValueSetting(string settingName,
                              T defaultValue,
-                             eSettingAttributes attributes)
-            : base(settingName, attributes)
+                             eSettingAttributes attributes,
+                             Enum instance = null)
+            : base(settingName, attributes, instance)
         {
             mDefaultValue = defaultValue;
         }

@@ -85,7 +85,7 @@ namespace Keyrita.Settings.SettingUtil
         public string SettingName => mSettingName;
         private string mSettingName;
 
-        protected Enum Instance { get; private set; }
+        protected Enum SInstance { get; private set; }
 
         public void AddDependent(SettingBase setting)
         {
@@ -100,13 +100,13 @@ namespace Keyrita.Settings.SettingUtil
         /// <param name="attributes">Attributes affecting the behavior of the setting.</param>
         public SettingBase(string settingName,
             eSettingAttributes attributes,
-            Enum instance = null)
+            Enum sInstance = null)
         {
             mAttributes = attributes;
             mSettingName = settingName;
 
             SettingsSystem.RegisterSetting(this);
-            this.Instance = instance;
+            this.SInstance = sInstance;
         }
 
         /// <summary>
@@ -122,9 +122,9 @@ namespace Keyrita.Settings.SettingUtil
             // Strip setting name of all spaces.
             builder.Append(SettingName.Replace(" ", ""));
 
-            if(Instance != null)
+            if(SInstance != null)
             {
-                builder.Append($".{Instance}");
+                builder.Append($".{SInstance}");
             }
 
             return builder.ToString();

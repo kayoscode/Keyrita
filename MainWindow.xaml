@@ -25,8 +25,12 @@
             <MenuItem Header="_Redo"/>
             <Separator></Separator>
                 <MenuItem Header="Reflect">
-                    <MenuItem Header="Vertical"></MenuItem>
-                    <MenuItem Header="Horizontal"></MenuItem>
+                    <local:ButtonMenuItem Header="Vertical"
+                                          x:Name="mFlipVertMenuItem"/>
+                    <local:ButtonMenuItem Header="Horizontal"
+                                          x:Name="mFlipHorzMenuItem"/>
+                    <local:ButtonMenuItem Header="Both"
+                                          x:Name="mFlipBothMenuItem"/>
                 </MenuItem>
             <Separator></Separator>
             <local:MenuItemOpenDlg Header="Settings"

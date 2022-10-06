@@ -47,6 +47,26 @@ namespace Keyrita.Util
             return Array.Empty<Enum>();
         }
 
+        /// <summary>
+        /// Returns all the tokens given type parameter T.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static IEnumerable<T> GetTokens<T>()
+        {
+            if (typeof(T).IsEnum)
+            {
+                return Enum.GetValues(typeof(T)).OfType<T>();
+            }
+            else
+            {
+                LTrace.Assert(false, "Enum set can only be created on an enumeration type.");
+            }
+
+            // Never going to return null.
+            return Array.Empty<T>();
+        }
+
         private static UIDataAttribute CacheUIText(this Enum token)
         {
             var type = token.GetType();

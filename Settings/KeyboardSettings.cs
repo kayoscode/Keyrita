@@ -237,7 +237,7 @@ namespace Keyrita.Settings
     /// </summary>
     public class RowHorizontalOffsetSetting : ConcreteValueSetting<double>
     {
-        protected int rowIndex;
+        protected int RowIndex;
         protected const double STANDARD_OFFSET_TOP = -.25;
         protected const double STANDARD_OFFSET_MIDDLE = 0;
         protected const double STANDARD_OFFSET_BOTTOM = .5;
@@ -253,7 +253,7 @@ namespace Keyrita.Settings
         {
             LTrace.Assert(rowIndex < 3, "Only three rows supported");
 
-            this.rowIndex = rowIndex;
+            this.RowIndex = rowIndex;
             mDefaultValue = STANDARD_ROW_OFFSETS[rowIndex];
         }
 
@@ -270,7 +270,7 @@ namespace Keyrita.Settings
             }
             else
             {
-                mLimitValue = STANDARD_ROW_OFFSETS[rowIndex];
+                mLimitValue = STANDARD_ROW_OFFSETS[RowIndex];
             }
         }
     }
@@ -339,6 +339,45 @@ namespace Keyrita.Settings
 
         public override bool HasValue => mKeyboardState != null;
         protected override bool ValueHasChanged => BoardsMatch(mPendingKeyboardState, mKeyboardState) > 0;
+
+        #region Public manipulation interface
+
+        /// <summary>
+        /// Reflects the keyboard state along the x axis.
+        /// </summary>
+        public void ReflectHorz()
+        {
+            for (int i = 0; i < ROWS; i++)
+            {
+                for (int j = 0; j < COLS / 2; j++)
+                {
+                    var reflectJ = COLS - j - 1;
+
+                    mPendingKeyboardState[i, reflectJ] = mKeyboardState[i, j];
+                    mPendingKeyboardState[i, j] = mKeyboardState[i, reflectJ];
+                }
+            }
+
+            TrySetToPending();
+        }
+
+        public void ReflectVert()
+        {
+            for (int i = 0; i < ROWS / 2; i++)
+            {
+                for (int j = 0; j < COLS; j++)
+                {
+                    var reflectI = ROWS - i - 1;
+
+                    mPendingKeyboardState[reflectI, j] = mKeyboardState[i, j];
+                    mPendingKeyboardState[i, j] = mKeyboardState[reflectI, j];
+                }
+            }
+
+            TrySetToPending();
+        }
+
+        #endregion
 
         protected override void Load(string text)
         {
