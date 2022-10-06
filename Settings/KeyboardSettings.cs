@@ -336,6 +336,7 @@ namespace Keyrita.Settings
         protected char[,] mKeyboardState = new char[ROWS, COLS];
         protected char[,] mNewKeyboardState = new char[ROWS, COLS];
         protected char[,] mPendingKeyboardState = new char[ROWS, COLS];
+        protected char[,] mDesiredKeyboardState = new char[ROWS, COLS];
 
         public override bool HasValue => mKeyboardState != null;
         protected override bool ValueHasChanged => BoardsMatch(mPendingKeyboardState, mKeyboardState) > 0;
@@ -392,7 +393,7 @@ namespace Keyrita.Settings
 
                 if(TextSerializers.TryParse(s, out char nextCharacter))
                 {
-                    mPendingKeyboardState[row, col] = nextCharacter;
+                    mDesiredKeyboardState[row, col] = nextCharacter;
                 }
 
                 index++;
@@ -467,6 +468,15 @@ namespace Keyrita.Settings
         }
 
         /// <summary>
+        /// Sets the keyboard layout to desired.
+        /// </summary>
+        public override void SetToDesiredValue()
+        {
+            CopyBoard(mPendingKeyboardState, mDesiredKeyboardState);
+            TrySetToPending();
+        }
+
+        /// <summary>
         /// Sets to the default: qwerty.
         /// </summary>
         protected override void SetToDefault()
@@ -483,7 +493,7 @@ namespace Keyrita.Settings
             {
                 for (int j = 0; j < COLS; j++)
                 {
-                    mPendingKeyboardState[i, j] = chars[strIndex++];
+                    mDesiredKeyboardState[i, j] = chars[strIndex++];
                 }
             }
         }

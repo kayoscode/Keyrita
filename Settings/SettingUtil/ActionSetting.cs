@@ -34,6 +34,11 @@ namespace Keyrita.Settings.SettingUtil
         public override bool HasValue => false;
         protected override bool ValueHasChanged => PendingValue != Value;
 
+        public override void SetToDesiredValue()
+        {
+            // Do nothing, no state.
+        }
+
         protected override sealed void Load(string text)
         {
             // Do nothing, there's no state.

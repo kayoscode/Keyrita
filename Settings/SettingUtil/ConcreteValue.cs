@@ -24,7 +24,7 @@ namespace Keyrita.Settings.SettingUtil
     /// </summary>
     public abstract class ConcreteValueSetting<T> : SettingBase, IConcreteValue<T>
     {
-        public ConcreteValueSetting(string settingName,
+        protected ConcreteValueSetting(string settingName,
                              T defaultValue,
                              eSettingAttributes attributes,
                              Enum instance = null)
@@ -38,6 +38,8 @@ namespace Keyrita.Settings.SettingUtil
         public T Value => mValue;
         protected T mValue;
 
+        protected T DesiredValue { get; set; }
+
         public virtual T DefaultValue => mDefaultValue;
         protected T mDefaultValue;
 
@@ -50,8 +52,7 @@ namespace Keyrita.Settings.SettingUtil
         {
             if(TextSerializers.TryParse(text, out T value)) 
             {
-                mPendingValue = value;
-                TrySetToPending();
+                DesiredValue = value;
             }
         }
 
@@ -73,10 +74,16 @@ namespace Keyrita.Settings.SettingUtil
         {
         }
 
+        public override void SetToDesiredValue()
+        {
+            mPendingValue = DesiredValue;
+            TrySetToPending();
+        }
+
         protected override void SetToDefault()
         {
-            mPendingValue = mDefaultValue;
-            TrySetToPending();
+            DesiredValue = mPendingValue;
+            SetToDesiredValue();
         }
 
         protected override void SetToNewLimits()

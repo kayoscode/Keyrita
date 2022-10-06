@@ -159,11 +159,16 @@ namespace Keyrita.Settings
         {
         }
 
+        public override void SetToDesiredValue()
+        {
+            PendingValue = DesiredValue;
+            TrySetToPending();
+        }
+
         protected override void SetToDefault()
         {
-            PendingValue = DefaultValue;
             DesiredValue = DefaultValue;
-            TrySetToPending();
+            SetToDesiredValue();
         }
 
         protected override void SetToNewLimits()

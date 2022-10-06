@@ -1,4 +1,5 @@
-﻿using Keyrita.Util;
+﻿using System;
+using Keyrita.Util;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
@@ -56,6 +57,12 @@ namespace Keyrita.Settings.SettingUtil
                         settingToload.LoadFromfile(setting.InnerText);
                     }
                 }
+
+                // In graph order, set each setting to the loaded value.
+                OperateInGraphOrder((setting) =>
+                {
+                    setting.SetToDesiredValue();
+                });
             }
             else
             {
@@ -102,22 +109,32 @@ namespace Keyrita.Settings.SettingUtil
             // Starting with the lowest dependents, resolve first value
             // Check for circular dependencies.
             checkedSettings.Clear();
+            OperateInGraphOrder((setting) =>
+            {
+                setting.FinalizeSetting();
+            });
 
+            Finalized = true;
+        }
+
+        private delegate void GraphOrderOperation(SettingBase setting);
+
+        private static void OperateInGraphOrder(GraphOrderOperation operation)
+        {
             Dictionary<SettingBase, bool> resolvedDependents = new();
             Dictionary<SettingBase, bool> resolvedDependencies = new();
 
             foreach (SettingBase setting in mSettings)
             {
                 // Make sure all the dependent settings are resolved before we initialize this one.
-                ResolveDependents(setting, resolvedDependents);
+                ResolveDependents(setting, resolvedDependents, operation);
                 ResolveDependencies(setting, resolvedDependencies);
             }
-
-            Finalized = true;
         }
 
         private static void ResolveDependents(SettingBase setting,
-            Dictionary<SettingBase, bool> checkedSettings)
+            Dictionary<SettingBase, bool> checkedSettings,
+            GraphOrderOperation operation)
         {
             if (checkedSettings.TryGetValue(setting, out bool value))
             {
@@ -126,10 +143,17 @@ namespace Keyrita.Settings.SettingUtil
 
             foreach (SettingBase dependent in setting.Dependents)
             {
-                ResolveDependents(dependent, checkedSettings);
+                ResolveDependents(dependent, checkedSettings, operation);
             }
 
-            setting.FinalizeSetting();
+            try
+            {
+                operation(setting);
+            }
+            catch(Exception)
+            {
+                LTrace.Assert(false, "An error occurred in graph order execution.");
+            }
 
             checkedSettings[setting] = true;
         }

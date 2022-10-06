@@ -47,6 +47,8 @@ namespace Keyrita.Settings.SettingUtil
         protected ISet<T> mPendingAdditions = new HashSet<T>();
         protected ISet<T> mPendingRemovals = new HashSet<T>();
 
+        protected ISet<T> mDesiredValue = new HashSet<T>();
+
         /// <summary>
         /// Object which should be filled when setting to new limits.
         /// </summary>
@@ -71,18 +73,15 @@ namespace Keyrita.Settings.SettingUtil
         protected override void Load(string text)
         {
             string[] set = text.Split(" ");
-            var newElements = new HashSet<T>();
+            mDesiredValue.Clear();
 
             foreach (string character in set)
             {
                 if (TextSerializers.TryParse(character, out T loadedChar))
                 {
-                    newElements.Add(loadedChar);
+                    mDesiredValue.Add(loadedChar);
                 }
             }
-
-            SetupPendingState(newElements);
-            TrySetToPending();
         }
 
         protected override void Save(XmlWriter writer)
@@ -131,10 +130,22 @@ namespace Keyrita.Settings.SettingUtil
             TrySetToPending();
         }
 
+        public override void SetToDesiredValue()
+        {
+            SetupPendingState(mDesiredValue);
+            TrySetToPending();
+        }
+
         protected override void SetToDefault()
         {
-            SetupPendingState(mDefaultCollection);
-            TrySetToPending();
+            mDesiredValue.Clear();
+
+            foreach(T value in DefaultCollection)
+            {
+                mDesiredValue.Add(value);
+            }
+
+            SetToDesiredValue();
         }
 
         /// <summary>

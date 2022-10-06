@@ -200,6 +200,11 @@ namespace Keyrita.Settings.SettingUtil
         protected abstract bool ValueHasChanged { get; }
 
         /// <summary>
+        /// Whatever the user wants the setting to be, set it to that.
+        /// </summary>
+        public abstract void SetToDesiredValue();
+
+        /// <summary>
         /// After the limits have been modified, we have to adjust
         /// the setting value to fit those limits. A setting transaction should be called 
         /// when this occurs.
