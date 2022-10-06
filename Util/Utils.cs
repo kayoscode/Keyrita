@@ -1,15 +1,32 @@
 ﻿using Keyrita.Gui;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Keyrita.Util
 {
-    internal static class EnumUtils
+    internal static class Utils
     {
+        /// <summary>
+        /// From an enum name and value, returns the result parsed to an Enum.
+        /// </summary>
+        /// <param name="enumName"></param>
+        /// <param name="enumConst"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public static Enum GetEnumValue(string enumName, string enumConst)
+        {
+            Type enumType = Type.GetType(enumName);
+            if (enumType == null)
+            {
+                throw new ArgumentException("Specified enum type could not be found", "enumName");
+            }
+
+            Enum value = Enum.Parse(enumType, enumConst) as Enum;
+            return value;
+        }
+
         /// <summary>
         /// Returns all the tokens in an enumeration as an enumerable object.
         /// </summary>
@@ -37,7 +54,7 @@ namespace Keyrita.Util
             var attributes = memInfo[0].GetCustomAttributes(typeof(UIDataAttribute), false);
             var data = (attributes.Length > 0) ? (UIDataAttribute)attributes[0] : null;
 
-            if(data == null)
+            if (data == null)
             {
                 return null;
             }
@@ -48,7 +65,7 @@ namespace Keyrita.Util
 
         public static string UIText(this Enum token)
         {
-            if(mCachedUIData.TryGetValue(token, out UIDataAttribute uiData))
+            if (mCachedUIData.TryGetValue(token, out UIDataAttribute uiData))
             {
                 return uiData.UIText;
             }
@@ -59,7 +76,7 @@ namespace Keyrita.Util
 
         public static string UIAbbreviation(this Enum token)
         {
-            if(mCachedUIData.TryGetValue(token, out UIDataAttribute uiData))
+            if (mCachedUIData.TryGetValue(token, out UIDataAttribute uiData))
             {
                 return uiData.Abbreviation;
             }

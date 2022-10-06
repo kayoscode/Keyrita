@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Keyrita.Serialization;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using System.Xml;
 
 namespace Keyrita.Settings.SettingUtil
 {
@@ -20,7 +22,7 @@ namespace Keyrita.Settings.SettingUtil
     /// <summary>
     /// A setting holding a set of data.
     /// </summary>
-    public abstract class ElementSetSetting : SettingBase, ICollectionSetting<object>
+    public abstract class ElementSetSetting<T> : SettingBase, ICollectionSetting<T>
     {
         /// <summary>
         /// Standard constructor.
@@ -35,29 +37,29 @@ namespace Keyrita.Settings.SettingUtil
         public override bool HasValue => Collection != null;
         protected override bool ValueHasChanged => mPendingAdditions.Count() > 0 || mPendingRemovals.Count() > 0;
 
-        public IEnumerable<object> Collection => mCollection;
-        protected ISet<object> mCollection = new HashSet<object>();
-        public IEnumerable<object> DefaultCollection => mDefaultCollection;
-        protected ISet<object> mDefaultCollection = new HashSet<object>();
+        public IEnumerable<T> Collection => mCollection;
+        protected ISet<T> mCollection = new HashSet<T>();
+        public IEnumerable<T> DefaultCollection => mDefaultCollection;
+        protected ISet<T> mDefaultCollection = new HashSet<T>();
 
         // Items which will be added to the set should go here.
-        protected ISet<object> mPendingAdditions = new HashSet<object>();
-        protected ISet<object> mPendingRemovals = new HashSet<object>();
+        protected ISet<T> mPendingAdditions = new HashSet<T>();
+        protected ISet<T> mPendingRemovals = new HashSet<T>();
 
         /// <summary>
         /// Object which should be filled when setting to new limits.
         /// </summary>
-        protected ISet<object> mNewLimits = new HashSet<object>();
+        protected ISet<T> mNewLimits = new HashSet<T>();
 
         #region Public manipulation interface
 
-        public void AddElement(object element)
+        public void AddElement(T element)
         {
             mPendingAdditions.Add(element);
             TrySetToPending();
         }
 
-        public void RemoveElement(object element)
+        public void RemoveElement(T element)
         {
             mPendingRemovals.Add(element);
             TrySetToPending();
@@ -65,12 +67,37 @@ namespace Keyrita.Settings.SettingUtil
 
         #endregion
 
-        public override void Load()
+        protected override void Load(string text)
         {
+            string[] set = text.Split(" ");
+            var newElements = new HashSet<T>();
+
+            foreach (string character in set)
+            {
+                if (TextSerializers.TryParse(character, out T loadedChar))
+                {
+                    newElements.Add(loadedChar);
+                }
+            }
+
+            SetupPendingState(newElements);
+            TrySetToPending();
         }
 
-        public override void Save()
+        protected override void Save(XmlWriter writer)
         {
+            // Convert the enum value to a string and write it to the stream writer.
+            string uniqueName = this.GetSettingUniqueId();
+
+            writer.WriteStartElement(uniqueName);
+
+            foreach(T element in Collection)
+            {
+                writer.WriteString(TextSerializers.ToText(element));
+                writer.WriteString(" ");
+            }
+
+            writer.WriteEndElement();
         }
 
         protected override void Action()
@@ -89,7 +116,7 @@ namespace Keyrita.Settings.SettingUtil
         /// collection of items.
         /// </summary>
         /// <param name="newLimits"></param>
-        protected virtual void ChangeLimits(ISet<object> newLimits)
+        protected virtual void ChangeLimits(ISet<T> newLimits)
         {
         }
 
@@ -113,10 +140,10 @@ namespace Keyrita.Settings.SettingUtil
         /// Sets pending to remove items that aren't in the new set and to add items that are.
         /// </summary>
         /// <param name="newValue"></param>
-        public void SetupPendingState(ISet<object> newValue)
+        public void SetupPendingState(ISet<T> newValue)
         {
             // Remove every element that's not in the new collection, and add the ones that aren't there.
-            foreach (var nextItem in mNewLimits)
+            foreach (var nextItem in newValue)
             {
                 if (!mCollection.Contains(nextItem))
                 {
@@ -126,7 +153,7 @@ namespace Keyrita.Settings.SettingUtil
 
             foreach (var nextItem in mCollection)
             {
-                if (!mNewLimits.Contains(nextItem))
+                if (!newValue.Contains(nextItem))
                 {
                     mPendingRemovals.Add(nextItem);
                 }
@@ -168,31 +195,6 @@ namespace Keyrita.Settings.SettingUtil
                     mPendingRemovals.Clear();
                 });
             }
-        }
-    }
-
-    /// <summary>
-    /// Forces each element in the collection setting to be the same type.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public abstract class ElementSetSetting<T> : ElementSetSetting, ICollectionSetting<T>
-    {
-        public ElementSetSetting(string settingName, eSettingAttributes attributes)
-            : base(settingName, attributes)
-        {
-        }
-
-        IEnumerable<T> ICollectionSetting<T>.Collection => Collection.Cast<T>();
-        IEnumerable<T> ICollectionSetting<T>.DefaultCollection => DefaultCollection.Cast<T>();
-
-        public void AddElement(T element)
-        {
-            base.AddElement(element);
-        }
-
-        public void RemoveElement(T element)
-        {
-            base.RemoveElement(element);
         }
     }
 }

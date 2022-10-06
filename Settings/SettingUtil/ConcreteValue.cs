@@ -1,9 +1,11 @@
-﻿using System;
+﻿using Keyrita.Serialization;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace Keyrita.Settings.SettingUtil
 {
@@ -18,12 +20,12 @@ namespace Keyrita.Settings.SettingUtil
     }
 
     /// <summary>
-    /// Setting storing a concrete value with an object type.
+    /// Setting storing a concrete value with an T type.
     /// </summary>
-    public abstract class ConcreteValueSetting : SettingBase, IConcreteValue<object>
+    public abstract class ConcreteValueSetting<T> : SettingBase, IConcreteValue<T>
     {
         public ConcreteValueSetting(string settingName,
-                             object defaultValue,
+                             T defaultValue,
                              eSettingAttributes attributes)
             : base(settingName, attributes)
         {
@@ -32,23 +34,34 @@ namespace Keyrita.Settings.SettingUtil
 
         public override bool HasValue => Value != null;
 
-        public object Value => mValue;
-        protected object mValue;
+        public T Value => mValue;
+        protected T mValue;
 
-        public virtual object DefaultValue => mDefaultValue;
-        protected object mDefaultValue;
+        public virtual T DefaultValue => mDefaultValue;
+        protected T mDefaultValue;
 
-        protected object mPendingValue;
-        protected object mLimitValue;
+        protected T mPendingValue;
+        protected T mLimitValue;
 
         protected override bool ValueHasChanged => !Equals(mPendingValue, Value);
 
-        public override void Load()
+        protected override void Load(string text)
         {
+            if(TextSerializers.TryParse(text, out T value)) 
+            {
+                mPendingValue = value;
+                TrySetToPending();
+            }
         }
 
-        public override void Save()
+        protected override void Save(XmlWriter writer)
         {
+            // Convert the enum value to a string and write it to the stream writer.
+            string uniqueName = this.GetSettingUniqueId();
+
+            writer.WriteStartElement(uniqueName);
+            writer.WriteString(TextSerializers.ToText(Value));
+            writer.WriteEndElement();
         }
 
         protected override void Action()
@@ -90,21 +103,5 @@ namespace Keyrita.Settings.SettingUtil
                 });
             }
         }
-    }
-
-    /// <summary>
-    /// Stores a concrete value with a generic type.
-    /// Please don't set the underlying data to the incorrect data type. it wont end well.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public abstract class ConcreteValueSetting<T> : ConcreteValueSetting, IConcreteValue<T>
-    {
-        public ConcreteValueSetting(string settingName, T defaultValue, eSettingAttributes attributes)
-            : base(settingName, defaultValue, attributes)
-        {
-        }
-
-        T IConcreteValue<T>.Value => (T)Value;
-        T IConcreteValue<T>.DefaultValue => (T)base.DefaultValue;
     }
 }

@@ -1,23 +1,78 @@
-﻿using Keyrita.Gui;
-using Keyrita.Util;
-using System;
+﻿using Keyrita.Util;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
+using System.Xml;
 
 namespace Keyrita.Settings.SettingUtil
 {
     public static class SettingsSystem
     {
-        private static List<SettingBase> mSettings { get; set; } = new List<SettingBase>();
+        private static List<SettingBase> mSettings { get; } = new List<SettingBase>();
+        private static Dictionary<string, SettingBase> mSettingsByUid { get; } = new();
+
         private static bool Finalized { get; set; } = false;
+
+        private static readonly string SettingXMLNode = "Settings";
+
+        /// <summary>
+        /// Saves all settings to an XML file.
+        /// </summary>
+        /// <param name="fileStream"></param>
+        public static void SaveSettings(XmlWriter xmlWriter)
+        {
+            if (Finalized)
+            {
+                xmlWriter.WriteStartDocument();
+                xmlWriter.WriteStartElement(SettingXMLNode);
+
+                // Allow each setting to write to the file.
+                foreach(SettingBase setting in mSettings)
+                {
+                    setting.SaveToFile(xmlWriter);
+                }
+
+                xmlWriter.WriteEndElement();
+                xmlWriter.WriteEndDocument();
+            }
+            else
+            {
+                LTrace.Assert(false, "Settings system must be initialized before saving");
+            }
+        }
+
+        public static void LoadSettings(XmlDocument xmlReader)
+        {
+            if (Finalized)
+            {
+                XmlNode settingNode = xmlReader.SelectSingleNode(SettingXMLNode);
+                XmlNodeList settings = settingNode.ChildNodes;
+
+                foreach(XmlNode setting in settings)
+                {
+                    var uid = setting.Name;
+
+                    if(mSettingsByUid.TryGetValue(uid, out SettingBase settingToload))
+                    {
+                        settingToload.LoadFromfile(setting.InnerText);
+                    }
+                }
+            }
+            else
+            {
+                LTrace.Assert(false, "Settings system must be initialized before loading");
+            }
+        }
 
         public static void RegisterSetting(SettingBase setting)
         {
             if (!Finalized)
             {
                 mSettings.Add(setting);
+
+                string uid = setting.GetSettingUniqueId();
+
+                LTrace.Assert(!mSettingsByUid.ContainsKey(uid), $"Two settings share the same UID: {uid}");
+                mSettingsByUid[uid] = setting;
             }
             else
             {

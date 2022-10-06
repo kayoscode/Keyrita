@@ -1,6 +1,8 @@
 ﻿using Keyrita.Util;
 using System;
 using System.Collections.Generic;
+using System.Text;
+using System.Xml;
 
 namespace Keyrita.Settings.SettingUtil
 {
@@ -83,6 +85,8 @@ namespace Keyrita.Settings.SettingUtil
         public string SettingName => mSettingName;
         private string mSettingName;
 
+        protected Enum Instance { get; private set; }
+
         public void AddDependent(SettingBase setting)
         {
             mDependents.Add(setting);
@@ -95,12 +99,35 @@ namespace Keyrita.Settings.SettingUtil
         /// <param name="settingName">The name of the setting for logs.</param>
         /// <param name="attributes">Attributes affecting the behavior of the setting.</param>
         public SettingBase(string settingName,
-            eSettingAttributes attributes)
+            eSettingAttributes attributes,
+            Enum instance = null)
         {
             mAttributes = attributes;
             mSettingName = settingName;
 
             SettingsSystem.RegisterSetting(this);
+            this.Instance = instance;
+        }
+
+        /// <summary>
+        /// Returns an identifier unique to this setting. This is verified
+        /// to be unique by the setting system.
+        /// </summary>
+        /// <returns></returns>
+        public virtual string GetSettingUniqueId()
+        {
+            // Return the setting name stripped of all spaces, followed by .instance.
+            StringBuilder builder = new();
+
+            // Strip setting name of all spaces.
+            builder.Append(SettingName.Replace(" ", ""));
+
+            if(Instance != null)
+            {
+                builder.Append($".{Instance}");
+            }
+
+            return builder.ToString();
         }
 
         public abstract bool HasValue { get; }
@@ -140,15 +167,32 @@ namespace Keyrita.Settings.SettingUtil
         /// </summary>
         protected abstract void Action();
 
+        public void SaveToFile(XmlWriter writer)
+        {
+            if(mAttributes.HasFlag(eSettingAttributes.Recall))
+            {
+                Save(writer);
+            }
+        }
+
+        public void LoadFromfile(string text)
+        {
+            if (mAttributes.HasFlag(eSettingAttributes.Recall))
+            {
+                Load(text);
+            }
+        }
+
         /// <summary>
         /// Writes the data for this setting to the file.
         /// </summary>
-        public abstract void Save();
+        protected abstract void Save(XmlWriter writer);
 
         /// <summary>
         /// Consumes text and fills the proper value from the input.
+        /// Note: the value should never be loaded directly into the value part of the setting.
         /// </summary>
-        public abstract void Load();
+        protected abstract void Load(string text);
 
         /// <summary>
         /// True if the value has been modified.

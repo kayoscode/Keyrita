@@ -21,7 +21,7 @@ namespace Keyrita.Settings.SettingUtil
         public EnumValueSetting KeyboardLanguage { get; } =
             new KeyboardLanguageSetting();
 
-        public ElementSetSetting AvailableCharSet { get; } =
+        public ElementSetSetting<char> AvailableCharSet { get; } =
             new CharacterSetSetting();
 
         public KeyboardStateSetting KeyboardState { get; } =
@@ -99,7 +99,7 @@ namespace Keyrita.Settings.SettingUtil
             // Selected measurement.
 
             // Create the settings which open dialogs.
-            IEnumerable<Enum> allDialogs = EnumUtils.GetTokens(typeof(eDlgId));
+            IEnumerable<Enum> allDialogs = Utils.GetTokens(typeof(eDlgId));
             foreach(eDlgId dialog in allDialogs)
             {
                 mOpenDialogSettings[dialog] = new OpenDlgSetting(dialog);

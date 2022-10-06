@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Effects;
+using System.Xml;
 
 namespace Keyrita.Settings.SettingUtil
 {
@@ -28,12 +29,14 @@ namespace Keyrita.Settings.SettingUtil
         public override bool HasValue => false;
         protected override bool ValueHasChanged => PendingValue != Value;
 
-        public override sealed void Load()
+        protected override sealed void Load(string text)
         {
+            // Do nothing, there's no state.
         }
 
-        public override sealed void Save()
+        protected override sealed void Save(XmlWriter writer)
         {
+            // Do nothing, there's no state.
         }
 
         /// <summary>

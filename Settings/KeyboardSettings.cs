@@ -1,8 +1,10 @@
 ﻿using Keyrita.Gui;
+using Keyrita.Serialization;
 using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
 using System;
 using System.Collections.Generic;
+using System.Xml;
 
 namespace Keyrita.Settings
 {
@@ -72,7 +74,7 @@ namespace Keyrita.Settings
     public class AnalysisEnabledSetting : OnOffSetting
     {
         public AnalysisEnabledSetting() 
-            : base("Analysis Enabled", eOnOff.On, eSettingAttributes.None)
+            : base("Analysis Enabled", eOnOff.On, eSettingAttributes.Recall)
         {
         }
 
@@ -166,7 +168,7 @@ namespace Keyrita.Settings
     public class KeyboardShapeSetting : EnumValueSetting<eKeyboardShape>
     {
         public KeyboardShapeSetting()
-            : base("Keyboard Shape", eKeyboardShape.ANSI, eSettingAttributes.None)
+            : base("Keyboard Shape", eKeyboardShape.ANSI, eSettingAttributes.Recall)
         {
         }
 
@@ -203,7 +205,7 @@ namespace Keyrita.Settings
     public class KeyboardDisplaySetting : EnumValueSetting<eKeyboardDisplay>
     {
         public KeyboardDisplaySetting()
-            : base("Keyboard View", eKeyboardDisplay.StandardView, eSettingAttributes.None)
+            : base("Keyboard View", eKeyboardDisplay.StandardView, eSettingAttributes.Recall)
         {
         }
     }
@@ -214,7 +216,7 @@ namespace Keyrita.Settings
     public class KeyboardShowAnnotationsSetting : OnOffSetting
     {
         public KeyboardShowAnnotationsSetting() : 
-            base("Show Annotations", eOnOff.Off, eSettingAttributes.None)
+            base("Show Annotations", eOnOff.Off, eSettingAttributes.Recall)
         {
         }
     }
@@ -225,7 +227,7 @@ namespace Keyrita.Settings
     public class KeyboardLanguageSetting : EnumValueSetting<eLang>
     {
         public KeyboardLanguageSetting() : 
-            base("Language", eLang.English, eSettingAttributes.None)
+            base("Language", eLang.English, eSettingAttributes.Recall)
         {
         }
     }
@@ -282,7 +284,7 @@ namespace Keyrita.Settings
         private string EnglishUKCharSet = "qwertyuiopasdfghjkl;zxcvbnm,./'";
 
         public CharacterSetSetting() 
-            : base("Available Character Set", eSettingAttributes.None)
+            : base("Available Character Set", eSettingAttributes.Recall)
         {
             // Default should just be english.
             foreach (char ch in EnglishCharSet)
@@ -296,7 +298,7 @@ namespace Keyrita.Settings
             SettingState.KeyboardSettings.KeyboardLanguage.AddDependent(this);
         }
 
-        protected override void ChangeLimits(ISet<object> newLimits)
+        protected override void ChangeLimits(ISet<char> newLimits)
         {
             switch (SettingState.KeyboardSettings.KeyboardLanguage.Value)
             {
@@ -327,7 +329,7 @@ namespace Keyrita.Settings
         public const int COLS = 10;
 
         public KeyboardStateSetting() : 
-            base("Keyboard State", eSettingAttributes.None)
+            base("Keyboard State", eSettingAttributes.Recall)
         {
         }
 
@@ -338,12 +340,44 @@ namespace Keyrita.Settings
         public override bool HasValue => mKeyboardState != null;
         protected override bool ValueHasChanged => BoardsMatch(mPendingKeyboardState, mKeyboardState) > 0;
 
-        public override void Load()
+        protected override void Load(string text)
         {
+            string[] layout = text.Split(" ");
+
+            int index = 0;
+
+            foreach(string s in layout)
+            {
+                int row = index / 10;
+                int col = index % 10;
+
+                if(TextSerializers.TryParse(s, out char nextCharacter))
+                {
+                    mPendingKeyboardState[row, col] = nextCharacter;
+                }
+
+                index++;
+            }
+
+            TrySetToPending();
         }
 
-        public override void Save()
+        protected override void Save(XmlWriter writer)
         {
+            // Convert the enum value to a string and write it to the stream writer.
+            string uniqueName = this.GetSettingUniqueId();
+            writer.WriteStartElement(uniqueName);
+
+            for(int i = 0; i < ROWS; i++)
+            {
+                for(int j = 0; j < COLS; j++)
+                {
+                    writer.WriteString(TextSerializers.ToText(mKeyboardState[i, j]));
+                    writer.WriteString(" ");
+                }
+            }
+
+            writer.WriteEndElement();
         }
 
         protected override void Action()

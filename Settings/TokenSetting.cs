@@ -1,4 +1,5 @@
 ﻿using Keyrita.Gui;
+using Keyrita.Serialization;
 using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
 using System;
@@ -9,7 +10,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Navigation;
+using System.Xml;
 
 namespace Keyrita.Settings
 {
@@ -128,14 +131,24 @@ namespace Keyrita.Settings
             return -1;
         }
 
-        public override void Load()
+        protected override void Load(string text)
         {
-            throw new NotImplementedException();
+            if(TextSerializers.TryParse(text, out Enum loadedValue))
+            {
+                DesiredValue = loadedValue;
+                PendingValue = loadedValue;
+                TrySetToPending();
+            }
         }
 
-        public override void Save()
+        protected override void Save(XmlWriter writer)
         {
-            throw new NotImplementedException();
+            // Convert the enum value to a string and write it to the stream writer.
+            string uniqueName = this.GetSettingUniqueId();
+
+            writer.WriteStartElement(uniqueName);
+            writer.WriteString(TextSerializers.ToText(Value));
+            writer.WriteEndElement();
         }
 
         protected override void Action()
@@ -206,7 +219,7 @@ namespace Keyrita.Settings
         {
             mValidTokens.Clear();
 
-            foreach (TEnum token in EnumUtils.GetTokens(typeof(TEnum)))
+            foreach (TEnum token in Utils.GetTokens(typeof(TEnum)))
             {
                 mValidTokens.Add(token);
             }

@@ -14,8 +14,10 @@
             FlowDirection="LeftToRight">
          <MenuItem Header="File">
             <MenuItem Header="_New" />
-            <MenuItem Header="_Open" />
-            <MenuItem Header="_Save" />
+            <MenuItem Header="_Open"
+                      Click="LoadSettings"/>
+            <MenuItem Header="_Save"
+                      Click="SaveSettings"/>
          </MenuItem>
          <MenuItem Header="Edit">
             <MenuItem Header="_Undo"/>
