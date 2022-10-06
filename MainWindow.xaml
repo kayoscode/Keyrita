@@ -11,7 +11,8 @@
                            MinHeight="900">
    <DockPanel>
       <Menu DockPanel.Dock="Top"
-            FlowDirection="LeftToRight">
+            FlowDirection="LeftToRight"
+            IsMainMenu="True">
          <MenuItem Header="File">
             <MenuItem Header="_New" />
             <MenuItem Header="_Open"
@@ -22,6 +23,11 @@
          <MenuItem Header="Edit">
             <MenuItem Header="_Undo"/>
             <MenuItem Header="_Redo"/>
+            <Separator></Separator>
+                <MenuItem Header="Reflect">
+                    <MenuItem Header="Vertical"></MenuItem>
+                    <MenuItem Header="Horizontal"></MenuItem>
+                </MenuItem>
             <Separator></Separator>
             <local:MenuItemOpenDlg Header="Settings"
                                    Dialog="{Binding Path=eDlgId.SettingsDlg}"/>

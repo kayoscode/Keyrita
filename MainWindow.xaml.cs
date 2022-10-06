@@ -3,7 +3,9 @@ using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
 using Microsoft.Win32;
 using System;
+using System.ComponentModel;
 using System.IO;
+using System.Reflection;
 using System.Windows;
 using System.Xml;
 
@@ -14,6 +16,18 @@ namespace Keyrita
     /// </summary>
     public partial class MainWindow : Window
     {
+        private static FieldInfo MenuDropAlignmentField;
+
+        static MainWindow()
+        {
+            MenuDropAlignmentField = typeof(SystemParameters).GetField("_menuDropAlignment", 
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+            LTrace.Assert(MenuDropAlignmentField != null, "_menuDropAlignment item not found");
+
+            EnsureStandardPopupAlignment();
+            SystemParameters.StaticPropertyChanged += SystemParameters_StaticPropertyChanged;
+        }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -26,6 +40,19 @@ namespace Keyrita
             mKeyboardControl.KeyboardState = SettingState.KeyboardSettings.KeyboardState;
         }
 
+        private static void SystemParameters_StaticPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            EnsureStandardPopupAlignment();
+        }
+
+        private static void EnsureStandardPopupAlignment()
+        {
+            if (SystemParameters.MenuDropAlignment && MenuDropAlignmentField != null)
+            {
+                MenuDropAlignmentField.SetValue(null, false);
+            }
+        }
+
         private EnumValueSetting KeyboardDisplaySetting =>
             SettingState.KeyboardSettings.KeyboardDisplay as EnumValueSetting;
 
@@ -34,7 +61,7 @@ namespace Keyrita
 
         private EnumValueSetting LanguageSetting =>
             SettingState.KeyboardSettings.KeyboardLanguage as EnumValueSetting;
-        
+
         private OnOffSetting ShowAnnotationsSetting =>
             SettingState.MeasurementSettings.ShowAnnotations as OnOffSetting;
 
@@ -46,7 +73,7 @@ namespace Keyrita
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
 
-            if(openFileDialog.ShowDialog() == true)
+            if (openFileDialog.ShowDialog() == true)
             {
                 LTrace.LogInfo("Loading settings");
 
@@ -56,7 +83,7 @@ namespace Keyrita
                     xmlReader.Load(openFileDialog.FileName);
                     SettingsSystem.LoadSettings(xmlReader);
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     LTrace.Assert(false, "Failed to load file");
                 }
@@ -67,11 +94,11 @@ namespace Keyrita
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
 
-			if(saveFileDialog.ShowDialog() == true)
+            if (saveFileDialog.ShowDialog() == true)
             {
                 LTrace.LogInfo($"Saving settings to file {saveFileDialog.FileName}");
 
-                using (XmlWriter fileWriter = XmlWriter.Create(saveFileDialog.FileName, 
+                using (XmlWriter fileWriter = XmlWriter.Create(saveFileDialog.FileName,
                         new XmlWriterSettings { Indent = true }))
                 {
                     SettingsSystem.SaveSettings(fileWriter);
