@@ -1,11 +1,8 @@
 ﻿using Keyrita.Gui;
+using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Keyrita.Settings
 {
@@ -40,6 +37,127 @@ namespace Keyrita.Settings
         /// </summary>
         [UIData("Standard")]
         StandardView,
+    }
+
+    /// <summary>
+    /// Analyzes the keyboard when the keyboard's state changes, and the 
+    /// analyzer is running.
+    /// </summary>
+    public class KeyboardAnalysisAction : ActionSetting
+    {
+        public KeyboardAnalysisAction()
+            :base("Trigger Analysis")
+        {
+        }
+
+        protected override void SetDependencies()
+        {
+            SettingState.MeasurementSettings.AnalysisEnabled.AddDependent(this);
+            SettingState.KeyboardSettings.KeyboardState.AddDependent(this);
+        }
+
+        protected override void DoAction()
+        {
+            if(SettingState.MeasurementSettings.AnalysisEnabled.Value.Equals(eOnOff.On))
+            {
+                // Todo: Perform keyboard analysis.
+            }
+        }
+    }
+
+    /// <summary>
+    /// Whether the keyboard should be analyzed after a single change or not.
+    /// If off, analysis will not take place until this is turned on.
+    /// </summary>
+    public class AnalysisEnabledSetting : OnOffSetting
+    {
+        public AnalysisEnabledSetting() 
+            : base("Analysis Enabled", eOnOff.On, eSettingAttributes.None)
+        {
+        }
+
+        protected override void SetDependencies()
+        {
+            SettingState.KeyboardSettings.KeyboardValid.AddDependent(this);
+        }
+
+        protected override void ChangeLimits()
+        {
+            mValidTokens.Clear();
+
+            if (SettingState.KeyboardSettings.KeyboardValid.Value.Equals(eOnOff.On))
+            {
+                mValidTokens.Add(eOnOff.On);
+                mValidTokens.Add(eOnOff.Off);
+            }
+            else
+            {
+                mValidTokens.Add(eOnOff.Off);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Set to On if the keyboard state is valid. Meaning it only contains characters in the current language.
+    /// </summary>
+    public class KeyboardValidSetting : OnOffSetting
+    {
+        public KeyboardValidSetting()
+            : base("Keyboard Valid", eOnOff.Off, eSettingAttributes.None)
+        {
+        }
+
+        protected override void SetDependencies()
+        {
+            // We depend on the keyboard state, and the language.
+            SettingState.KeyboardSettings.AvailableCharSet.AddDependent(this);
+            SettingState.KeyboardSettings.KeyboardState.AddDependent(this);
+        }
+
+        /// <summary>
+        /// Scan the keyboard and see if we are valid.
+        /// </summary>
+        protected override void ChangeLimits()
+        {
+            mValidTokens.Clear();
+
+            // Scan the keyboard's active state and make sure that each character is in the current language set.
+            // And check that it has no repeat characters.
+            var characterSet = SettingState.KeyboardSettings.AvailableCharSet.Collection;
+
+            Dictionary<char, bool> charHasBeenUsed = new Dictionary<char, bool>();
+            foreach(char c in characterSet)
+            {
+                charHasBeenUsed[c] = false;
+            }
+
+            bool valid = true;
+            for(int i = 0; i < KeyboardStateSetting.ROWS; i++)
+            {
+                for(int j = 0; j < KeyboardStateSetting.COLS; j++)
+                {
+                    char character = SettingState.KeyboardSettings.KeyboardState.GetCharacterAt(i, j);
+
+                    if(charHasBeenUsed.TryGetValue(character, out bool used) && !used)
+                    {
+                        charHasBeenUsed[character] = true;
+                    }
+                    else
+                    {
+                        valid = false;
+                    }
+                }
+            }
+
+            if(valid)
+            {
+                mValidTokens.Add(eOnOff.On);
+            }
+            else
+            {
+                mValidTokens.Add(eOnOff.Off);
+            }
+        }
     }
 
     /// <summary>
@@ -129,7 +247,7 @@ namespace Keyrita.Settings
         };
 
         public RowHorizontalOffsetSetting(int rowIndex) 
-            : base("Row " + rowIndex + "Offset", 0.0, eSettingAttributes.None)
+            : base("Row " + rowIndex + " Offset", 0.0, eSettingAttributes.None)
         {
             LTrace.Assert(rowIndex < 3, "Only three rows supported");
 

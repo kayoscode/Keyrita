@@ -1,24 +1,19 @@
 ﻿using Keyrita.Settings;
 using Keyrita.Settings.SettingUtil;
-using System.Windows;
 
-namespace Keyrita
+namespace Keyrita.Gui.Dialogs
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for Settings.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class SettingsDialog : WindowBase
     {
-        public MainWindow()
+        public SettingsDialog()
         {
             InitializeComponent();
-
             mKeyboardDisplay.Setting = KeyboardDisplaySetting;
             mKeyboardShape.Setting = KeyboardShapeSetting;
             mLanguage.Setting = LanguageSetting;
-            mShowAnnotations.Setting = ShowAnnotationsSetting;
-
-            mKeyboardControl.KeyboardState = SettingState.KeyboardSettings.KeyboardState;
         }
 
         private EnumValueSetting KeyboardDisplaySetting =>
@@ -29,8 +24,5 @@ namespace Keyrita
 
         private EnumValueSetting LanguageSetting =>
             SettingState.KeyboardSettings.KeyboardLanguage as EnumValueSetting;
-        
-        private OnOffSetting ShowAnnotationsSetting =>
-            SettingState.MeasurementSettings.ShowAnnotations as OnOffSetting;
     }
 }

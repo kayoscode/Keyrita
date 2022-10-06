@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 
-namespace Keyrita.Settings
+namespace Keyrita.Settings.SettingUtil
 {
     /// <summary>
     /// Readonly interface to a collection
@@ -27,7 +27,7 @@ namespace Keyrita.Settings
         /// </summary>
         /// <param name="settingName"></param>
         /// <param name="attributes"></param>
-        public ElementSetSetting(string settingName, eSettingAttributes attributes) : 
+        public ElementSetSetting(string settingName, eSettingAttributes attributes) :
             base(settingName, attributes)
         {
         }
@@ -116,17 +116,17 @@ namespace Keyrita.Settings
         public void SetupPendingState(ISet<object> newValue)
         {
             // Remove every element that's not in the new collection, and add the ones that aren't there.
-            foreach(var nextItem in mNewLimits)
+            foreach (var nextItem in mNewLimits)
             {
-                if(!mCollection.Contains(nextItem))
+                if (!mCollection.Contains(nextItem))
                 {
                     mPendingAdditions.Add(nextItem);
                 }
             }
 
-            foreach(var nextItem in mCollection)
+            foreach (var nextItem in mCollection)
             {
-                if(!mNewLimits.Contains(nextItem))
+                if (!mNewLimits.Contains(nextItem))
                 {
                     mPendingRemovals.Add(nextItem);
                 }
@@ -141,7 +141,7 @@ namespace Keyrita.Settings
             if (mPendingRemovals.Count > 0 || mPendingAdditions.Count > 0)
             {
                 string description = "";
-                if(mPendingAdditions.Count > 0)
+                if (mPendingAdditions.Count > 0)
                 {
                     description += $"Adding {string.Join(" ", mPendingAdditions)} to collection. ";
                 }
@@ -177,13 +177,13 @@ namespace Keyrita.Settings
     /// <typeparam name="T"></typeparam>
     public abstract class ElementSetSetting<T> : ElementSetSetting, ICollectionSetting<T>
     {
-        public ElementSetSetting(string settingName, eSettingAttributes attributes) 
+        public ElementSetSetting(string settingName, eSettingAttributes attributes)
             : base(settingName, attributes)
         {
         }
 
-        IEnumerable<T> ICollectionSetting<T>.Collection => base.Collection.Cast<T>();
-        IEnumerable<T> ICollectionSetting<T>.DefaultCollection => base.DefaultCollection.Cast<T>();
+        IEnumerable<T> ICollectionSetting<T>.Collection => Collection.Cast<T>();
+        IEnumerable<T> ICollectionSetting<T>.DefaultCollection => DefaultCollection.Cast<T>();
 
         public void AddElement(T element)
         {

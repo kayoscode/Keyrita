@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Keyrita.Settings
+namespace Keyrita.Settings.SettingUtil
 {
     /// <summary>
     /// Readonly interface to a concrete value.
@@ -22,12 +22,12 @@ namespace Keyrita.Settings
     /// </summary>
     public abstract class ConcreteValueSetting : SettingBase, IConcreteValue<object>
     {
-        public ConcreteValueSetting(string settingName, 
+        public ConcreteValueSetting(string settingName,
                              object defaultValue,
                              eSettingAttributes attributes)
-            :base(settingName, attributes)
+            : base(settingName, attributes)
         {
-            this.mDefaultValue = DefaultValue;
+            mDefaultValue = DefaultValue;
         }
 
         public override bool HasValue => Value != null;
@@ -41,7 +41,7 @@ namespace Keyrita.Settings
         protected object mPendingValue;
         protected object mLimitValue;
 
-        protected override bool ValueHasChanged => !object.Equals(mPendingValue, Value);
+        protected override bool ValueHasChanged => !Equals(mPendingValue, Value);
 
         public override void Load()
         {
@@ -93,7 +93,7 @@ namespace Keyrita.Settings
         {
         }
 
-        T IConcreteValue<T>.Value => (T)base.Value;
+        T IConcreteValue<T>.Value => (T)Value;
         T IConcreteValue<T>.DefaultValue => (T)base.DefaultValue;
     }
 }

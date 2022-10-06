@@ -1,4 +1,6 @@
-﻿using Keyrita.Settings;
+﻿
+using Keyrita.Settings;
+using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
 using System;
 using System.ComponentModel;
@@ -10,9 +12,9 @@ namespace Keyrita
     /// <summary>
     /// Interaction logic for DropdownList.xaml
     /// </summary>
-    public partial class SetComboBox : UserControl
+    public partial class SetRadioButton : UserControl
     {
-        public SetComboBox()
+        public SetRadioButton()
         {
             InitializeComponent();
         }
@@ -24,51 +26,66 @@ namespace Keyrita
 
         private void SyncWithSetting()
         {
-            mComboBox.Items.Clear();
+            mRadioButton.Children.Clear();
 
             foreach (Enum token in Setting.ValidTokens)
             {
-                ComboBoxItem item = new ComboBoxItem();
+                RadioButton item = new RadioButton();
+                item.GroupName = mSetting.SettingName;
                 item.Content = token.UIText();
-                mComboBox.Items.Add(item);
+
+                item.Checked += mRadioButton_SelectionChanged;
+
+                mRadioButton.Children.Add(item);
             }
 
-            mComboBox.IsEnabled = Setting.ValidTokens.Count > 1;
+            mRadioButton.IsEnabled = Setting.ValidTokens.Count > 1;
 
             SetSelection();
         }
 
         private void SetSelection()
         {
-            if(Setting.HasValue)
+            int selectionIndex = Setting.GetIndexOfSelection();
+
+            for(int i = 0; i < mRadioButton.Children.Count; i++)
             {
-                mComboBox.SelectionChanged -= ComboBox_SelectionChanged;
-                mComboBox.SelectedIndex = Setting.GetIndexOfSelection();
-                mComboBox.SelectionChanged += ComboBox_SelectionChanged;
+                if(i == selectionIndex)
+                {
+                    var rb = (RadioButton)mRadioButton.Children[i];
+                    rb.Checked -= mRadioButton_SelectionChanged;
+                    rb.IsChecked = true;
+                    rb.Checked += mRadioButton_SelectionChanged;
+                }
             }
         }
 
-        private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void mRadioButton_SelectionChanged(object sender, RoutedEventArgs e)
         {
             // Update setting value based on new selection.
-            if(e.AddedItems.Count > 0)
+            for (int i = 0; i < mRadioButton.Children.Count; i++)
             {
-                int index = mComboBox.SelectedIndex;
-                Enum element = Setting.GetTokenAtIndex(index);
-                Setting.Set(element);
+                RadioButton rb = (RadioButton)mRadioButton.Children[i];
+
+                if (rb != null && rb.IsChecked.HasValue && rb.IsChecked.Value)
+                {
+                    Enum element = Setting.GetTokenAtIndex(i);
+                    Setting.Set(element);
+                    break;
+                }
             }
         }
 
         private static readonly DependencyProperty SettingProperty =
             DependencyProperty.Register(nameof(Setting),
                                         typeof(EnumValueSetting),
-                                        typeof(SetComboBox),
+                                        typeof(SetRadioButton),
                                         new PropertyMetadata(OnSettingChanged));
 
         private static void OnSettingChanged(DependencyObject source,
                                              DependencyPropertyChangedEventArgs e)
         {
-            SetComboBox control = source as SetComboBox;
+            SetRadioButton control = source as SetRadioButton;
             control.UpdateSetting(e.NewValue as EnumValueSetting);
         }
 

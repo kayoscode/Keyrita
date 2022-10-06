@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Keyrita.Settings
+namespace Keyrita.Settings.SettingUtil
 {
     /// <summary>
     /// Settings related to the state of the keyboard.
@@ -26,6 +26,9 @@ namespace Keyrita.Settings
 
         public EnumValueSetting KeyboardDisplay { get; } =
             new KeyboardDisplaySetting();
+
+        public OnOffSetting KeyboardValid { get; } =
+            new KeyboardValidSetting();
     }
 
     /// <summary>
@@ -33,15 +36,21 @@ namespace Keyrita.Settings
     /// </summary>
     public class MeasurementSettings
     {
+        public ActionSetting PerformAnalysis { get; } =
+            new KeyboardAnalysisAction();
+
         public OnOffSetting ShowAnnotations { get; } =
             new KeyboardShowAnnotationsSetting();
+
+        public OnOffSetting AnalysisEnabled { get; } =
+            new AnalysisEnabledSetting();
 
         public IReadOnlyDictionary<int, ConcreteValueSetting<double>> RowOffsets => mRowOffsets;
         protected Dictionary<int, ConcreteValueSetting<double>> mRowOffsets = new Dictionary<int, ConcreteValueSetting<double>>();
 
         public MeasurementSettings()
         {
-            for(int i = 0; i < KeyboardStateSetting.ROWS; i++)
+            for (int i = 0; i < KeyboardStateSetting.ROWS; i++)
             {
                 mRowOffsets[i] = new RowHorizontalOffsetSetting(i);
             }

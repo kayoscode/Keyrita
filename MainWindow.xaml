@@ -10,7 +10,8 @@
                            MinWidth="1200"
                            MinHeight="900">
    <DockPanel>
-      <Menu DockPanel.Dock="Top">
+      <Menu DockPanel.Dock="Top"
+            FlowDirection="LeftToRight">
          <MenuItem Header="File">
             <MenuItem Header="_New" />
             <MenuItem Header="_Open" />
@@ -37,8 +38,9 @@
          <StackPanel Grid.Column="0"
                     HorizontalAlignment="Left"
                     Margin="25, 0, 25, 0">
-            <local:SetComboBox Width="150"
-                           Height="50"
+            <local:SetRadioButton Width="150"
+                           Height="Auto"
+                           Margin="0,0,0,10"
                            x:Name="mKeyboardDisplay"/>
             <local:SetComboBox Width="150"
                            Height="50"

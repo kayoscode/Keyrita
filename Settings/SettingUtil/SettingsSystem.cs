@@ -1,11 +1,12 @@
-﻿using Keyrita.Util;
+﻿using Keyrita.Gui;
+using Keyrita.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Keyrita.Settings
+namespace Keyrita.Settings.SettingUtil
 {
     public static class SettingsSystem
     {
@@ -14,7 +15,7 @@ namespace Keyrita.Settings
 
         public static void RegisterSetting(SettingBase setting)
         {
-            if(!Finalized)
+            if (!Finalized)
             {
                 mSettings.Add(setting);
             }
@@ -26,7 +27,7 @@ namespace Keyrita.Settings
 
         public static void FinalizeSettingSystem()
         {
-            foreach(SettingBase setting in mSettings)
+            foreach (SettingBase setting in mSettings)
             {
                 setting.PreInitialization();
             }
@@ -35,11 +36,11 @@ namespace Keyrita.Settings
             Stack<SettingBase> clashStack = new();
 
             // Check for circular dependencies.
-            foreach(SettingBase setting in mSettings)
+            foreach (SettingBase setting in mSettings)
             {
-                if(CheckForCircularDependenciesOnSetting(setting, checkedSettings, clashStack))
+                if (CheckForCircularDependenciesOnSetting(setting, checkedSettings, clashStack))
                 {
-                    LTrace.Assert(false, $"Circular dependency detected: {String.Join(",", clashStack)}");
+                    LTrace.Assert(false, $"Circular dependency detected: {string.Join(",", clashStack)}");
                 }
             }
 
@@ -50,7 +51,7 @@ namespace Keyrita.Settings
             Dictionary<SettingBase, bool> resolvedDependents = new();
             Dictionary<SettingBase, bool> resolvedDependencies = new();
 
-            foreach(SettingBase setting in mSettings)
+            foreach (SettingBase setting in mSettings)
             {
                 // Make sure all the dependent settings are resolved before we initialize this one.
                 ResolveDependents(setting, resolvedDependents);
@@ -60,15 +61,15 @@ namespace Keyrita.Settings
             Finalized = true;
         }
 
-        private static void ResolveDependents(SettingBase setting, 
+        private static void ResolveDependents(SettingBase setting,
             Dictionary<SettingBase, bool> checkedSettings)
         {
-            if(checkedSettings.TryGetValue(setting, out bool value))
+            if (checkedSettings.TryGetValue(setting, out bool value))
             {
                 return;
             }
 
-            foreach(SettingBase dependent in setting.Dependents)
+            foreach (SettingBase dependent in setting.Dependents)
             {
                 ResolveDependents(dependent, checkedSettings);
             }
@@ -78,15 +79,15 @@ namespace Keyrita.Settings
             checkedSettings[setting] = true;
         }
 
-        private static void ResolveDependencies(SettingBase setting, 
+        private static void ResolveDependencies(SettingBase setting,
             Dictionary<SettingBase, bool> checkedSettings)
         {
-            if(checkedSettings.TryGetValue(setting, out bool value))
+            if (checkedSettings.TryGetValue(setting, out bool value))
             {
                 return;
             }
 
-            foreach(SettingBase dependency in setting.Dependencies)
+            foreach (SettingBase dependency in setting.Dependencies)
             {
                 ResolveDependencies(dependency, checkedSettings);
             }
@@ -94,15 +95,15 @@ namespace Keyrita.Settings
             checkedSettings[setting] = true;
         }
 
-        private static bool CheckForCircularDependenciesOnSetting(SettingBase setting, 
+        private static bool CheckForCircularDependenciesOnSetting(SettingBase setting,
             Dictionary<SettingBase, bool> checkedSettings, Stack<SettingBase> clashStack)
         {
-            if(checkedSettings.TryGetValue(setting, out bool value))
+            if (checkedSettings.TryGetValue(setting, out bool value))
             {
                 return value;
             }
 
-            if(clashStack.Contains(setting))
+            if (clashStack.Contains(setting))
             {
                 checkedSettings[setting] = true;
                 return true;
@@ -110,9 +111,9 @@ namespace Keyrita.Settings
 
             clashStack.Push(setting);
 
-            foreach(SettingBase dependentSetting in setting.Dependents)
+            foreach (SettingBase dependentSetting in setting.Dependents)
             {
-                if(CheckForCircularDependenciesOnSetting(dependentSetting, checkedSettings, clashStack))
+                if (CheckForCircularDependenciesOnSetting(dependentSetting, checkedSettings, clashStack))
                 {
                     return true;
                 }
@@ -120,7 +121,7 @@ namespace Keyrita.Settings
 
             clashStack.Pop();
             checkedSettings[setting] = false;
-            
+
             return false;
         }
     }

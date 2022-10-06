@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Keyrita.Settings
+namespace Keyrita.Settings.SettingUtil
 {
     /// <summary>
     /// Attributes which can be applied to settings.
@@ -47,13 +47,13 @@ namespace Keyrita.Settings
 
         public void NotifyGui(SettingBase setting)
         {
-            foreach(var gui in Notifications)
+            foreach (var gui in Notifications)
             {
                 try
                 {
                     gui(setting);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     LTrace.LogError("The gui encountered a seriuos error processing a change notification.");
                 }
@@ -97,8 +97,8 @@ namespace Keyrita.Settings
         public SettingBase(string settingName,
             eSettingAttributes attributes)
         {
-            this.mAttributes = attributes;
-            this.mSettingName = settingName;
+            mAttributes = attributes;
+            mSettingName = settingName;
 
             SettingsSystem.RegisterSetting(this);
         }

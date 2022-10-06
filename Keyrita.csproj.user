@@ -7,33 +7,45 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Controls\Key.xaml.cs">
+    <Compile Update="Gui\Controls\Key.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Controls\KeyboardControl.xaml.cs">
+    <Compile Update="Gui\Controls\KeyboardControl.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Controls\SetComboBox.xaml.cs">
+    <Compile Update="Gui\Controls\SetComboBox.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Controls\SetCheckBox.xaml.cs">
+    <Compile Update="Gui\Controls\SetCheckBox.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Gui\Controls\SetRadioButton.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Gui\Dialogs\SettingsDialog.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="Controls\Key.xaml">
+    <Page Update="Gui\Controls\Key.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Controls\KeyboardControl.xaml">
+    <Page Update="Gui\Controls\KeyboardControl.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Controls\SetCheckBox.xaml">
+    <Page Update="Gui\Controls\SetCheckBox.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Gui\Controls\SetRadioButton.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Gui\Dialogs\SettingsDialog.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="MainWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Controls\SetComboBox.xaml">
+    <Page Update="Gui\Controls\SetComboBox.xaml">
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
