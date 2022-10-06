@@ -1,4 +1,7 @@
-﻿using Keyrita.Util;
+﻿using Keyrita.Gui;
+using Keyrita.Gui.Controls;
+using Keyrita.Util;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,6 +69,12 @@ namespace Keyrita.Settings.SettingUtil
         public static MeasurementSettings MeasurementSettings { get; private set; }
 
         /// <summary>
+        /// Action setings which open each available dialog.
+        /// </summary>
+        public static IReadOnlyDictionary<eDlgId, OpenDlgSetting> OpenDialogSettings => mOpenDialogSettings;
+        private static Dictionary<eDlgId, OpenDlgSetting> mOpenDialogSettings = new();
+
+        /// <summary>
         /// Initializes the global settings.
         /// </summary>
         public static void Init()
@@ -88,6 +97,13 @@ namespace Keyrita.Settings.SettingUtil
             MeasurementSettings = new MeasurementSettings();
             // Active measurement list.
             // Selected measurement.
+
+            // Create the settings which open dialogs.
+            IEnumerable<Enum> allDialogs = EnumUtils.GetTokens(typeof(eDlgId));
+            foreach(eDlgId dialog in allDialogs)
+            {
+                mOpenDialogSettings[dialog] = new OpenDlgSetting(dialog);
+            }
         }
     }
 }

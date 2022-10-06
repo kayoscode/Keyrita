@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Keyrita"
+        xmlns:local="clr-namespace:Keyrita.Gui.Controls"
         mc:Ignorable="d"
         Title="MainWindow" Width="1440"
                            Height="1000"
@@ -21,8 +21,9 @@
             <MenuItem Header="_Undo"/>
             <MenuItem Header="_Redo"/>
             <Separator></Separator>
-            <MenuItem Header="Settings"></MenuItem>
-         </MenuItem>
+            <local:MenuItemOpenDlg Header="Settings"
+                                   Dialog="{Binding Path=eDlgId.SettingsDlg}"/>
+            </MenuItem>
          <MenuItem Header="Analyze">
             <MenuItem Header="_Configure"/>
             <MenuItem Header="_Measurements"/>

@@ -27,7 +27,7 @@ namespace Keyrita.Settings.SettingUtil
                              eSettingAttributes attributes)
             : base(settingName, attributes)
         {
-            mDefaultValue = DefaultValue;
+            mDefaultValue = defaultValue;
         }
 
         public override bool HasValue => Value != null;
@@ -55,6 +55,10 @@ namespace Keyrita.Settings.SettingUtil
         {
         }
 
+        protected override void ChangeLimits()
+        {
+        }
+
         protected override void SetToDefault()
         {
             mPendingValue = mDefaultValue;
@@ -69,7 +73,14 @@ namespace Keyrita.Settings.SettingUtil
 
         protected override void TrySetToPending()
         {
-            if (!mPendingValue.Equals(Value))
+            if(mPendingValue == null)
+            {
+                SettingTransaction("Setting to null", () =>
+                {
+                    mValue = mPendingValue;
+                });
+            }
+            else if (!mPendingValue.Equals(Value))
             {
                 string description = $"Changing concrete value {mValue} to {mPendingValue}";
 

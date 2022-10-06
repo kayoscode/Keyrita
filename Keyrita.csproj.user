@@ -13,6 +13,9 @@
     <Compile Update="Gui\Controls\KeyboardControl.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Gui\Controls\MenuItemOpenDlg.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Gui\Controls\SetComboBox.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -31,6 +34,9 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Gui\Controls\KeyboardControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Gui\Controls\MenuItemOpenDlg.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Gui\Controls\SetCheckBox.xaml">

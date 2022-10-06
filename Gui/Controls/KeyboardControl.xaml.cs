@@ -1,11 +1,9 @@
 ﻿using Keyrita.Settings;
 using Keyrita.Settings.SettingUtil;
-using Keyrita.Util;
-using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Keyrita
+namespace Keyrita.Gui.Controls
 {
     /// <summary>
     /// Interaction logic for KeyboardControl.xaml

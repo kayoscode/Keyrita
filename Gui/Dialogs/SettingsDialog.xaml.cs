@@ -14,6 +14,8 @@ namespace Keyrita.Gui.Dialogs
             mKeyboardDisplay.Setting = KeyboardDisplaySetting;
             mKeyboardShape.Setting = KeyboardShapeSetting;
             mLanguage.Setting = LanguageSetting;
+
+            this.ResizeMode = System.Windows.ResizeMode.NoResize;
         }
 
         private EnumValueSetting KeyboardDisplaySetting =>

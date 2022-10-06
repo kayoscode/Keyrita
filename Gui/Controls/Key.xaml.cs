@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Keyrita
+namespace Keyrita.Gui.Controls
 { 
     /// <summary>
     /// Wraps a character into a non-nullable.

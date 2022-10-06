@@ -2,11 +2,10 @@
 using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
 using System;
-using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Keyrita
+namespace Keyrita.Gui.Controls
 {
     /// <summary>
     /// Interaction logic for DropdownList.xaml
