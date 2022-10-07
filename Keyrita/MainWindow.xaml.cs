@@ -141,5 +141,16 @@ namespace Keyrita
                 }
             }
         }
+
+        protected void LoadDataset(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                LTrace.LogInfo("Loading dataset");
+
+            }
+        }
     }
 }

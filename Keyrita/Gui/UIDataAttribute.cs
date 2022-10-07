@@ -1,6 +1,4 @@
-﻿using System.Web;
-
-namespace Keyrita.Gui
+﻿namespace Keyrita.Gui
 {
     /// <summary>
     /// An attribute describing ui element data.

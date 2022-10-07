@@ -1,7 +1,6 @@
 ﻿using Keyrita.Util;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Tracing;
 using System.Text;
 using System.Threading.Tasks.Sources;
 using System.Windows.Controls;
@@ -54,7 +53,7 @@ namespace Keyrita.Settings.SettingUtil
                 {
                     gui(setting);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     LTrace.LogError("The gui encountered a seriuos error processing a change notification.");
                 }
@@ -248,7 +247,7 @@ namespace Keyrita.Settings.SettingUtil
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 LTrace.LogError("A serious error has occurred in a setting transaction");
             }

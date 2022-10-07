@@ -3,8 +3,12 @@
 
 extern "C"
 {
-   __declspec(dllexport) void TestFromDLL()
+   /// <summary>
+   /// Given a keyboard, analyzes the same finger bigrams.
+   /// </summary>
+   /// <param name="kb"></param>
+   __declspec(dllexport) void AnalyzeSFB(int** kb)
    {
-      std::cout << "Test";
+
    }
 }

@@ -41,6 +41,11 @@ namespace Keyrita.Settings
         StandardView,
     }
 
+    public class LanguageDataset
+    {
+
+    }
+
     /// <summary>
     /// Analyzes the keyboard when the keyboard's state changes, and the 
     /// analyzer is running.

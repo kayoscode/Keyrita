@@ -3,9 +3,6 @@ using Keyrita.Util;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
-using System.Linq;
-using System.Threading.Tasks.Sources;
-using Keyrita.Interop.NativeAnalysis;
 
 namespace Keyrita.Settings.SettingUtil
 {
@@ -252,9 +249,6 @@ namespace Keyrita.Settings.SettingUtil
 
             // Save the default state into the undo list.
             SaveUndoState();
-
-            // Test DLL import.
-            NativeAnalysis.TestFromDLL();
         }
 
         private delegate void GraphOrderOperation(SettingBase setting);

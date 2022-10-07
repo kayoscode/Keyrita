@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 
 namespace Keyrita.Operations
 {
+    enum Operations
+    {
+
+    }
+
     public static class OpFactory
     {
     }

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Keyrita": {
+      "commandName": "Project",
+      "nativeDebugging": false
+    }
+  }
+}

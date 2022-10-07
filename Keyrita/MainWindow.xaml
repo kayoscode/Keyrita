@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Keyrita.Gui.Controls"
         mc:Ignorable="d"
-        Title="MainWindow" Width="1440"
+        Title="Keyrita" Width="1440"
                            Height="1000"
                            MinWidth="1200"
                            MinHeight="900">
@@ -19,6 +19,8 @@
                       Click="LoadSettings"/>
                 <MenuItem Header="_Save"
                       Click="SaveSettings"/>
+                <local:ButtonMenuItem Header="_Load Dataset"
+                                      Click="LoadDataset"/>
             </MenuItem>
             <MenuItem Header="Edit">
                 <MenuItem Header="_Undo"
