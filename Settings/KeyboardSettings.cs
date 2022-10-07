@@ -254,7 +254,7 @@ namespace Keyrita.Settings
             LTrace.Assert(rowIndex < 3, "Only three rows supported");
 
             this.RowIndex = rowIndex;
-            mDefaultValue = STANDARD_ROW_OFFSETS[rowIndex];
+            mLimitValue = STANDARD_ROW_OFFSETS[rowIndex];
         }
 
         protected override void SetDependencies()
@@ -284,7 +284,7 @@ namespace Keyrita.Settings
         private string EnglishUKCharSet = "qwertyuiopasdfghjkl;zxcvbnm,./'";
 
         public CharacterSetSetting() 
-            : base("Available Character Set", eSettingAttributes.Recall)
+            : base("Available Character Set", eSettingAttributes.None)
         {
             // Default should just be english.
             foreach (char ch in EnglishCharSet)
@@ -359,7 +359,7 @@ namespace Keyrita.Settings
                 }
             }
 
-            TrySetToPending();
+            TrySetToPending(true);
         }
 
         public void ReflectVert()
@@ -375,7 +375,7 @@ namespace Keyrita.Settings
                 }
             }
 
-            TrySetToPending();
+            TrySetToPending(true);
         }
 
         #endregion
@@ -479,7 +479,7 @@ namespace Keyrita.Settings
         /// <summary>
         /// Sets to the default: qwerty.
         /// </summary>
-        protected override void SetToDefault()
+        public override void SetToDefault()
         {
             var availableCharacters = SettingState.KeyboardSettings.AvailableCharSet.DefaultCollection;
             var chars = string.Join("", availableCharacters);
@@ -505,7 +505,7 @@ namespace Keyrita.Settings
             TrySetToPending();
         }
 
-        protected override void TrySetToPending()
+        protected override void TrySetToPending(bool userInitiated = false)
         {
             // If the pending keyboard state does not match the current keyboard state, start a setting transaction.
             var count = BoardsMatch(mPendingKeyboardState, mKeyboardState);
@@ -514,7 +514,7 @@ namespace Keyrita.Settings
             {
                 var description = $"Changing {count} keys in the keyboard layout";
 
-                SettingTransaction(description, () =>
+                SettingTransaction(description, userInitiated, () =>
                 {
                     CopyBoard(mKeyboardState, mPendingKeyboardState);
                 });

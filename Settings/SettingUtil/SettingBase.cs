@@ -1,7 +1,10 @@
 ﻿using Keyrita.Util;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using System.Text;
+using System.Threading.Tasks.Sources;
+using System.Windows.Controls;
 using System.Xml;
 
 namespace Keyrita.Settings.SettingUtil
@@ -15,10 +18,6 @@ namespace Keyrita.Settings.SettingUtil
         None = 0,
         // Whether the setting should be exported to a file by default.
         Recall = 1,
-        // If one of the settings it depends on's value changes and
-        // the desired value is no longer valid, if those limitations are 
-        // removed, the value should bounce back to it.
-        BounceBack = 2,
     }
 
     /// <summary>
@@ -149,14 +148,6 @@ namespace Keyrita.Settings.SettingUtil
         }
 
         /// <summary>
-        /// Finally set the value to default, and handle pending/desired values.
-        /// </summary>
-        public virtual void FinalizeSetting()
-        {
-            SetToDefault();
-        }
-
-        /// <summary>
         /// When one of the values of a dependent changes, 
         /// use this function to modify the limits for this setting.
         /// </summary>
@@ -214,18 +205,18 @@ namespace Keyrita.Settings.SettingUtil
         /// <summary>
         /// Sets the next value to the default.
         /// </summary>
-        protected abstract void SetToDefault();
+        public abstract void SetToDefault();
 
         /// <summary>
         /// If the setting transaction succeeds, this is called.
         /// The value should be updated here.
         /// </summary>
-        protected abstract void TrySetToPending();
+        protected abstract void TrySetToPending(bool userInitiated = false);
 
         /// <summary>
         /// Genericly handle setting changes.
         /// </summary>
-        protected void SettingTransaction(string description, SettingAction action)
+        protected void SettingTransaction(string description, bool userInitiated, SettingAction action)
         {
             try
             {
@@ -249,6 +240,12 @@ namespace Keyrita.Settings.SettingUtil
 
                     // Perform a generic action when the value of a setting changes.
                     Action();
+
+                    // Store the previous state for undo/redo
+                    if(userInitiated && mAttributes.HasFlag(eSettingAttributes.Recall))
+                    {
+                        SettingsSystem.SaveUndoState();
+                    }
                 }
             }
             catch (Exception e)

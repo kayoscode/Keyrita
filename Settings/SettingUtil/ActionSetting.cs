@@ -78,7 +78,7 @@ namespace Keyrita.Settings.SettingUtil
         /// </summary>
         protected abstract void DoAction();
 
-        protected override sealed void SetToDefault()
+        public override sealed void SetToDefault()
         {
             Value = false;
         }
@@ -89,12 +89,12 @@ namespace Keyrita.Settings.SettingUtil
             TrySetToPending();
         }
 
-        protected override sealed void TrySetToPending()
+        protected override sealed void TrySetToPending(bool userInitiated = false)
         {
             if (Value != PendingValue)
             {
                 string description = "Doing effect";
-                SettingTransaction(description, () =>
+                SettingTransaction(description, userInitiated, () =>
                 {
                     Value = PendingValue;
                 });

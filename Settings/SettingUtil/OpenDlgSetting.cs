@@ -63,6 +63,7 @@ namespace Keyrita.Settings.SettingUtil
                 window.Title = Dialog.UIText();
                 window.Closed += (object sender, EventArgs e) => CloseDialog();
                 window.Show();
+                window.Owner = Application.Current.MainWindow;
             }
         }
     }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Xml;
 
 namespace Keyrita.Settings.SettingUtil
@@ -16,7 +17,6 @@ namespace Keyrita.Settings.SettingUtil
     public interface IConcreteValue<T> : ISetting
     {
         T Value { get; }
-        T DefaultValue { get; }
     }
 
     /// <summary>
@@ -30,18 +30,13 @@ namespace Keyrita.Settings.SettingUtil
                              Enum instance = null)
             : base(settingName, attributes, instance)
         {
-            mDefaultValue = defaultValue;
+            mLimitValue = defaultValue;
         }
 
         public override bool HasValue => Value != null;
 
         public T Value => mValue;
         protected T mValue;
-
-        protected T DesiredValue { get; set; }
-
-        public virtual T DefaultValue => mDefaultValue;
-        protected T mDefaultValue;
 
         protected T mPendingValue;
         protected T mLimitValue;
@@ -52,7 +47,7 @@ namespace Keyrita.Settings.SettingUtil
         {
             if(TextSerializers.TryParse(text, out T value)) 
             {
-                DesiredValue = value;
+                mLimitValue = value;
             }
         }
 
@@ -76,14 +71,12 @@ namespace Keyrita.Settings.SettingUtil
 
         public override void SetToDesiredValue()
         {
-            mPendingValue = DesiredValue;
-            TrySetToPending();
+            SetToNewLimits();
         }
 
-        protected override void SetToDefault()
+        public override void SetToDefault()
         {
-            DesiredValue = mPendingValue;
-            SetToDesiredValue();
+            SetToNewLimits();
         }
 
         protected override void SetToNewLimits()
@@ -92,20 +85,21 @@ namespace Keyrita.Settings.SettingUtil
             TrySetToPending();
         }
 
-        protected override void TrySetToPending()
+        protected override void TrySetToPending(bool userInitiated = false)
         {
             if(mPendingValue == null)
             {
-                SettingTransaction("Setting to null", () =>
+                SettingTransaction("Setting to null", userInitiated, () =>
                 {
                     mValue = mPendingValue;
                 });
             }
+
             else if (!mPendingValue.Equals(Value))
             {
                 string description = $"Changing concrete value {mValue} to {mPendingValue}";
 
-                SettingTransaction(description, () =>
+                SettingTransaction(description, userInitiated, () =>
                 {
                     mValue = mPendingValue;
                 });

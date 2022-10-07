@@ -3,11 +3,106 @@ using Keyrita.Util;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
+using System.Linq;
+using System.Threading.Tasks.Sources;
 
 namespace Keyrita.Settings.SettingUtil
 {
+    public class UndoRedoState<T>
+    {
+        private const int MAX_UNDO_COUNT = 50;
+        private IList<T> ValueStack { get; set; } = new List<T>(MAX_UNDO_COUNT);
+
+        private int Top { get; set; } = 1;
+        private int Base { get; set; } = 0;
+        private int Current { get; set; } = 0;
+
+        public bool IsEmpty => (Top == Base) && (Base == Current) && (Current == 0);
+
+        public UndoRedoState()
+        {
+            // Start with all null entries.
+            for(int i = 0; i < MAX_UNDO_COUNT; i++)
+            {
+                ValueStack.Add(default(T));
+            }
+        }
+
+        /// <summary>
+        /// Adds a copy of the setting's current value to the Top of the stack
+        /// The Current value should be pointing at the item we just added.
+        /// So should top.
+        /// </summary>
+        /// <param name="value"></param>
+        public void UpdateValue(T value)
+        {
+            // Deal with overflow.
+            // This is a circular stack.
+            Current += 1;
+            Current = Current > MAX_UNDO_COUNT - 1 ? 0 : Current;
+            Top = Current;
+
+            if(Top == Base)
+            {
+                Base += 1;
+                Base = Base > MAX_UNDO_COUNT - 1 ? 0 : Base;
+            }
+
+            ValueStack[Current] = value;
+        }
+
+        /// <summary>
+        ///      -> Current
+        /// Base -> Starting state.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public bool TryUndo(out T value)
+        {
+            value = default(T);
+
+            var tempCurrent = Current - 1;
+            tempCurrent = tempCurrent < 0 ? MAX_UNDO_COUNT - 1 : tempCurrent;
+
+            if(tempCurrent != Base)
+            {
+                Current = tempCurrent;
+                value = (T)ValueStack[Current];
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool TryRedo(out T value)
+        {
+            value = default(T);
+
+            if (Current != Top)
+            {
+                Current += 1;
+                Current = Current > MAX_UNDO_COUNT - 1 ? 0 : Current;
+
+                value = (T)ValueStack[Current];
+
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Class handling settings and setting transactions.
+    /// </summary>
     public static class SettingsSystem
     {
+        /// <summary>
+        /// Stores the setting states for undo/redo of settings.
+        /// </summary>
+        private static UndoRedoState<string> mUndoRedoState = new UndoRedoState<string>();
+
         private static List<SettingBase> mSettings { get; } = new List<SettingBase>();
         private static Dictionary<string, SettingBase> mSettingsByUid { get; } = new();
 
@@ -15,59 +110,97 @@ namespace Keyrita.Settings.SettingUtil
 
         private static readonly string SettingXMLNode = "Settings";
 
+        public static void SaveUndoState()
+        {
+            StringWriter undoRedoXml;
+            using (undoRedoXml = new StringWriter())
+            {
+                using(XmlWriter writer = XmlWriter.Create(undoRedoXml))
+                {
+                    SaveSettings(writer);
+                }
+            }
+
+            string text = undoRedoXml.ToString();
+            mUndoRedoState.UpdateValue(text);
+        }
+
+        public static void Undo()
+        {
+            if(mUndoRedoState.TryUndo(out string xml))
+            {
+                XmlDocument settings = new XmlDocument();
+                settings.LoadXml(xml);
+
+                LoadSettings(settings);
+            }
+        }
+
+        public static void Redo()
+        {
+            if(mUndoRedoState.TryRedo(out string xml))
+            {
+                XmlDocument settings = new XmlDocument();
+                settings.LoadXml(xml);
+
+                LoadSettings(settings);
+            }
+        }
+
         /// <summary>
         /// Saves all settings to an XML file.
         /// </summary>
         /// <param name="fileStream"></param>
         public static void SaveSettings(XmlWriter xmlWriter)
         {
-            if (Finalized)
-            {
-                xmlWriter.WriteStartDocument();
-                xmlWriter.WriteStartElement(SettingXMLNode);
+            LTrace.Assert(Finalized, "Cannot save before finalized.");
 
-                // Allow each setting to write to the file.
-                foreach(SettingBase setting in mSettings)
-                {
-                    setting.SaveToFile(xmlWriter);
-                }
+            xmlWriter.WriteStartDocument();
+            xmlWriter.WriteStartElement(SettingXMLNode);
 
-                xmlWriter.WriteEndElement();
-                xmlWriter.WriteEndDocument();
-            }
-            else
+            // Allow each setting to write to the file.
+            foreach(SettingBase setting in mSettings)
             {
-                LTrace.Assert(false, "Settings system must be initialized before saving");
+                setting.SaveToFile(xmlWriter);
             }
+
+            xmlWriter.WriteEndElement();
+            xmlWriter.WriteEndDocument();
         }
 
         public static void LoadSettings(XmlDocument xmlReader)
         {
-            if (Finalized)
+            LTrace.Assert(Finalized, "Cannot load before finalized.");
+
+            XmlNode settingNode = xmlReader.SelectSingleNode(SettingXMLNode);
+            XmlNodeList settings = settingNode.ChildNodes;
+
+            foreach(XmlNode setting in settings)
             {
-                XmlNode settingNode = xmlReader.SelectSingleNode(SettingXMLNode);
-                XmlNodeList settings = settingNode.ChildNodes;
+                var uid = setting.Name;
 
-                foreach(XmlNode setting in settings)
+                if(mSettingsByUid.TryGetValue(uid, out SettingBase settingToload))
                 {
-                    var uid = setting.Name;
-
-                    if(mSettingsByUid.TryGetValue(uid, out SettingBase settingToload))
-                    {
-                        settingToload.LoadFromfile(setting.InnerText);
-                    }
+                    settingToload.LoadFromfile(setting.InnerText);
                 }
+            }
 
-                // In graph order, set each setting to the loaded value.
-                OperateInGraphOrder((setting) =>
-                {
-                    setting.SetToDesiredValue();
-                });
-            }
-            else
+            // In graph order, set each setting to the loaded value.
+            OperateInGraphOrder((setting) =>
             {
-                LTrace.Assert(false, "Settings system must be initialized before loading");
-            }
+                setting.SetToDesiredValue();
+            });
+        }
+
+        /// <summary>
+        /// Sets each setting to their default value.
+        /// </summary>
+        public static void DefaultSettings()
+        {
+            OperateInGraphOrder((setting) =>
+            {
+                setting.SetToDefault();
+            });
         }
 
         public static void RegisterSetting(SettingBase setting)
@@ -111,10 +244,13 @@ namespace Keyrita.Settings.SettingUtil
             checkedSettings.Clear();
             OperateInGraphOrder((setting) =>
             {
-                setting.FinalizeSetting();
+                setting.SetToDefault();
             });
 
             Finalized = true;
+
+            // Save the default state into the undo list.
+            SaveUndoState();
         }
 
         private delegate void GraphOrderOperation(SettingBase setting);

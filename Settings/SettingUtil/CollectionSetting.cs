@@ -59,16 +59,19 @@ namespace Keyrita.Settings.SettingUtil
         public void AddElement(T element)
         {
             mPendingAdditions.Add(element);
-            TrySetToPending();
+            TrySetToPending(true);
         }
 
         public void RemoveElement(T element)
         {
             mPendingRemovals.Add(element);
-            TrySetToPending();
+            TrySetToPending(true);
         }
 
         #endregion
+
+
+        #region FileIO
 
         protected override void Load(string text)
         {
@@ -100,6 +103,8 @@ namespace Keyrita.Settings.SettingUtil
             writer.WriteEndElement();
         }
 
+        #endregion
+
         protected override void Action()
         {
         }
@@ -127,16 +132,16 @@ namespace Keyrita.Settings.SettingUtil
         {
             SetupPendingState(mNewLimits);
             mNewLimits.Clear();
-            TrySetToPending();
+            TrySetToPending(false);
         }
 
         public override void SetToDesiredValue()
         {
             SetupPendingState(mDesiredValue);
-            TrySetToPending();
+            TrySetToPending(false);
         }
 
-        protected override void SetToDefault()
+        public override void SetToDefault()
         {
             mDesiredValue.Clear();
 
@@ -175,7 +180,7 @@ namespace Keyrita.Settings.SettingUtil
         /// <summary>
         /// Update the current list by adding and removing items properly.
         /// </summary>
-        protected override void TrySetToPending()
+        protected override void TrySetToPending(bool userInitiated = false)
         {
             if (mPendingRemovals.Count > 0 || mPendingAdditions.Count > 0)
             {
@@ -190,7 +195,7 @@ namespace Keyrita.Settings.SettingUtil
                     description += $"Removing {string.Join(" ", mPendingRemovals)} from collection. ";
                 }
 
-                SettingTransaction(description, () =>
+                SettingTransaction(description, userInitiated, () =>
                 {
                     // Remove each item in the removals, then add each one in the additions.
                     foreach (var removal in mPendingRemovals)

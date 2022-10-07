@@ -1,5 +1,4 @@
-﻿using Keyrita.Settings;
-using Keyrita.Settings.SettingUtil;
+﻿using Keyrita.Settings.SettingUtil;
 using System.Windows;
 using System.Windows.Controls;
 

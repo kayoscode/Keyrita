@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Reflection;
 using System.Windows;
+using System.Windows.Input;
 using System.Xml;
 
 namespace Keyrita
@@ -28,9 +29,34 @@ namespace Keyrita
             SystemParameters.StaticPropertyChanged += SystemParameters_StaticPropertyChanged;
         }
 
+        #region Command Bindings
+
+        public void CreateUndoRedoCommand()
+        {
+            CommandBinding undoCmdBinding = new CommandBinding(
+                ApplicationCommands.Undo,
+                TriggerUndo);
+
+            this.CommandBindings.Add(undoCmdBinding);
+
+            // Redo
+            KeyGesture newRedoKeyBinding = new KeyGesture(Key.Z, ModifierKeys.Shift | ModifierKeys.Control);
+            ApplicationCommands.Redo.InputGestures.Add(newRedoKeyBinding);
+
+            CommandBinding redoCmdBinding = new CommandBinding(
+                ApplicationCommands.Redo,
+                TriggerRedo);
+
+            this.CommandBindings.Add(redoCmdBinding);
+        }
+
+        #endregion
+
         public MainWindow()
         {
             InitializeComponent();
+
+            CreateUndoRedoCommand();
 
             mKeyboardDisplay.Setting = KeyboardDisplaySetting;
             mKeyboardShape.Setting = KeyboardShapeSetting;
@@ -69,6 +95,16 @@ namespace Keyrita
 
         private OnOffSetting ShowAnnotationsSetting =>
             SettingState.MeasurementSettings.ShowAnnotations as OnOffSetting;
+
+        protected void TriggerUndo(object sender, RoutedEventArgs e)
+        {
+            SettingsSystem.Undo();
+        }
+
+        protected void TriggerRedo(object sender, RoutedEventArgs e)
+        {
+            SettingsSystem.Redo();
+        }
 
         protected void LoadSettings(object sender, RoutedEventArgs e)
         {

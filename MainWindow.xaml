@@ -9,21 +9,23 @@
                            Height="1000"
                            MinWidth="1200"
                            MinHeight="900">
-   <DockPanel>
-      <Menu DockPanel.Dock="Top"
+    <DockPanel>
+        <Menu DockPanel.Dock="Top"
             FlowDirection="LeftToRight"
             IsMainMenu="True">
-         <MenuItem Header="File">
-            <MenuItem Header="_New" />
-            <MenuItem Header="_Open"
+            <MenuItem Header="File">
+                <MenuItem Header="_New" />
+                <MenuItem Header="_Open"
                       Click="LoadSettings"/>
-            <MenuItem Header="_Save"
+                <MenuItem Header="_Save"
                       Click="SaveSettings"/>
-         </MenuItem>
-         <MenuItem Header="Edit">
-            <MenuItem Header="_Undo"/>
-            <MenuItem Header="_Redo"/>
-            <Separator></Separator>
+            </MenuItem>
+            <MenuItem Header="Edit">
+                <MenuItem Header="_Undo"
+                      Click="TriggerUndo"/>
+                <MenuItem Header="_Redo"
+                      Click="TriggerRedo"/>
+                <Separator></Separator>
                 <MenuItem Header="Reflect">
                     <local:ButtonMenuItem Header="Vertical"
                                           x:Name="mFlipVertMenuItem"/>
@@ -32,58 +34,58 @@
                     <local:ButtonMenuItem Header="Both"
                                           x:Name="mFlipBothMenuItem"/>
                 </MenuItem>
-            <Separator></Separator>
-            <local:MenuItemOpenDlg Header="Settings"
+                <Separator></Separator>
+                <local:MenuItemOpenDlg Header="Settings"
                                    Dialog="{Binding Path=eDlgId.SettingsDlg}"/>
             </MenuItem>
-         <MenuItem Header="Analyze">
-            <MenuItem Header="_Configure"/>
-            <MenuItem Header="_Measurements"/>
-            <MenuItem Header="Generate"></MenuItem>
-         </MenuItem>
-      </Menu>
-      <Grid>
-         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"></ColumnDefinition>
-            <ColumnDefinition Width="Auto"></ColumnDefinition>
-            <ColumnDefinition Width="*"></ColumnDefinition>
-         </Grid.ColumnDefinitions>
-         <StackPanel Grid.Column="0"
+            <MenuItem Header="Analyze">
+                <MenuItem Header="_Configure"/>
+                <MenuItem Header="_Measurements"/>
+                <MenuItem Header="Generate"></MenuItem>
+            </MenuItem>
+        </Menu>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0"
                     HorizontalAlignment="Left"
                     Margin="25, 0, 25, 0">
-            <local:SetRadioButton Width="150"
+                <local:SetRadioButton Width="150"
                            Height="Auto"
                            Margin="0,0,0,10"
                            x:Name="mKeyboardDisplay"/>
-            <local:SetComboBox Width="150"
+                <local:SetComboBox Width="150"
                            Height="50"
                            x:Name="mKeyboardShape"/>
-            <local:SetComboBox Width="150"
+                <local:SetComboBox Width="150"
                            Height="50"
                            x:Name="mLanguage"/>
-            <local:SetCheckBox Width="150"
+                <local:SetCheckBox Width="150"
                            Height="50"
                            x:Name="mShowAnnotations"/>
-         </StackPanel>
+            </StackPanel>
 
-         <Separator Grid.Column="1"
+            <Separator Grid.Column="1"
                    Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"></Separator>
 
-         <Grid Grid.Column="2"
-              HorizontalAlignment="Center">
-            <Grid.ColumnDefinitions>
-               <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-               <RowDefinition Height="*"/>
-               <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <local:KeyboardControl Grid.Column="0"
+            <Grid Grid.Column="2"
+                  HorizontalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <local:KeyboardControl Grid.Column="0"
                                    Grid.Row="0"
                                    x:Name="mKeyboardControl"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center"/>
-         </Grid>
-      </Grid>
-   </DockPanel>
+            </Grid>
+        </Grid>
+    </DockPanel>
 </Window>

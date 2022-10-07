@@ -1,6 +1,5 @@
 ﻿using Keyrita.Gui;
 using Keyrita.Serialization;
-using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
 using System;
 using System.Collections.Generic;
@@ -14,7 +13,7 @@ using System.Windows.Controls;
 using System.Windows.Navigation;
 using System.Xml;
 
-namespace Keyrita.Settings
+namespace Keyrita.Settings.SettingUtil
 {
     /// <summary>
     /// On and off enumeration states.
@@ -38,9 +37,13 @@ namespace Keyrita.Settings
         bool HasValue { get; }
     }
 
+    /// <summary>
+    /// Setting which stores a single value from an enumeration.
+    /// Enumerations are small and easy to work with. This should be used when the user is presented with options.
+    /// </summary>
     public abstract class EnumValueSetting : SettingBase
     {
-        protected EnumValueSetting(string settingName, Enum defaultValue, eSettingAttributes attributes) 
+        protected EnumValueSetting(string settingName, Enum defaultValue, eSettingAttributes attributes)
             : this(settingName, attributes)
         {
             mDefaultValue = defaultValue;
@@ -76,11 +79,11 @@ namespace Keyrita.Settings
         {
             get
             {
-                if(Value != null && PendingValue != null)
+                if (Value != null && PendingValue != null)
                 {
                     return !PendingValue.Equals(Value);
                 }
-                else if(Value == null && PendingValue != null)
+                else if (Value == null && PendingValue != null)
                 {
                     return true;
                 }
@@ -95,10 +98,10 @@ namespace Keyrita.Settings
         /// <param name="value"></param>
         public void Set(Enum value)
         {
-            this.DesiredValue = value;
-            this.PendingValue = value;
+            DesiredValue = value;
+            PendingValue = value;
 
-            TrySetToPending();
+            TrySetToPending(true);
         }
 
         /// <summary>
@@ -108,7 +111,7 @@ namespace Keyrita.Settings
         /// <returns></returns>
         public Enum GetTokenAtIndex(int index)
         {
-            if(index < mValidTokens.Count)
+            if (index < mValidTokens.Count)
             {
                 return mValidTokens[index];
             }
@@ -123,7 +126,7 @@ namespace Keyrita.Settings
         /// <returns></returns>
         public int GetIndexOfSelection()
         {
-            if(HasValue)
+            if (HasValue)
             {
                 return mValidTokens.IndexOf(Value);
             }
@@ -131,9 +134,11 @@ namespace Keyrita.Settings
             return -1;
         }
 
+        #region FileIO
+
         protected override void Load(string text)
         {
-            if(TextSerializers.TryParse(text, out Enum loadedValue))
+            if (TextSerializers.TryParse(text, out Enum loadedValue))
             {
                 DesiredValue = loadedValue;
                 PendingValue = loadedValue;
@@ -144,12 +149,14 @@ namespace Keyrita.Settings
         protected override void Save(XmlWriter writer)
         {
             // Convert the enum value to a string and write it to the stream writer.
-            string uniqueName = this.GetSettingUniqueId();
+            var uniqueName = GetSettingUniqueId();
 
             writer.WriteStartElement(uniqueName);
             writer.WriteString(TextSerializers.ToText(Value));
             writer.WriteEndElement();
         }
+
+        #endregion
 
         protected override void Action()
         {
@@ -165,7 +172,7 @@ namespace Keyrita.Settings
             TrySetToPending();
         }
 
-        protected override void SetToDefault()
+        public override void SetToDefault()
         {
             DesiredValue = DefaultValue;
             SetToDesiredValue();
@@ -173,7 +180,7 @@ namespace Keyrita.Settings
 
         protected override void SetToNewLimits()
         {
-            if(mValidTokens.Contains(DesiredValue))
+            if (mValidTokens.Contains(DesiredValue))
             {
                 PendingValue = DesiredValue;
                 TrySetToPending();
@@ -182,15 +189,15 @@ namespace Keyrita.Settings
 
             if (!mValidTokens.Contains(Value))
             {
-                if(mValidTokens.Contains(DefaultValue))
+                if (mValidTokens.Contains(DefaultValue))
                 {
                     SetToDefault();
                 }
                 else
                 {
-                    if(mValidTokens.Count > 0)
+                    if (mValidTokens.Count > 0)
                     {
-                        PendingValue = mValidTokens.First<Enum>();
+                        PendingValue = mValidTokens.First();
                         TrySetToPending();
                     }
                     {
@@ -200,12 +207,14 @@ namespace Keyrita.Settings
             }
         }
 
-        protected override void TrySetToPending()
+        protected override void TrySetToPending(bool userInitiated = false)
         {
             // If the values don't match, we need to initialize a new setting transaction.
             if (!PendingValue.Equals(Value) && mValidTokens.Contains(PendingValue))
             {
-                SettingTransaction($"Setting token value from {Value} to {PendingValue}", () =>
+                SettingTransaction($"Setting token value from {Value} to {PendingValue}", 
+                    userInitiated, 
+                () =>
                 {
                     Value = PendingValue;
                 });
@@ -217,7 +226,7 @@ namespace Keyrita.Settings
     /// A setting which can hold one of the values of an enumeration.
     /// </summary>
     public abstract class EnumValueSetting<TEnum> : EnumValueSetting, IEnumValueSetting
-        where TEnum: Enum
+        where TEnum : Enum
     {
         protected EnumValueSetting(string settingName, TEnum defaultValue, eSettingAttributes attributes)
             : base(settingName, defaultValue, attributes)
@@ -245,7 +254,7 @@ namespace Keyrita.Settings
     /// </summary>
     public abstract class OnOffSetting : EnumValueSetting<eOnOff>, IEnumValueSetting, IOnOffSetting
     {
-        public OnOffSetting(string settingName, eSettingAttributes attributes) 
+        public OnOffSetting(string settingName, eSettingAttributes attributes)
             : this(settingName, eOnOff.Off, attributes)
         {
         }
