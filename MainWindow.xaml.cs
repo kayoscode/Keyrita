@@ -68,7 +68,6 @@ namespace Keyrita
             // Menu item actions.
             mFlipVertMenuItem.Action = SettingState.UserActions.ReflectActions[eKeyboardReflectDirection.Vertical];
             mFlipHorzMenuItem.Action = SettingState.UserActions.ReflectActions[eKeyboardReflectDirection.Horizontal];
-            mFlipBothMenuItem.Action = SettingState.UserActions.ReflectActions[eKeyboardReflectDirection.Both];
         }
 
         private static void SystemParameters_StaticPropertyChanged(object sender, PropertyChangedEventArgs e)

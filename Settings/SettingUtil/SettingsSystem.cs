@@ -10,7 +10,7 @@ namespace Keyrita.Settings.SettingUtil
 {
     public class UndoRedoState<T>
     {
-        private const int MAX_UNDO_COUNT = 50;
+        private const int MAX_UNDO_COUNT = 250;
         private IList<T> ValueStack { get; set; } = new List<T>(MAX_UNDO_COUNT);
 
         private int Top { get; set; } = 1;

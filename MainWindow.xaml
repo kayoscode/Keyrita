@@ -31,8 +31,6 @@
                                           x:Name="mFlipVertMenuItem"/>
                     <local:ButtonMenuItem Header="Horizontal"
                                           x:Name="mFlipHorzMenuItem"/>
-                    <local:ButtonMenuItem Header="Both"
-                                          x:Name="mFlipBothMenuItem"/>
                 </MenuItem>
                 <Separator></Separator>
                 <local:MenuItemOpenDlg Header="Settings"
