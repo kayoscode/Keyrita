@@ -1,0 +1,31 @@
+﻿<UserControl x:Class="Keyrita.Gui.Controls.SetCheckBox"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Keyrita.Gui.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid ShowGridLines="False">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Column="1" 
+                   Grid.Row="0"
+                   Name="mSettingName"
+                   Margin="3,0,0,0"
+                   VerticalAlignment="Center"></TextBlock>
+
+        <CheckBox  Grid.Column="0"
+                   Grid.Row="0"
+                   Name="mCheckBox" 
+                   Checked="mCheckBox_Checked"
+                   Unchecked="mCheckBox_Unchecked"
+                   VerticalAlignment="Center"/>
+    </Grid>
+</UserControl>
