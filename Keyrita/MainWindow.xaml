@@ -44,6 +44,10 @@
                 <MenuItem Header="Generate"></MenuItem>
             </MenuItem>
         </Menu>
+        <local:SetProgressBar   x:Name="mLoadDatasetProgressBar"
+                                DockPanel.Dock="Top"
+                                Height="20">
+        </local:SetProgressBar>
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"></ColumnDefinition>

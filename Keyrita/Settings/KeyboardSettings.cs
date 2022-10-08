@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 using Keyrita.Gui;
 using Keyrita.Interop.NativeAnalysis;
@@ -49,7 +49,7 @@ namespace Keyrita.Settings
     /// <summary>
     /// Stores information about the language based on the dataset.
     /// </summary>
-    public class CharFrequencySetting : SettingBase
+    public class CharFrequencySetting : ProgressSetting
     {
         public CharFrequencySetting() 
             : base("Language Data", eSettingAttributes.None)
@@ -76,6 +76,16 @@ namespace Keyrita.Settings
 
         public override bool HasValue => !(CharFreq == null || BigramFreq == null || TrigramFreq == null || SkipgramFreq == null);
         protected override bool ValueHasChanged => mValueHasChanged;
+
+        #region Progress Data
+
+        public override double Progress => mProgress[0];
+        protected double[] mProgress = new double[1];
+        public override bool IsRunning => mIsRunning;
+        protected bool mIsRunning = false;
+
+        #endregion
+
         private bool mValueHasChanged = false;
 
         protected override void SetDependencies()
@@ -91,95 +101,118 @@ namespace Keyrita.Settings
         public void LoadDataset(string fileText)
         {
             if (fileText == null) return;
+            object mutex = new object();
 
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            CharHitCount = 0;
-            BigramHitCount = 0;
-            TrigramHitCount = 0;
-            for(int i = 0; i < SkipgramHitCount.Length; i++)
+            // Load the layout on thread.
+            lock (mutex)
             {
-                SkipgramHitCount[i] = 0;
-            }
-            DatasetText = fileText;
-            StringBuilder available = new StringBuilder();
-            foreach (char c in SettingState.KeyboardSettings.AvailableCharSet.Collection)
-            {
-                available.Append(c);
-            }
+                mIsRunning = true;
+                mProgress[0] = 0;
+                NotifyProgressBarStarted.NotifyGui(this);
 
-            long charCount = NativeAnalysis.AnalyzeDataset(fileText, available.ToString(), out mCharFreq, out mBigramFreq, out mTrigramFreq, out mSkipgramFreq);
+                int currentThread = System.Threading.Thread.CurrentThread.ManagedThreadId;
 
-#if(DEBUG)
-            // Get the hit counts, hopefully this doesn't take too long to process.
-            for(int i = 0; i < mCharFreq.Length; i++)
-            {
-                CharHitCount += mCharFreq[i];
-            }
-
-            for(int i = 0; i < mBigramFreq.GetLength(0); i++)
-            {
-                for(int j = 0; j < mBigramFreq.GetLength(1); j++)
+                Task.Factory.StartNew(() =>
                 {
-                    BigramHitCount += mBigramFreq[i, j];
-                }
-            }
-
-            for(int i = 0; i < mTrigramFreq.GetLength(0); i++)
-            {
-                for(int j = 0; j < mTrigramFreq.GetLength(1); j++)
-                {
-                    for(int k = 0; k < mTrigramFreq.GetLength(2); k++)
+                    Stopwatch sw = new Stopwatch();
+                    sw.Start();
+                    CharHitCount = 0;
+                    BigramHitCount = 0;
+                    TrigramHitCount = 0;
+                    for (int i = 0; i < SkipgramHitCount.Length; i++)
                     {
-                        TrigramHitCount += mTrigramFreq[i, j, k];
+                        SkipgramHitCount[i] = 0;
                     }
-                }
-            }
-
-            for(int i = 0; i < mSkipgramFreq.GetLength(0); i++)
-            {
-                for(int j = 0; j < mSkipgramFreq.GetLength(1); j++)
-                {
-                    for(int k = 0; k < mSkipgramFreq.GetLength(2); k++)
+                    DatasetText = fileText;
+                    StringBuilder available = new StringBuilder();
+                    foreach (char c in SettingState.KeyboardSettings.AvailableCharSet.Collection)
                     {
-                        SkipgramHitCount[i] += mSkipgramFreq[i, j, k];
+                        available.Append(c);
                     }
-                }
-            }
 
-            var exCharHitCount = charCount;
-            LTrace.Assert(exCharHitCount == CharHitCount, "Sanity check failed");
-            var exBigramHitCount = CharHitCount - 1;
-            LTrace.Assert(exBigramHitCount == BigramHitCount, "Sanity check failed");
-            var exTrigramHitCount = BigramHitCount - 1;
-            LTrace.Assert(exTrigramHitCount == TrigramHitCount, "Sanity check failed");
+                    long charCount = NativeAnalysis.AnalyzeDataset(fileText, available.ToString(), 
+                        out mCharFreq, out mBigramFreq, out mTrigramFreq, out mSkipgramFreq,
+                        mProgress);
 
-            var exSkipgramHitCount = new long[SkipgramHitCount.Length];
-            exSkipgramHitCount[0] = TrigramHitCount - 1;
-            LTrace.Assert(exSkipgramHitCount[0] == SkipgramHitCount[0], "Sanity check failed");
+#if (DEBUG)
+                    // Get the hit counts, hopefully this doesn't take too long to process.
+                    for (int i = 0; i < mCharFreq.Length; i++)
+                    {
+                        CharHitCount += mCharFreq[i];
+                    }
 
-            for(int i = 1; i < SkipgramHitCount.Length; i++)
-            {
-                exSkipgramHitCount[i] = SkipgramHitCount[i - 1] - 1;
-                LTrace.Assert(exSkipgramHitCount[i] == SkipgramHitCount[i], "Sanity check failed");
-            }
+                    for (int i = 0; i < mBigramFreq.GetLength(0); i++)
+                    {
+                        for (int j = 0; j < mBigramFreq.GetLength(1); j++)
+                        {
+                            BigramHitCount += mBigramFreq[i, j];
+                        }
+                    }
+
+                    for (int i = 0; i < mTrigramFreq.GetLength(0); i++)
+                    {
+                        for (int j = 0; j < mTrigramFreq.GetLength(1); j++)
+                        {
+                            for (int k = 0; k < mTrigramFreq.GetLength(2); k++)
+                            {
+                                TrigramHitCount += mTrigramFreq[i, j, k];
+                            }
+                        }
+                    }
+
+                    for (int i = 0; i < mSkipgramFreq.GetLength(0); i++)
+                    {
+                        for (int j = 0; j < mSkipgramFreq.GetLength(1); j++)
+                        {
+                            for (int k = 0; k < mSkipgramFreq.GetLength(2); k++)
+                            {
+                                SkipgramHitCount[i] += mSkipgramFreq[i, j, k];
+                            }
+                        }
+                    }
+
+                    var exCharHitCount = charCount;
+                    LTrace.Assert(exCharHitCount == CharHitCount, "Sanity check failed");
+                    var exBigramHitCount = CharHitCount - 1;
+                    LTrace.Assert(exBigramHitCount == BigramHitCount, "Sanity check failed");
+                    var exTrigramHitCount = BigramHitCount - 1;
+                    LTrace.Assert(exTrigramHitCount == TrigramHitCount, "Sanity check failed");
+
+                    var exSkipgramHitCount = new long[SkipgramHitCount.Length];
+                    exSkipgramHitCount[0] = TrigramHitCount - 1;
+                    LTrace.Assert(exSkipgramHitCount[0] == SkipgramHitCount[0], "Sanity check failed");
+
+                    for (int i = 1; i < SkipgramHitCount.Length; i++)
+                    {
+                        exSkipgramHitCount[i] = SkipgramHitCount[i - 1] - 1;
+                        LTrace.Assert(exSkipgramHitCount[i] == SkipgramHitCount[i], "Sanity check failed");
+                    }
 #else
-            CharHitCount = charCount;
-            BigramHitCount = CharHitCount - 1;
-            TrigramHitCount = BigramHitCount - 1;
-            SkipgramHitCount[0] = TrigramHitCount - 1;
+                    CharHitCount = charCount;
+                    BigramHitCount = CharHitCount - 1;
+                    TrigramHitCount = BigramHitCount - 1;
+                    SkipgramHitCount[0] = TrigramHitCount - 1;
 
-            for(int i = 1; i < SkipgramHitCount.Length; i++)
-            {
-                SkipgramHitCount[i] = SkipgramHitCount[i - 1] - 1;
-            }
+                    for(int i = 1; i < SkipgramHitCount.Length; i++)
+                    {
+                        SkipgramHitCount[i] = SkipgramHitCount[i - 1] - 1;
+                    }
 #endif
 
-            mValueHasChanged = true;
-            sw.Stop();
-            long time = sw.ElapsedMilliseconds;
-            LTrace.LogInfo($"Analyzed dataset in {time} milliseconds");
-            TrySetToPending();
+                    mValueHasChanged = true;
+                    sw.Stop();
+                    long time = sw.ElapsedMilliseconds;
+                    LTrace.LogInfo($"Analyzed dataset in {time} milliseconds");
+                }).ConfigureAwait(true).GetAwaiter().OnCompleted(() =>
+                {
+                    mIsRunning = false;
+
+                    // Make sure we are on the main thread. Otherwise we should assert false, but continue with execution anyway.
+                    int newThread = System.Threading.Thread.CurrentThread.ManagedThreadId;
+                    LTrace.Assert(currentThread == newThread, "This needs to be on the same thread");
+                    TrySetToPending();
+                });
+            }
         }
 
         public override void SetToDefault()

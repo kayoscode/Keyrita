@@ -64,6 +64,7 @@ namespace Keyrita
             mShowAnnotations.Setting = ShowAnnotationsSetting;
 
             mKeyboardControl.KeyboardState = SettingState.KeyboardSettings.KeyboardState;
+            mLoadDatasetProgressBar.Setting = SettingState.MeasurementSettings.CharFrequencyData;
 
             // Menu item actions.
             mFlipVertMenuItem.Action = SettingState.UserActions.ReflectActions[eKeyboardReflectDirection.Vertical];

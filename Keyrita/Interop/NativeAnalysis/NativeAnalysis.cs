@@ -13,7 +13,8 @@ namespace Keyrita.Interop.NativeAnalysis
                                                  IntPtr charFreq,
                                                  IntPtr bigramFreq,
                                                  IntPtr trigramFreq,
-                                                 IntPtr skipGramFreq);
+                                                 IntPtr skipGramFreq,
+                                                 IntPtr progress);
 
         public const int SKIPGRAM_DEPTH = 3;
 
@@ -28,8 +29,10 @@ namespace Keyrita.Interop.NativeAnalysis
         /// <param name="skipGramFreq"></param>
         /// <returns></returns>
         public static long AnalyzeDataset(string dataset, string validCharset, out uint[] charFreq,
-            out uint[,] bigramFreq, out uint[,,] trigramFreq, out uint[,,] skipGramFreq)
+            out uint[,] bigramFreq, out uint[,,] trigramFreq, out uint[,,] skipGramFreq,
+            double[] progress)
         {
+            var h_progress = GCHandle.Alloc(progress, GCHandleType.Pinned);
 
             charFreq = new uint[validCharset.Length];
             bigramFreq = new uint[validCharset.Length, validCharset.Length];
@@ -43,12 +46,14 @@ namespace Keyrita.Interop.NativeAnalysis
 
             long charCount = AnalyzeDataset(dataset, dataset.Count(), validCharset, validCharset.Count(),
                 h_charFreq.AddrOfPinnedObject(), h_bigramFreq.AddrOfPinnedObject(),
-                h_trigramFreq.AddrOfPinnedObject(), h_skipgramFreq.AddrOfPinnedObject());
+                h_trigramFreq.AddrOfPinnedObject(), h_skipgramFreq.AddrOfPinnedObject(),
+                h_progress.AddrOfPinnedObject());
 
             h_charFreq.Free();
             h_bigramFreq.Free();
             h_trigramFreq.Free();
             h_skipgramFreq.Free();
+            h_progress.Free();
 
             return charCount;
         }
