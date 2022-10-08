@@ -19,7 +19,7 @@
                       Click="LoadSettings"/>
                 <MenuItem Header="_Save"
                       Click="SaveSettings"/>
-                <local:ButtonMenuItem Header="_Load Dataset"
+                <MenuItem Header="_Load Dataset"
                                       Click="LoadDataset"/>
             </MenuItem>
             <MenuItem Header="Edit">

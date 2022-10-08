@@ -1,10 +1,15 @@
-﻿using Keyrita.Gui;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+using System.Xml;
+using Keyrita.Gui;
+using Keyrita.Interop.NativeAnalysis;
 using Keyrita.Serialization;
 using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
-using System;
-using System.Collections.Generic;
-using System.Xml;
 
 namespace Keyrita.Settings
 {
@@ -41,9 +46,190 @@ namespace Keyrita.Settings
         StandardView,
     }
 
-    public class LanguageDataset
+    /// <summary>
+    /// Stores information about the language based on the dataset.
+    /// </summary>
+    public class CharFrequencySetting : SettingBase
     {
+        public CharFrequencySetting() 
+            : base("Language Data", eSettingAttributes.None)
+        {
+        }
 
+        protected string DatasetText { get; set; }
+
+        protected uint[] CharFreq => mCharFreq;
+        protected uint[] mCharFreq;
+        protected long CharHitCount { get; set; }
+
+        protected uint[,] BigramFreq => mBigramFreq;
+        protected uint[,] mBigramFreq;
+        protected long BigramHitCount { get; set; }
+
+        protected uint[,,] TrigramFreq => mTrigramFreq;
+        protected uint[,,] mTrigramFreq;
+        protected long TrigramHitCount { get; set; }
+
+        protected uint[,,] SkipgramFreq => mSkipgramFreq;
+        protected uint[,,] mSkipgramFreq;
+        protected long[] SkipgramHitCount { get; set; } = new long[NativeAnalysis.SKIPGRAM_DEPTH];
+
+        public override bool HasValue => !(CharFreq == null || BigramFreq == null || TrigramFreq == null || SkipgramFreq == null);
+        protected override bool ValueHasChanged => mValueHasChanged;
+        private bool mValueHasChanged = false;
+
+        protected override void SetDependencies()
+        {
+            // We only depend on the available char set.
+            SettingState.KeyboardSettings.AvailableCharSet.AddDependent(this);
+        }
+
+        /// <summary>
+        /// Load the dataset using the native code!
+        /// </summary>
+        /// <param name="fileName"></param>
+        public void LoadDataset(string fileText)
+        {
+            if (fileText == null) return;
+
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            CharHitCount = 0;
+            BigramHitCount = 0;
+            TrigramHitCount = 0;
+            for(int i = 0; i < SkipgramHitCount.Length; i++)
+            {
+                SkipgramHitCount[i] = 0;
+            }
+            DatasetText = fileText;
+            StringBuilder available = new StringBuilder();
+            foreach (char c in SettingState.KeyboardSettings.AvailableCharSet.Collection)
+            {
+                available.Append(c);
+            }
+
+            long charCount = NativeAnalysis.AnalyzeDataset(fileText, available.ToString(), out mCharFreq, out mBigramFreq, out mTrigramFreq, out mSkipgramFreq);
+
+#if(DEBUG)
+            // Get the hit counts, hopefully this doesn't take too long to process.
+            for(int i = 0; i < mCharFreq.Length; i++)
+            {
+                CharHitCount += mCharFreq[i];
+            }
+
+            for(int i = 0; i < mBigramFreq.GetLength(0); i++)
+            {
+                for(int j = 0; j < mBigramFreq.GetLength(1); j++)
+                {
+                    BigramHitCount += mBigramFreq[i, j];
+                }
+            }
+
+            for(int i = 0; i < mTrigramFreq.GetLength(0); i++)
+            {
+                for(int j = 0; j < mTrigramFreq.GetLength(1); j++)
+                {
+                    for(int k = 0; k < mTrigramFreq.GetLength(2); k++)
+                    {
+                        TrigramHitCount += mTrigramFreq[i, j, k];
+                    }
+                }
+            }
+
+            for(int i = 0; i < mSkipgramFreq.GetLength(0); i++)
+            {
+                for(int j = 0; j < mSkipgramFreq.GetLength(1); j++)
+                {
+                    for(int k = 0; k < mSkipgramFreq.GetLength(2); k++)
+                    {
+                        SkipgramHitCount[i] += mSkipgramFreq[i, j, k];
+                    }
+                }
+            }
+
+            var exCharHitCount = charCount;
+            LTrace.Assert(exCharHitCount == CharHitCount, "Sanity check failed");
+            var exBigramHitCount = CharHitCount - 1;
+            LTrace.Assert(exBigramHitCount == BigramHitCount, "Sanity check failed");
+            var exTrigramHitCount = BigramHitCount - 1;
+            LTrace.Assert(exTrigramHitCount == TrigramHitCount, "Sanity check failed");
+
+            var exSkipgramHitCount = new long[SkipgramHitCount.Length];
+            exSkipgramHitCount[0] = TrigramHitCount - 1;
+            LTrace.Assert(exSkipgramHitCount[0] == SkipgramHitCount[0], "Sanity check failed");
+
+            for(int i = 1; i < SkipgramHitCount.Length; i++)
+            {
+                exSkipgramHitCount[i] = SkipgramHitCount[i - 1] - 1;
+                LTrace.Assert(exSkipgramHitCount[i] == SkipgramHitCount[i], "Sanity check failed");
+            }
+#else
+            CharHitCount = charCount;
+            BigramHitCount = CharHitCount - 1;
+            TrigramHitCount = BigramHitCount - 1;
+            SkipgramHitCount[0] = TrigramHitCount - 1;
+
+            for(int i = 1; i < SkipgramHitCount.Length; i++)
+            {
+                SkipgramHitCount[i] = SkipgramHitCount[i - 1] - 1;
+            }
+#endif
+
+            mValueHasChanged = true;
+            sw.Stop();
+            long time = sw.ElapsedMilliseconds;
+            LTrace.LogInfo($"Analyzed dataset in {time} milliseconds");
+            TrySetToPending();
+        }
+
+        public override void SetToDefault()
+        {
+            // TODO: Load default dataset.
+        }
+
+        public override void SetToDesiredValue()
+        {
+            // The desired value is whatever the heck it is currently set to.
+        }
+
+        protected override void Action()
+        {
+            // Nothing to do.
+        }
+
+        protected override void ChangeLimits()
+        {
+            // This setting doesn't use a pending value!
+        }
+
+        protected override void Load(string text)
+        {
+            // Too much data to save/load.
+        }
+
+        protected override void Save(XmlWriter writer)
+        {
+            // Too much data to save/load.
+        }
+
+        protected override void SetToNewLimits()
+        {
+            // Reanalyze the dataset :( -> We've gotta do it
+            LoadDataset(DatasetText);
+        }
+
+        protected override void TrySetToPending(bool userInitiated = false)
+        {
+            // We aren't using a pending value, so lets just report a settings transaction occurred.
+            if (ValueHasChanged)
+            {
+                SettingTransaction("Analyzing dataset", false, () =>
+                {
+                    // Now that we have reported the setting change, just make it so that we report the setting hasn't changed yet.
+                    mValueHasChanged = false;
+                });
+            }
+        }
     }
 
     /// <summary>
@@ -61,6 +247,7 @@ namespace Keyrita.Settings
         {
             SettingState.MeasurementSettings.AnalysisEnabled.AddDependent(this);
             SettingState.KeyboardSettings.KeyboardState.AddDependent(this);
+            SettingState.MeasurementSettings.CharFrequencyData.AddDependent(this);
         }
 
         protected override void DoAction()
@@ -286,7 +473,7 @@ namespace Keyrita.Settings
     public class CharacterSetSetting : ElementSetSetting<char>
     {
         private string EnglishCharSet = "qwertyuiopasdfghjkl;zxcvbnm,./'";
-        private string EnglishUKCharSet = "qwertyuiopasdfghjkl;zxcvbnm,./'";
+        private string EnglishUKCharSet = "wertyuiopasdfghjkl;zxcvbnm,./'";
 
         public CharacterSetSetting() 
             : base("Available Character Set", eSettingAttributes.None)

@@ -40,6 +40,9 @@ namespace Keyrita.Settings.SettingUtil
     /// </summary>
     public class MeasurementSettings
     {
+        public CharFrequencySetting CharFrequencyData { get; } =
+            new CharFrequencySetting();
+
         public ActionSetting PerformAnalysis { get; } =
             new KeyboardAnalysisAction();
 

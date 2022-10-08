@@ -150,6 +150,15 @@ namespace Keyrita
             {
                 LTrace.LogInfo("Loading dataset");
 
+                try
+                {
+                    string dataset = File.ReadAllText(openFileDialog.FileName);
+                    SettingState.MeasurementSettings.CharFrequencyData.LoadDataset(dataset);
+                }
+                catch (Exception)
+                {
+                    LTrace.Assert(false, "Unable to load dataset");
+                }
             }
         }
     }
