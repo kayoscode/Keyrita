@@ -1,3 +1,0 @@
-﻿  Analyze.cpp
-C:\Users\Bryce\Desktop\Keyrita\NativeAnalysisDLL\Analyze.cpp(76,19): warning C4244: 'initializing': conversion from 'wchar_t' to 'char', possible loss of data
-  NativeAnalysisDLL.vcxproj -> C:\Users\Bryce\Desktop\Keyrita\Keyrita\x64\Debug\NativeAnalysisDLL.dll
