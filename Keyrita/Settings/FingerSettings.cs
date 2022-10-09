@@ -1,4 +1,6 @@
-﻿using Keyrita.Settings.SettingUtil;
+﻿using System;
+using System.Collections.Generic;
+using Keyrita.Settings.SettingUtil;
 
 namespace Keyrita.Settings
 {
@@ -8,28 +10,36 @@ namespace Keyrita.Settings
     public enum eFinger
     {
         None,
-        LeftPinkie = 0,
-        LeftRing = 1,
-        LeftMiddle = 2,
-        LeftIndex = 3,
-        LeftThumb = 4,
+        LeftPinkie,
+        LeftRing,
+        LeftMiddle,
+        LeftIndex,
+        LeftThumb,
 
-        RightThumb = 5,
-        RightIndex = 6,
-        RightMiddle = 7,
-        RightRing = 8,
-        RightPinkie = 9,
+        RightThumb,
+        RightIndex,
+        RightMiddle,
+        RightRing,
+        RightPinkie,
     }
 
     /// <summary>
     /// The finger's starting position specified per key.
     /// If the key doesn't have a finger on the starting position, it should be set to none.
     /// </summary>
-    public class FingerHomePosition : PerkeySetting<eFinger>
+    public class FingerHomePositionSetting : PerkeySetting<eFinger>
     {
-        public FingerHomePosition() 
+        public FingerHomePositionSetting() 
             : base("Finger Home Position", eSettingAttributes.Recall)
         {
+        }
+
+        public override void SetToDesiredValue()
+        {
+            // We just need to check that we haven't already used a finger before setting.
+            // If we have, just ignore that specification.
+            // TODO
+            base.SetToDesiredValue();
         }
 
         public override void SetToDefault()
@@ -63,16 +73,68 @@ namespace Keyrita.Settings
     /// Setting value derived from the home position setting.
     /// Each finger will be used to hit the key its closest to.
     /// </summary>
-    public class FingerMappings : PerkeySetting<eFinger>
+    public class FingerMappingSetting : PerkeySetting<eFinger>
     {
-        public FingerMappings() 
+        public FingerMappingSetting() 
             : base("Key to Finger Mappings", eSettingAttributes.None)
         {
         }
 
         protected override void SetDependencies()
         {
+            SettingState.FingerSettings.FingerHomePosition.AddDependent(this);
+        }
 
+        protected override void ChangeLimits(eFinger[,] values)
+        {
+            // Assuming each key is in a perfect grid should get us the right results.
+            var fhs = SettingState.FingerSettings.FingerHomePosition;
+
+            Dictionary<eFinger, (int row, int col)> fingerPositions = new Dictionary<eFinger, (int row, int col)>();
+            for(int i = 0; i < ROWS; i++)
+            {
+                for(int j = 0; j < COLS; j++)
+                {
+                    eFinger finger = fhs.GetValueAt(i, j);
+                    if(finger != eFinger.None)
+                    {
+                        fingerPositions[finger] = (i, j);
+                    }
+                }
+            }
+
+            for (int i = 0; i < ROWS; i++)
+            {
+                for (int j = 0; j < COLS; j++)
+                {
+                    eFinger finger = fhs.GetValueAt(i, j);
+
+                    if (finger != eFinger.None)
+                    {
+                        values[i, j] = finger;
+                    }
+                    else
+                    {
+                        eFinger minFinger = eFinger.None;
+                        double minFingerDistance = 1000;
+
+                        foreach(var kvp in fingerPositions)
+                        {
+                            double dr = (i - kvp.Value.row);
+                            double dc = (j - kvp.Value.col);
+                            double distance = Math.Sqrt(dr * dr + dc * dc);
+
+                            if(distance < minFingerDistance)
+                            {
+                                minFingerDistance = distance;
+                                minFinger = kvp.Key;
+                            }
+                        }
+
+                        values[i, j] = minFinger;
+                    }
+                }
+            }
         }
 
         public override void SetToDefault()

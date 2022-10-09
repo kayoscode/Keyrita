@@ -390,7 +390,7 @@ namespace Keyrita.Settings
             return mKeyState[row, col];
         }
 
-        protected override void ChangeLimits()
+        protected override sealed void ChangeLimits()
         {
             ChangeLimits(mNewKeyState);
         }

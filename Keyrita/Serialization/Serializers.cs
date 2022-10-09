@@ -1,4 +1,5 @@
-﻿using Keyrita.Util;
+﻿using Keyrita.Settings;
+using Keyrita.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,6 +55,40 @@ namespace Keyrita.Serialization
             }
 
             obj = null;
+            return false;
+        }
+
+        public override bool TryParse(string text, out object obj)
+        {
+            return TryParse(text, out obj);
+        }
+    }
+
+    public class FingerSerializer : TextSerializer, ITextSerializer<eFinger>
+    {
+        public string ToText(eFinger obj)
+        {
+            return $"{obj.GetType()} {obj}";
+        }
+
+        public override string ToText(object obj)
+        {
+            return ToText((eFinger)obj);
+        }
+
+        public bool TryParse(string text, out eFinger obj)
+        {
+            // Get the enum value from the text.
+            string[] value = text.Split(" ");
+
+            if(value.Length == 2)
+            {
+                var v = Utils.GetEnumValue(value[0], value[1]);
+                obj = (eFinger)v;
+                return true;
+            }
+
+            obj = default(eFinger);
             return false;
         }
 
@@ -137,6 +172,7 @@ namespace Keyrita.Serialization
         private static IReadOnlyDictionary<Type, TextSerializer> Serializers { get; } = new Dictionary<Type, TextSerializer>()
         {
             { typeof(Enum), new EnumSerializer() },
+            { typeof(eFinger), new FingerSerializer() },
             { typeof(char), new CharSerializer() },
             { typeof(uint), new UIntSerializer() }
         };

@@ -1,4 +1,5 @@
-﻿using Keyrita.Settings.SettingUtil;
+﻿using Keyrita.Settings;
+using Keyrita.Settings.SettingUtil;
 
 namespace Keyrita.Gui.Dialogs
 {
