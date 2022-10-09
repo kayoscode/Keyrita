@@ -75,13 +75,6 @@ namespace Keyrita.Serialization
 
         public string ToText(char obj)
         {
-            // This is the delimeter.
-            if(obj == ' ')
-            {
-                // Insert \\s into the file and convert that to space when we load.
-                return "\\s";
-            }
-
             return $"{obj}";
         }
 
@@ -94,22 +87,44 @@ namespace Keyrita.Serialization
         {
             if(text.Length >= 1)
             {
-                if (text[0] == '\\' && text.Length == 2 && text[1] == 's')
-                {
-                    obj = ' ';
-                }
-
-                if(text.Length != 1)
-                {
-                    obj = default(char);
-                    return false;
-                }
-
                 obj = text[0];
                 return true;
             }
 
             obj = default(char);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Converts a char to text and vice versa.
+    /// </summary>
+    public class UIntSerializer : TextSerializer, ITextSerializer<uint>
+    {
+        public override string ToText(object obj)
+        {
+            return ToText(obj);
+        }
+
+        public string ToText(uint obj)
+        {
+            return $"{obj}";
+        }
+
+        public override bool TryParse(string text, out object obj)
+        {
+            return TryParse(text, out obj);
+        }
+
+        public bool TryParse(string text, out uint obj)
+        {
+            if(text.Length >= 1)
+            {
+                obj = uint.Parse(text);
+                return true;
+            }
+
+            obj = default(uint);
             return false;
         }
     }
@@ -122,7 +137,8 @@ namespace Keyrita.Serialization
         private static IReadOnlyDictionary<Type, TextSerializer> Serializers { get; } = new Dictionary<Type, TextSerializer>()
         {
             { typeof(Enum), new EnumSerializer() },
-            { typeof(char), new CharSerializer() }
+            { typeof(char), new CharSerializer() },
+            { typeof(uint), new UIntSerializer() }
         };
 
         /// <summary>

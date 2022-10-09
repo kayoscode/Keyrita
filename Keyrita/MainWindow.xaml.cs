@@ -106,6 +106,17 @@ namespace Keyrita
             SettingsSystem.Redo();
         }
 
+        protected void SetToDefaults(object sender, RoutedEventArgs e)
+        {
+            MessageBoxResult result = MessageBox.Show("This action cannot be undone, continue? (Dataset will remain loaded)",
+                                                      "Confirmation", MessageBoxButton.YesNo);
+
+            if(result == MessageBoxResult.Yes)
+            {
+                SettingsSystem.DefaultSettings();
+            }
+        }
+
         protected void LoadSettings(object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
@@ -118,7 +129,7 @@ namespace Keyrita
                 {
                     XmlDocument xmlReader = new XmlDocument();
                     xmlReader.Load(openFileDialog.FileName);
-                    SettingsSystem.LoadSettings(xmlReader);
+                    SettingsSystem.LoadSettings(xmlReader, false);
                 }
                 catch (Exception)
                 {
@@ -138,13 +149,28 @@ namespace Keyrita
                 using (XmlWriter fileWriter = XmlWriter.Create(saveFileDialog.FileName,
                         new XmlWriterSettings { Indent = true }))
                 {
-                    SettingsSystem.SaveSettings(fileWriter);
+                    SettingsSystem.SaveSettings(fileWriter, false);
                 }
             }
         }
 
         protected void LoadDataset(object sender, RoutedEventArgs e)
         {
+            if (SettingState.MeasurementSettings.CharFrequencyData.IsRunning)
+            {
+                MessageBoxResult result = MessageBox.Show("A dataset is currently being loaded. Cancel?",
+                    "Confirmation", MessageBoxButton.YesNo);
+
+                if(result == MessageBoxResult.Yes)
+                {
+                    SettingState.MeasurementSettings.CharFrequencyData.Cancel();
+                }
+                else
+                {
+                    return;
+                }
+            }
+
             OpenFileDialog openFileDialog = new OpenFileDialog();
 
             if (openFileDialog.ShowDialog() == true)

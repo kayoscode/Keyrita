@@ -90,17 +90,11 @@ namespace Keyrita.Settings.SettingUtil
         protected override void Save(XmlWriter writer)
         {
             // Convert the enum value to a string and write it to the stream writer.
-            string uniqueName = this.GetSettingUniqueId();
-
-            writer.WriteStartElement(uniqueName);
-
             foreach(T element in Collection)
             {
                 writer.WriteString(TextSerializers.ToText(element));
                 writer.WriteString(" ");
             }
-
-            writer.WriteEndElement();
         }
 
         #endregion

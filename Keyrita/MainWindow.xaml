@@ -14,7 +14,8 @@
             FlowDirection="LeftToRight"
             IsMainMenu="True">
             <MenuItem Header="File">
-                <MenuItem Header="_New" />
+                <MenuItem Header="_New" 
+                          Click="SetToDefaults"/>
                 <MenuItem Header="_Open"
                       Click="LoadSettings"/>
                 <MenuItem Header="_Save"

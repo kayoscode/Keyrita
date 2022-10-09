@@ -54,7 +54,7 @@ namespace Keyrita.Gui.Controls
                 int row = index / KeyboardStateSetting.COLS;
                 int col = index % KeyboardStateSetting.COLS;
                 var k = (Key)key;
-                var character = mKeyboardState.GetCharacterAt(row, col);
+                var character = mKeyboardState.GetValueAt(row, col);
 
                 k.KeyCharacter = new KeyCharacterWrapper(character);
                 index++;

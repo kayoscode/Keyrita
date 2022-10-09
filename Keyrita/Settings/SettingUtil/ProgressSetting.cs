@@ -26,8 +26,10 @@ namespace Keyrita.Settings.SettingUtil
         }
 
         public ChangeNotification NotifyProgressBarStarted = new ChangeNotification();
+        public ChangeNotification NotifyCanceled = new ChangeNotification();
 
         public abstract double Progress { get; }
         public abstract bool IsRunning { get; }
+        public abstract void Cancel();
     }
 }

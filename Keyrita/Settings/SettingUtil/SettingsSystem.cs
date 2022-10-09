@@ -115,7 +115,7 @@ namespace Keyrita.Settings.SettingUtil
             {
                 using(XmlWriter writer = XmlWriter.Create(undoRedoXml))
                 {
-                    SaveSettings(writer);
+                    SaveSettings(writer, true);
                 }
             }
 
@@ -130,7 +130,7 @@ namespace Keyrita.Settings.SettingUtil
                 XmlDocument settings = new XmlDocument();
                 settings.LoadXml(xml);
 
-                LoadSettings(settings);
+                LoadSettings(settings, true);
             }
         }
 
@@ -141,7 +141,7 @@ namespace Keyrita.Settings.SettingUtil
                 XmlDocument settings = new XmlDocument();
                 settings.LoadXml(xml);
 
-                LoadSettings(settings);
+                LoadSettings(settings, true);
             }
         }
 
@@ -149,7 +149,7 @@ namespace Keyrita.Settings.SettingUtil
         /// Saves all settings to an XML file.
         /// </summary>
         /// <param name="fileStream"></param>
-        public static void SaveSettings(XmlWriter xmlWriter)
+        public static void SaveSettings(XmlWriter xmlWriter, bool undoredo)
         {
             LTrace.Assert(Finalized, "Cannot save before finalized.");
 
@@ -159,14 +159,14 @@ namespace Keyrita.Settings.SettingUtil
             // Allow each setting to write to the file.
             foreach(SettingBase setting in mSettings)
             {
-                setting.SaveToFile(xmlWriter);
+                setting.SaveToFile(xmlWriter, undoredo);
             }
 
             xmlWriter.WriteEndElement();
             xmlWriter.WriteEndDocument();
         }
 
-        public static void LoadSettings(XmlDocument xmlReader)
+        public static void LoadSettings(XmlDocument xmlReader, bool undoredo)
         {
             LTrace.Assert(Finalized, "Cannot load before finalized.");
 
@@ -179,7 +179,7 @@ namespace Keyrita.Settings.SettingUtil
 
                 if(mSettingsByUid.TryGetValue(uid, out SettingBase settingToload))
                 {
-                    settingToload.LoadFromfile(setting.InnerText);
+                    settingToload.LoadFromfile(setting.InnerXml, undoredo);
                 }
             }
 

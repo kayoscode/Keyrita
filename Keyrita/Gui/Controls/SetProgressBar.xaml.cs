@@ -30,8 +30,8 @@ namespace Keyrita.Gui.Controls
                 if (Setting.IsRunning)
                 {
                     mControlBlock.Visibility = Visibility.Visible;
-                    mProgressBar.Value = Setting.Progress;
-                    mProgressBarText.Text = "Loading " + Setting.SettingName + $" ({mProgressBar.Value.ToString("###")}%)";
+                    mProgressBar.Value = Setting.Progress * 100;
+                    mProgressBarText.Text = "Loading " + Setting.SettingName + $"({mProgressBar.Value.ToString("###")}%)";
                 }
                 else
                 {

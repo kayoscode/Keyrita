@@ -17,6 +17,7 @@ namespace Keyrita.Settings.SettingUtil
         None = 0,
         // Whether the setting should be exported to a file by default.
         Recall = 1,
+        RecallNoUndo,
     }
 
     /// <summary>
@@ -157,19 +158,48 @@ namespace Keyrita.Settings.SettingUtil
         /// </summary>
         protected abstract void Action();
 
-        public void SaveToFile(XmlWriter writer)
+        public void SaveToFile(XmlWriter writer, bool undoRedo)
         {
-            if(mAttributes.HasFlag(eSettingAttributes.Recall))
+            if(undoRedo)
             {
-                Save(writer);
+                if (mAttributes.HasFlag(eSettingAttributes.Recall))
+                {
+                    string uniqueId = this.GetSettingUniqueId();
+                    writer.WriteStartElement(uniqueId);
+                    Save(writer);
+                    writer.WriteEndElement();
+                }
+            }
+            else
+            {
+                if(mAttributes.HasFlag(eSettingAttributes.Recall) ||
+                    mAttributes.HasFlag(eSettingAttributes.RecallNoUndo))
+                {
+                    string uniqueId = this.GetSettingUniqueId();
+                    writer.WriteStartElement(uniqueId);
+                    Save(writer);
+                    writer.WriteEndElement();
+                }
             }
         }
 
-        public void LoadFromfile(string text)
+        public void LoadFromfile(string text, bool undoRedo)
         {
-            if (mAttributes.HasFlag(eSettingAttributes.Recall))
+
+            if(undoRedo)
             {
-                Load(text);
+                if (mAttributes.HasFlag(eSettingAttributes.Recall))
+                {
+                    Load(text);
+                }
+            }
+            else
+            {
+                if(mAttributes.HasFlag(eSettingAttributes.Recall) ||
+                    mAttributes.HasFlag(eSettingAttributes.RecallNoUndo))
+                {
+                    Load(text);
+                }
             }
         }
 

@@ -36,24 +36,26 @@ extern "C" {
 		unsigned int* bigramFreq,
 		unsigned int* trigramFreq,
 		unsigned int* skipGramFreq,
-		double* progress) 
+		double* progress,
+		bool* canceled) 
 	{
         *progress = 0;
 
 		// Need a map to convert each character to lower. Add special cases here.
 		wchar_t* toLowerMap = new wchar_t[WCHAR_MAX + 1];
-		for (wchar_t i = 0; i < WCHAR_MAX; i++) {
+		for (int i = 0; i < WCHAR_MAX + 1; i++) {
 			auto special = ToLowerSpecialCases.find(i);
 
 			if (special != ToLowerSpecialCases.end()) {
 				toLowerMap[i] = special->second;
 			}
-			else if (i <= 255) {
-				toLowerMap[i] = tolower(i);
-			}
-			else {
-				toLowerMap[i] = i;
-			}
+            else {
+                toLowerMap[i] = towlower(i);
+            }
+		}
+
+		if (*canceled) {
+            return -1;
 		}
 
 		// Really it should be much much greater than 100, but I don't really care. Just need it to be more than 4
@@ -62,20 +64,25 @@ extern "C" {
 		}
 
 		// To save time, only initialize the characters we actually care about.
-		unsigned int* charToIndex = new unsigned int[WCHAR_MAX + 1];
-		bool* charValid = new bool[WCHAR_MAX + 1];
-
-		std::memset(charToIndex, 0, sizeof(int) * WCHAR_MAX + 1);
-		std::memset(charValid, false, sizeof(bool) * WCHAR_MAX + 1);
+        unsigned int charToIndex[WCHAR_MAX + 1] = { 0 };
+        bool charValid[WCHAR_MAX + 1] = { false };
 
 		for (int i = 0; i < charsetSize; i++) {
 			charToIndex[validCharset[i]] = i;
 			charValid[validCharset[i]] = true;
 		}
 
+		if (*canceled) {
+            return -1;
+		}
+
 		// Filter input string -> remove all special characters, and transform to lower case.
-		std::wstring filteredString;
+        std::wstring filteredString;
 		for (int i = 0; i < datasetSize; i++) {
+			if (*canceled) {
+				return -1;
+			}
+
 			char newC = toLowerMap[dataset[i]];
 
 			if (charValid[newC]) {
@@ -115,6 +122,10 @@ extern "C" {
 
 		// The dataset is big enough to just skip the first couple characters, no problem.
 		for (unsigned int i = 6; i < filteredString.size(); i++) {
+			if (*canceled) {
+                return -1;
+			}
+
 			charFreq[charToIndex[filteredString[i]]]++;
 
 			// Deal with bigrams.
@@ -128,12 +139,10 @@ extern "C" {
 			skipGramFreq[SKIDX(1, i - 4, i)]++;
 			skipGramFreq[SKIDX(2, i - 5, i)]++;
 
-			*progress = (((double)i + 1) / (double)filteredString.size()) * 100.0;
+			*progress = (((double)i + 1) / (double)filteredString.size());
 		}
 
 		delete[] toLowerMap;
-		delete[] charValid;
-		delete[] charToIndex;
 
 		return filteredString.size();
 	}

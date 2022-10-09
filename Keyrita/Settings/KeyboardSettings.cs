@@ -1,12 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Xml;
 using Keyrita.Gui;
-using Keyrita.Interop.NativeAnalysis;
 using Keyrita.Serialization;
 using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
@@ -47,245 +43,25 @@ namespace Keyrita.Settings
     }
 
     /// <summary>
-    /// Stores information about the language based on the dataset.
-    /// </summary>
-    public class CharFrequencySetting : ProgressSetting
-    {
-        public CharFrequencySetting() 
-            : base("Language Data", eSettingAttributes.None)
-        {
-        }
-
-        protected string DatasetText { get; set; }
-
-        protected uint[] CharFreq => mCharFreq;
-        protected uint[] mCharFreq;
-        protected long CharHitCount { get; set; }
-
-        protected uint[,] BigramFreq => mBigramFreq;
-        protected uint[,] mBigramFreq;
-        protected long BigramHitCount { get; set; }
-
-        protected uint[,,] TrigramFreq => mTrigramFreq;
-        protected uint[,,] mTrigramFreq;
-        protected long TrigramHitCount { get; set; }
-
-        protected uint[,,] SkipgramFreq => mSkipgramFreq;
-        protected uint[,,] mSkipgramFreq;
-        protected long[] SkipgramHitCount { get; set; } = new long[NativeAnalysis.SKIPGRAM_DEPTH];
-
-        public override bool HasValue => !(CharFreq == null || BigramFreq == null || TrigramFreq == null || SkipgramFreq == null);
-        protected override bool ValueHasChanged => mValueHasChanged;
-
-        #region Progress Data
-
-        public override double Progress => mProgress[0];
-        protected double[] mProgress = new double[1];
-        public override bool IsRunning => mIsRunning;
-        protected bool mIsRunning = false;
-
-        #endregion
-
-        private bool mValueHasChanged = false;
-
-        protected override void SetDependencies()
-        {
-            // We only depend on the available char set.
-            SettingState.KeyboardSettings.AvailableCharSet.AddDependent(this);
-        }
-
-        /// <summary>
-        /// Load the dataset using the native code!
-        /// </summary>
-        /// <param name="fileName"></param>
-        public void LoadDataset(string fileText)
-        {
-            if (fileText == null) return;
-            object mutex = new object();
-
-            // Load the layout on thread.
-            lock (mutex)
-            {
-                mIsRunning = true;
-                mProgress[0] = 0;
-                NotifyProgressBarStarted.NotifyGui(this);
-
-                int currentThread = System.Threading.Thread.CurrentThread.ManagedThreadId;
-
-                Task.Factory.StartNew(() =>
-                {
-                    Stopwatch sw = new Stopwatch();
-                    sw.Start();
-                    CharHitCount = 0;
-                    BigramHitCount = 0;
-                    TrigramHitCount = 0;
-                    for (int i = 0; i < SkipgramHitCount.Length; i++)
-                    {
-                        SkipgramHitCount[i] = 0;
-                    }
-                    DatasetText = fileText;
-                    StringBuilder available = new StringBuilder();
-                    foreach (char c in SettingState.KeyboardSettings.AvailableCharSet.Collection)
-                    {
-                        available.Append(c);
-                    }
-
-                    long charCount = NativeAnalysis.AnalyzeDataset(fileText, available.ToString(), 
-                        out mCharFreq, out mBigramFreq, out mTrigramFreq, out mSkipgramFreq,
-                        mProgress);
-
-#if (DEBUG)
-                    // Get the hit counts, hopefully this doesn't take too long to process.
-                    for (int i = 0; i < mCharFreq.Length; i++)
-                    {
-                        CharHitCount += mCharFreq[i];
-                    }
-
-                    for (int i = 0; i < mBigramFreq.GetLength(0); i++)
-                    {
-                        for (int j = 0; j < mBigramFreq.GetLength(1); j++)
-                        {
-                            BigramHitCount += mBigramFreq[i, j];
-                        }
-                    }
-
-                    for (int i = 0; i < mTrigramFreq.GetLength(0); i++)
-                    {
-                        for (int j = 0; j < mTrigramFreq.GetLength(1); j++)
-                        {
-                            for (int k = 0; k < mTrigramFreq.GetLength(2); k++)
-                            {
-                                TrigramHitCount += mTrigramFreq[i, j, k];
-                            }
-                        }
-                    }
-
-                    for (int i = 0; i < mSkipgramFreq.GetLength(0); i++)
-                    {
-                        for (int j = 0; j < mSkipgramFreq.GetLength(1); j++)
-                        {
-                            for (int k = 0; k < mSkipgramFreq.GetLength(2); k++)
-                            {
-                                SkipgramHitCount[i] += mSkipgramFreq[i, j, k];
-                            }
-                        }
-                    }
-
-                    var exCharHitCount = charCount;
-                    LTrace.Assert(exCharHitCount == CharHitCount, "Sanity check failed");
-                    var exBigramHitCount = CharHitCount - 1;
-                    LTrace.Assert(exBigramHitCount == BigramHitCount, "Sanity check failed");
-                    var exTrigramHitCount = BigramHitCount - 1;
-                    LTrace.Assert(exTrigramHitCount == TrigramHitCount, "Sanity check failed");
-
-                    var exSkipgramHitCount = new long[SkipgramHitCount.Length];
-                    exSkipgramHitCount[0] = TrigramHitCount - 1;
-                    LTrace.Assert(exSkipgramHitCount[0] == SkipgramHitCount[0], "Sanity check failed");
-
-                    for (int i = 1; i < SkipgramHitCount.Length; i++)
-                    {
-                        exSkipgramHitCount[i] = SkipgramHitCount[i - 1] - 1;
-                        LTrace.Assert(exSkipgramHitCount[i] == SkipgramHitCount[i], "Sanity check failed");
-                    }
-#else
-                    CharHitCount = charCount;
-                    BigramHitCount = CharHitCount - 1;
-                    TrigramHitCount = BigramHitCount - 1;
-                    SkipgramHitCount[0] = TrigramHitCount - 1;
-
-                    for(int i = 1; i < SkipgramHitCount.Length; i++)
-                    {
-                        SkipgramHitCount[i] = SkipgramHitCount[i - 1] - 1;
-                    }
-#endif
-
-                    mValueHasChanged = true;
-                    sw.Stop();
-                    long time = sw.ElapsedMilliseconds;
-                    LTrace.LogInfo($"Analyzed dataset in {time} milliseconds");
-                }).ConfigureAwait(true).GetAwaiter().OnCompleted(() =>
-                {
-                    mIsRunning = false;
-
-                    // Make sure we are on the main thread. Otherwise we should assert false, but continue with execution anyway.
-                    int newThread = System.Threading.Thread.CurrentThread.ManagedThreadId;
-                    LTrace.Assert(currentThread == newThread, "This needs to be on the same thread");
-                    TrySetToPending();
-                });
-            }
-        }
-
-        public override void SetToDefault()
-        {
-            // TODO: Load default dataset.
-        }
-
-        public override void SetToDesiredValue()
-        {
-            // The desired value is whatever the heck it is currently set to.
-        }
-
-        protected override void Action()
-        {
-            // Nothing to do.
-        }
-
-        protected override void ChangeLimits()
-        {
-            // This setting doesn't use a pending value!
-        }
-
-        protected override void Load(string text)
-        {
-            // Too much data to save/load.
-        }
-
-        protected override void Save(XmlWriter writer)
-        {
-            // Too much data to save/load.
-        }
-
-        protected override void SetToNewLimits()
-        {
-            // Reanalyze the dataset :( -> We've gotta do it
-            LoadDataset(DatasetText);
-        }
-
-        protected override void TrySetToPending(bool userInitiated = false)
-        {
-            // We aren't using a pending value, so lets just report a settings transaction occurred.
-            if (ValueHasChanged)
-            {
-                SettingTransaction("Analyzing dataset", false, () =>
-                {
-                    // Now that we have reported the setting change, just make it so that we report the setting hasn't changed yet.
-                    mValueHasChanged = false;
-                });
-            }
-        }
-    }
-
-    /// <summary>
     /// Analyzes the keyboard when the keyboard's state changes, and the 
     /// analyzer is running.
     /// </summary>
     public class KeyboardAnalysisAction : ActionSetting
     {
         public KeyboardAnalysisAction()
-            :base("Trigger Analysis")
+            : base("Trigger Analysis")
         {
         }
 
         protected override void SetDependencies()
         {
-            SettingState.MeasurementSettings.AnalysisEnabled.AddDependent(this);
             SettingState.KeyboardSettings.KeyboardState.AddDependent(this);
-            SettingState.MeasurementSettings.CharFrequencyData.AddDependent(this);
         }
 
         protected override void DoAction()
         {
-            if(SettingState.MeasurementSettings.AnalysisEnabled.Value.Equals(eOnOff.On))
+            if (SettingState.MeasurementSettings.AnalysisEnabled.Value.Equals(eOnOff.On) &&
+               SettingState.KeyboardSettings.KeyboardValid.Value.Equals(eOnOff.On))
             {
                 // Todo: Perform keyboard analysis.
             }
@@ -298,7 +74,7 @@ namespace Keyrita.Settings
     /// </summary>
     public class AnalysisEnabledSetting : OnOffSetting
     {
-        public AnalysisEnabledSetting() 
+        public AnalysisEnabledSetting()
             : base("Analysis Enabled", eOnOff.On, eSettingAttributes.Recall)
         {
         }
@@ -353,19 +129,19 @@ namespace Keyrita.Settings
             var characterSet = SettingState.KeyboardSettings.AvailableCharSet.Collection;
 
             Dictionary<char, bool> charHasBeenUsed = new Dictionary<char, bool>();
-            foreach(char c in characterSet)
+            foreach (char c in characterSet)
             {
                 charHasBeenUsed[c] = false;
             }
 
             bool valid = true;
-            for(int i = 0; i < KeyboardStateSetting.ROWS; i++)
+            for (int i = 0; i < KeyboardStateSetting.ROWS; i++)
             {
-                for(int j = 0; j < KeyboardStateSetting.COLS; j++)
+                for (int j = 0; j < KeyboardStateSetting.COLS; j++)
                 {
-                    char character = SettingState.KeyboardSettings.KeyboardState.GetCharacterAt(i, j);
+                    char character = SettingState.KeyboardSettings.KeyboardState.GetValueAt(i, j);
 
-                    if(charHasBeenUsed.TryGetValue(character, out bool used) && !used)
+                    if (charHasBeenUsed.TryGetValue(character, out bool used) && !used)
                     {
                         charHasBeenUsed[character] = true;
                     }
@@ -376,7 +152,7 @@ namespace Keyrita.Settings
                 }
             }
 
-            if(valid)
+            if (valid)
             {
                 mValidTokens.Add(eOnOff.On);
             }
@@ -440,7 +216,7 @@ namespace Keyrita.Settings
     /// </summary>
     public class KeyboardShowAnnotationsSetting : OnOffSetting
     {
-        public KeyboardShowAnnotationsSetting() : 
+        public KeyboardShowAnnotationsSetting() :
             base("Show Annotations", eOnOff.Off, eSettingAttributes.Recall)
         {
         }
@@ -451,7 +227,7 @@ namespace Keyrita.Settings
     /// </summary>
     public class KeyboardLanguageSetting : EnumValueSetting<eLang>
     {
-        public KeyboardLanguageSetting() : 
+        public KeyboardLanguageSetting() :
             base("Language", eLang.English, eSettingAttributes.Recall)
         {
         }
@@ -473,7 +249,7 @@ namespace Keyrita.Settings
             STANDARD_OFFSET_BOTTOM
         };
 
-        public RowHorizontalOffsetSetting(int rowIndex) 
+        public RowHorizontalOffsetSetting(int rowIndex)
             : base("Row " + rowIndex + " Offset", 0.0, eSettingAttributes.None)
         {
             LTrace.Assert(rowIndex < 3, "Only three rows supported");
@@ -505,10 +281,10 @@ namespace Keyrita.Settings
     /// </summary>
     public class CharacterSetSetting : ElementSetSetting<char>
     {
-        private string EnglishCharSet = "qwertyuiopasdfghjkl;zxcvbnm,./'";
-        private string EnglishUKCharSet = "wertyuiopasdfghjkl;zxcvbnm,./'";
+        private string EnglishCharSet = "qwertyuiopasdfghjkl;zxcvbnm,./' ";
+        private string EnglishUKCharSet = "qwertyuiopasdfghjkl;zxcvbnm,./' ";
 
-        public CharacterSetSetting() 
+        public CharacterSetSetting()
             : base("Available Character Set", eSettingAttributes.None)
         {
             // Default should just be english.
@@ -545,65 +321,24 @@ namespace Keyrita.Settings
         }
     }
 
-    /// <summary>
-    /// The list of keys
-    /// </summary>
-    public class KeyboardStateSetting : SettingBase
+    public abstract class PerkeySetting<T> : SettingBase
     {
         public const int ROWS = 3;
         public const int COLS = 10;
 
-        public KeyboardStateSetting() : 
-            base("Keyboard State", eSettingAttributes.Recall)
+        public PerkeySetting(string settingName, eSettingAttributes attributes) :
+            base(settingName, attributes)
         {
         }
 
-        protected char[,] mKeyboardState = new char[ROWS, COLS];
-        protected char[,] mNewKeyboardState = new char[ROWS, COLS];
-        protected char[,] mPendingKeyboardState = new char[ROWS, COLS];
-        protected char[,] mDesiredKeyboardState = new char[ROWS, COLS];
+        protected T[,] mKeyState = new T[ROWS, COLS];
+        protected T[,] mNewKeyState = new T[ROWS, COLS];
+        protected T[,] mPendingKeyState = new T[ROWS, COLS];
+        protected T[,] mDesiredKeyState = new T[ROWS, COLS];
 
-        public override bool HasValue => mKeyboardState != null;
-        protected override bool ValueHasChanged => BoardsMatch(mPendingKeyboardState, mKeyboardState) > 0;
+        public override bool HasValue => mKeyState != null;
+        protected override bool ValueHasChanged => BoardsMatch(mPendingKeyState, mKeyState) > 0;
 
-        #region Public manipulation interface
-
-        /// <summary>
-        /// Reflects the keyboard state along the x axis.
-        /// </summary>
-        public void ReflectHorz()
-        {
-            for (int i = 0; i < ROWS; i++)
-            {
-                for (int j = 0; j < COLS / 2; j++)
-                {
-                    var reflectJ = COLS - j - 1;
-
-                    mPendingKeyboardState[i, reflectJ] = mKeyboardState[i, j];
-                    mPendingKeyboardState[i, j] = mKeyboardState[i, reflectJ];
-                }
-            }
-
-            TrySetToPending(true);
-        }
-
-        public void ReflectVert()
-        {
-            for (int i = 0; i < ROWS / 2; i++)
-            {
-                for (int j = 0; j < COLS; j++)
-                {
-                    var reflectI = ROWS - i - 1;
-
-                    mPendingKeyboardState[reflectI, j] = mKeyboardState[i, j];
-                    mPendingKeyboardState[i, j] = mKeyboardState[reflectI, j];
-                }
-            }
-
-            TrySetToPending(true);
-        }
-
-        #endregion
 
         protected override void Load(string text)
         {
@@ -611,14 +346,14 @@ namespace Keyrita.Settings
 
             int index = 0;
 
-            foreach(string s in layout)
+            foreach (string s in layout)
             {
                 int row = index / 10;
                 int col = index % 10;
 
-                if(TextSerializers.TryParse(s, out char nextCharacter))
+                if (TextSerializers.TryParse(s, out T nextCharacter))
                 {
-                    mDesiredKeyboardState[row, col] = nextCharacter;
+                    mDesiredKeyState[row, col] = nextCharacter;
                 }
 
                 index++;
@@ -630,66 +365,38 @@ namespace Keyrita.Settings
         protected override void Save(XmlWriter writer)
         {
             // Convert the enum value to a string and write it to the stream writer.
-            string uniqueName = this.GetSettingUniqueId();
-            writer.WriteStartElement(uniqueName);
-
-            for(int i = 0; i < ROWS; i++)
+            for (int i = 0; i < ROWS; i++)
             {
-                for(int j = 0; j < COLS; j++)
+                for (int j = 0; j < COLS; j++)
                 {
-                    writer.WriteString(TextSerializers.ToText(mKeyboardState[i, j]));
+                    writer.WriteString(TextSerializers.ToText(mKeyState[i, j]));
                     writer.WriteString(" ");
                 }
             }
-
-            writer.WriteEndElement();
         }
 
         protected override void Action()
         {
         }
-        
+
         /// <summary>
         /// Returns the character at a specified index.
         /// </summary>
         /// <param name="row"></param>
         /// <param name="col"></param>
         /// <returns></returns>
-        public char GetCharacterAt(int row, int col)
+        public T GetValueAt(int row, int col)
         {
-            return mKeyboardState[row, col];
-        }
-
-        protected override void SetDependencies()
-        {
-            // We care about the keyboard format and language.
-            SettingState.KeyboardSettings.AvailableCharSet.AddDependent(this);
+            return mKeyState[row, col];
         }
 
         protected override void ChangeLimits()
         {
-            ChangeLimits(mNewKeyboardState);
+            ChangeLimits(mNewKeyState);
         }
 
-        protected virtual void ChangeLimits(char[,] newLimits)
+        protected virtual void ChangeLimits(T[,] values)
         {
-            // Todo: When the langauge changes, translate each character to its other langauge equivalent.
-            // For now, just set it to default.
-            var availableCharacters = SettingState.KeyboardSettings.AvailableCharSet.Collection;
-            var chars = string.Join("", availableCharacters);
-            chars = chars.PadRight(30, '*');
-
-            // There should be at least 30 characters in the set of available chars.
-            LTrace.Assert(chars.Length >= 30);
-
-            int strIndex = 0;
-            for(int i = 0; i < ROWS; i++)
-            {
-                for (int j = 0; j < COLS; j++)
-                {
-                    newLimits[i, j] = chars[strIndex++];
-                }
-            }
         }
 
         /// <summary>
@@ -697,51 +404,30 @@ namespace Keyrita.Settings
         /// </summary>
         public override void SetToDesiredValue()
         {
-            CopyBoard(mPendingKeyboardState, mDesiredKeyboardState);
+            CopyBoard(mPendingKeyState, mDesiredKeyState);
             TrySetToPending();
         }
 
-        /// <summary>
-        /// Sets to the default: qwerty.
-        /// </summary>
-        public override void SetToDefault()
-        {
-            var availableCharacters = SettingState.KeyboardSettings.AvailableCharSet.DefaultCollection;
-            var chars = string.Join("", availableCharacters);
-            chars = chars.PadRight(30, '*');
-
-            // There should be at least 30 characters in the set of available chars.
-            LTrace.Assert(chars.Length >= 30);
-
-            int strIndex = 0;
-            for(int i = 0; i < ROWS; i++)
-            {
-                for (int j = 0; j < COLS; j++)
-                {
-                    mDesiredKeyboardState[i, j] = chars[strIndex++];
-                }
-            }
-        }
 
         protected override void SetToNewLimits()
         {
             // Copy the pending board to the new layout.
-            CopyBoard(mPendingKeyboardState, mNewKeyboardState);
+            CopyBoard(mPendingKeyState, mNewKeyState);
             TrySetToPending();
         }
 
         protected override void TrySetToPending(bool userInitiated = false)
         {
             // If the pending keyboard state does not match the current keyboard state, start a setting transaction.
-            var count = BoardsMatch(mPendingKeyboardState, mKeyboardState);
+            var count = BoardsMatch(mPendingKeyState, mKeyState);
 
             if (count != 0)
             {
-                var description = $"Changing {count} keys in the keyboard layout";
+                var description = $"Changing {count} keys";
 
                 SettingTransaction(description, userInitiated, () =>
                 {
-                    CopyBoard(mKeyboardState, mPendingKeyboardState);
+                    CopyBoard(mKeyState, mPendingKeyState);
                 });
             }
         }
@@ -751,7 +437,7 @@ namespace Keyrita.Settings
         /// </summary>
         /// <param name="kb1"></param>
         /// <param name="kb2"></param>
-        private static void CopyBoard(char[,] kb1, char[,] kb2)
+        private static void CopyBoard(T[,] kb1, T[,] kb2)
         {
             for (int i = 0; i < ROWS; i++)
             {
@@ -769,7 +455,7 @@ namespace Keyrita.Settings
         /// <param name="kb1"></param>
         /// <param name="kb2"></param>
         /// <returns></returns>
-        private static int BoardsMatch(char[,] kb1, char[,] kb2)
+        private static int BoardsMatch(T[,] kb1, T[,] kb2)
         {
             var count = 0;
 
@@ -777,7 +463,7 @@ namespace Keyrita.Settings
             {
                 for (int j = 0; j < 10; j++)
                 {
-                    if (kb1[i, j] != kb2[i, j])
+                    if (!EqualityComparer<T>.Default.Equals(kb1[i,j], kb2[i, j]))
                     {
                         count++;
                     }
@@ -786,5 +472,106 @@ namespace Keyrita.Settings
 
             return count;
         }
+    }
+
+    /// <summary>
+    /// The list of keys
+    /// </summary>
+    public class KeyboardStateSetting : PerkeySetting<char>
+    {
+        public KeyboardStateSetting() 
+            :base("Keyboard State", eSettingAttributes.Recall)
+        {
+
+        }
+
+        protected override void ChangeLimits(char[,] newLimits)
+        {
+            // Todo: When the langauge changes, translate each character to its other langauge equivalent.
+            // For now, just set it to default.
+            var availableCharacters = SettingState.KeyboardSettings.AvailableCharSet.Collection;
+            var chars = string.Join("", availableCharacters);
+            chars = chars.PadRight(30, '*');
+
+            // There should be at least 30 characters in the set of available chars.
+            LTrace.Assert(chars.Length >= 30);
+
+            int strIndex = 0;
+            for (int i = 0; i < ROWS; i++)
+            {
+                for (int j = 0; j < COLS; j++)
+                {
+                    newLimits[i, j] = chars[strIndex++];
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sets to the default: qwerty.
+        /// </summary>
+        public override void SetToDefault()
+        {
+            var availableCharacters = SettingState.KeyboardSettings.AvailableCharSet.DefaultCollection;
+            var chars = string.Join("", availableCharacters);
+            chars = chars.PadRight(30, '*');
+
+            // There should be at least 30 characters in the set of available chars.
+            LTrace.Assert(chars.Length >= 30);
+
+            int strIndex = 0;
+            for (int i = 0; i < ROWS; i++)
+            {
+                for (int j = 0; j < COLS; j++)
+                {
+                    mDesiredKeyState[i, j] = chars[strIndex++];
+                }
+            }
+            SetToDesiredValue();
+        }
+
+        protected override void SetDependencies()
+        {
+            // We care about the keyboard format and language.
+            SettingState.KeyboardSettings.AvailableCharSet.AddDependent(this);
+        }
+
+        #region Public manipulation interface
+
+        /// <summary>
+        /// Reflects the keyboard state along the x axis.
+        /// </summary>
+        public void ReflectHorz()
+        {
+            for (int i = 0; i < ROWS; i++)
+            {
+                for (int j = 0; j < COLS / 2; j++)
+                {
+                    var reflectJ = COLS - j - 1;
+
+                    mPendingKeyState[i, reflectJ] = mKeyState[i, j];
+                    mPendingKeyState[i, j] = mKeyState[i, reflectJ];
+                }
+            }
+
+            TrySetToPending(true);
+        }
+
+        public void ReflectVert()
+        {
+            for (int i = 0; i < ROWS / 2; i++)
+            {
+                for (int j = 0; j < COLS; j++)
+                {
+                    var reflectI = ROWS - i - 1;
+
+                    mPendingKeyState[reflectI, j] = mKeyState[i, j];
+                    mPendingKeyState[i, j] = mKeyState[reflectI, j];
+                }
+            }
+
+            TrySetToPending(true);
+        }
+
+        #endregion
     }
 }

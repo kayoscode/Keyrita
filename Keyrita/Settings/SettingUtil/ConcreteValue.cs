@@ -54,11 +54,7 @@ namespace Keyrita.Settings.SettingUtil
         protected override void Save(XmlWriter writer)
         {
             // Convert the enum value to a string and write it to the stream writer.
-            string uniqueName = this.GetSettingUniqueId();
-
-            writer.WriteStartElement(uniqueName);
             writer.WriteString(TextSerializers.ToText(Value));
-            writer.WriteEndElement();
         }
 
         protected override void Action()
