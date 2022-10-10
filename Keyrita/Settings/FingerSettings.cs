@@ -34,14 +34,6 @@ namespace Keyrita.Settings
         {
         }
 
-        public override void SetToDesiredValue()
-        {
-            // We just need to check that we haven't already used a finger before setting.
-            // If we have, just ignore that specification.
-            // TODO
-            base.SetToDesiredValue();
-        }
-
         public override void SetToDefault()
         {
             // Just standard homerow qwerty.
@@ -73,9 +65,9 @@ namespace Keyrita.Settings
     /// Setting value derived from the home position setting.
     /// Each finger will be used to hit the key its closest to.
     /// </summary>
-    public class FingerMappingSetting : PerkeySetting<eFinger>
+    public class KeyMappingSetting : PerkeySetting<eFinger>
     {
-        public FingerMappingSetting() 
+        public KeyMappingSetting() 
             : base("Key to Finger Mappings", eSettingAttributes.None)
         {
         }
@@ -135,6 +127,8 @@ namespace Keyrita.Settings
                     }
                 }
             }
+
+            CopyBoard(mDesiredKeyState, mNewKeyState);
         }
 
         public override void SetToDefault()

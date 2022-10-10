@@ -160,6 +160,11 @@ namespace Keyrita.Settings.SettingUtil
 
         public void SaveToFile(XmlWriter writer, bool undoRedo)
         {
+            if(!HasValue)
+            {
+                return;
+            }
+
             if(undoRedo)
             {
                 if (mAttributes.HasFlag(eSettingAttributes.Recall))

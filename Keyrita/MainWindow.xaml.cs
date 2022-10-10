@@ -59,11 +59,15 @@ namespace Keyrita
             CreateUndoRedoCommand();
 
             mKeyboardDisplay.Setting = KeyboardDisplaySetting;
-            mKeyboardShape.Setting = KeyboardShapeSetting;
-            mLanguage.Setting = LanguageSetting;
+            mShowFingerUsage.Setting = SettingState.KeyboardSettings.ShowFingerUsage;
+            mHeatMapSetting.Setting = SettingState.KeyboardSettings.DisplayedHeatMap;
             mShowAnnotations.Setting = ShowAnnotationsSetting;
 
             mKeyboardControl.KeyboardState = SettingState.KeyboardSettings.KeyboardState;
+            mKeyboardControl.KeyMappings = SettingState.FingerSettings.KeyMappings;
+            mKeyboardControl.KeyHeatMap = SettingState.KeyboardSettings.HeatmapData;
+            mKeyboardControl.ShowFingerUsage = SettingState.KeyboardSettings.ShowFingerUsage;
+
             mLoadDatasetProgressBar.Setting = SettingState.MeasurementSettings.CharFrequencyData;
 
             // Menu item actions.
@@ -86,12 +90,6 @@ namespace Keyrita
 
         private EnumValueSetting KeyboardDisplaySetting =>
             SettingState.KeyboardSettings.KeyboardDisplay as EnumValueSetting;
-
-        private EnumValueSetting KeyboardShapeSetting =>
-            SettingState.KeyboardSettings.KeyboardShape as EnumValueSetting;
-
-        private EnumValueSetting LanguageSetting =>
-            SettingState.KeyboardSettings.KeyboardLanguage as EnumValueSetting;
 
         private OnOffSetting ShowAnnotationsSetting =>
             SettingState.MeasurementSettings.ShowAnnotations as OnOffSetting;

@@ -41,6 +41,7 @@ namespace Keyrita.Settings
         protected uint[,,] mSkipgramFreq;
         protected long[] SkipgramHitCount { get; set; } = new long[NativeAnalysis.SKIPGRAM_DEPTH];
 
+        public string UsedCharset => mUsedCharset;
         protected string mUsedCharset;
 
         public override bool HasValue => !(CharFreq == null || BigramFreq == null || TrigramFreq == null || SkipgramFreq == null || mUsedCharset == null);
@@ -54,6 +55,84 @@ namespace Keyrita.Settings
         protected bool mIsRunning = false;
 
         protected bool[] mIsCanceled = new bool[1] { false };
+
+        /// <summary>
+        /// Gets the highest frequency that's not a space.
+        /// </summary>
+        public double MaxCharFreq
+        {
+            get
+            {
+                if (HasValue)
+                {
+                    return mCharFreq.Max() / (double)CharHitCount;
+                }
+
+                return 1.0;
+            }
+        }
+
+        public double GetCharFreq(int charIdx)
+        {
+            if(HasValue)
+            {
+                LTrace.Assert(charIdx >= 0 && charIdx < UsedCharset.Length, "Sanity check failed.");
+                return CharFreq[charIdx] / (double)CharHitCount;
+            }
+
+            return 0.0;
+        }
+
+        /// <summary>
+        /// Returns the highest number of hits in any bigram.
+        /// </summary>
+        public double MaxBigramFreq
+        {
+            get
+            {
+                if (HasValue && BigramHitCount != 0)
+                {
+                    uint maxHits = 0;
+
+                    for(int i = 0; i < mBigramFreq.GetLength(0); i++)
+                    {
+                        for(int j = 0; j < mBigramFreq.GetLength(1); j++)
+                        {
+                            if (mBigramFreq[i, j] > maxHits)
+                            {
+                                maxHits = mBigramFreq[i, j];
+                            }
+                        }
+                    }
+
+                    return maxHits / BigramHitCount;
+                }
+
+                return 1.0;
+            }
+        }
+
+        /// <summary>
+        /// Returns the probability of c1 -> c2 in a row.
+        /// </summary>
+        /// <param name="c1"></param>
+        /// <param name="c2"></param>
+        /// <returns></returns>
+        public double GetBigramFreq(int idx1, int idx2)
+        {
+            if(HasValue)
+            {
+                LTrace.Assert(idx1 >= 0 && idx1 < UsedCharset.Length, "Sanity check failed.");
+                LTrace.Assert(idx2 >= 0 && idx2 < UsedCharset.Length, "Sanity check failed.");
+
+                if(BigramHitCount != 0)
+                {
+                    return mBigramFreq[idx1, idx2] / (double)BigramHitCount;
+                }
+            }
+
+            return 0.0;
+        }
 
         public override void Cancel()
         {
@@ -140,59 +219,7 @@ namespace Keyrita.Settings
 
                     if(charCount != -1)
                     {
-
-                        // Get the hit counts, hopefully this doesn't take too long to process.
-                        for (int i = 0; i < mCharFreq.Length; i++)
-                        {
-                            CharHitCount += mCharFreq[i];
-                        }
-
-                        for (int i = 0; i < mBigramFreq.GetLength(0); i++)
-                        {
-                            for (int j = 0; j < mBigramFreq.GetLength(1); j++)
-                            {
-                                BigramHitCount += mBigramFreq[i, j];
-                            }
-                        }
-
-                        for (int i = 0; i < mTrigramFreq.GetLength(0); i++)
-                        {
-                            for (int j = 0; j < mTrigramFreq.GetLength(1); j++)
-                            {
-                                for (int k = 0; k < mTrigramFreq.GetLength(2); k++)
-                                {
-                                    TrigramHitCount += mTrigramFreq[i, j, k];
-                                }
-                            }
-                        }
-
-                        for (int i = 0; i < mSkipgramFreq.GetLength(0); i++)
-                        {
-                            for (int j = 0; j < mSkipgramFreq.GetLength(1); j++)
-                            {
-                                for (int k = 0; k < mSkipgramFreq.GetLength(2); k++)
-                                {
-                                    SkipgramHitCount[i] += mSkipgramFreq[i, j, k];
-                                }
-                            }
-                        }
-
-                        var exCharHitCount = charCount;
-                        LTrace.Assert(exCharHitCount == CharHitCount, "Sanity check failed");
-                        var exBigramHitCount = CharHitCount - 1;
-                        LTrace.Assert(exBigramHitCount == BigramHitCount, "Sanity check failed");
-                        var exTrigramHitCount = BigramHitCount - 1;
-                        LTrace.Assert(exTrigramHitCount == TrigramHitCount, "Sanity check failed");
-
-                        var exSkipgramHitCount = new long[SkipgramHitCount.Length];
-                        exSkipgramHitCount[0] = TrigramHitCount - 1;
-                        LTrace.Assert(exSkipgramHitCount[0] == SkipgramHitCount[0], "Sanity check failed");
-
-                        for (int i = 1; i < SkipgramHitCount.Length; i++)
-                        {
-                            exSkipgramHitCount[i] = SkipgramHitCount[i - 1] - 1;
-                            LTrace.Assert(exSkipgramHitCount[i] == SkipgramHitCount[i], "Sanity check failed");
-                        }
+                        SetHitCountData();
                     }
 
                     mValueHasChanged = true;
@@ -224,6 +251,7 @@ namespace Keyrita.Settings
         public override void SetToDesiredValue()
         {
             // The desired value is whatever the heck it is currently set to.
+            TrySetToPending();
         }
 
         protected override void Action()
@@ -241,6 +269,79 @@ namespace Keyrita.Settings
         private static readonly string CHARFREQ_ELEMENT_NAME = "CharFreq";
         private static readonly string BIGRAM_ELEMENT_NAME = "BigramFreq";
         private static readonly string TRIGRAM_ELEMENT_NAME = "TrigramFreq";
+
+        /// <summary>
+        /// After loading, we need to verify and set hit count data.
+        /// </summary>
+        private void SetHitCountData()
+        {
+            if (HasValue)
+            {
+                CharHitCount = 0;
+                BigramHitCount = 0;
+                TrigramHitCount = 0;
+
+                for(int i = 0; i < SkipgramHitCount.Length; i++)
+                {
+                    SkipgramHitCount[i] = 0;
+                }
+
+                // Get the hit counts, hopefully this doesn't take too long to process.
+                for (int i = 0; i < mCharFreq.Length; i++)
+                {
+                    CharHitCount += mCharFreq[i];
+                }
+
+                for (int i = 0; i < mBigramFreq.GetLength(0); i++)
+                {
+                    for (int j = 0; j < mBigramFreq.GetLength(1); j++)
+                    {
+                        BigramHitCount += mBigramFreq[i, j];
+                    }
+                }
+
+                for (int i = 0; i < mTrigramFreq.GetLength(0); i++)
+                {
+                    for (int j = 0; j < mTrigramFreq.GetLength(1); j++)
+                    {
+                        for (int k = 0; k < mTrigramFreq.GetLength(2); k++)
+                        {
+                            TrigramHitCount += mTrigramFreq[i, j, k];
+                        }
+                    }
+                }
+
+                for (int i = 0; i < mSkipgramFreq.GetLength(0); i++)
+                {
+                    for (int j = 0; j < mSkipgramFreq.GetLength(1); j++)
+                    {
+                        for (int k = 0; k < mSkipgramFreq.GetLength(2); k++)
+                        {
+                            SkipgramHitCount[i] += mSkipgramFreq[i, j, k];
+                        }
+                    }
+                }
+
+                var exBigramHitCount = CharHitCount - 1;
+                LTrace.Assert(exBigramHitCount == BigramHitCount, "Sanity check failed");
+                var exTrigramHitCount = BigramHitCount - 1;
+                LTrace.Assert(exTrigramHitCount == TrigramHitCount, "Sanity check failed");
+
+                var exSkipgramHitCount = new long[SkipgramHitCount.Length];
+                exSkipgramHitCount[0] = TrigramHitCount - 1;
+                LTrace.Assert(exSkipgramHitCount[0] == SkipgramHitCount[0], "Sanity check failed");
+
+                for (int i = 1; i < SkipgramHitCount.Length; i++)
+                {
+                    exSkipgramHitCount[i] = SkipgramHitCount[i - 1] - 1;
+                    LTrace.Assert(exSkipgramHitCount[i] == SkipgramHitCount[i], "Sanity check failed");
+                }
+            }
+            else
+            {
+                LTrace.Assert(false, "Shouldn't get here without a value.");
+            }
+        }
 
         protected override void Load(string text)
         {
@@ -360,6 +461,8 @@ namespace Keyrita.Settings
                     }
                 }
             }
+
+            SetHitCountData();
         }
 
         protected override void Save(XmlWriter writer)

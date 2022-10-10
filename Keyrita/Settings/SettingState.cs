@@ -34,6 +34,15 @@ namespace Keyrita.Settings
 
         public OnOffSetting KeyboardValid { get; } =
             new KeyboardValidSetting();
+
+        public OnOffSetting ShowFingerUsage { get; } =
+            new ShowUsedFingers();
+
+        public EnumValueSetting<eHeatMap> DisplayedHeatMap { get; } =
+            new HeatmapSetting();
+
+        public HeatmapDataSetting HeatmapData { get; } =
+            new HeatmapDataSetting();
     }
 
     /// <summary>
@@ -90,8 +99,8 @@ namespace Keyrita.Settings
         public FingerHomePositionSetting FingerHomePosition { get; } =
             new FingerHomePositionSetting();
 
-        public FingerMappingSetting FingerMappings { get; } =
-            new FingerMappingSetting();
+        public KeyMappingSetting KeyMappings { get; } =
+            new KeyMappingSetting();
     }
 
     /// <summary>

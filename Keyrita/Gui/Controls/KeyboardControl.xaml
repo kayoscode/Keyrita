@@ -15,7 +15,10 @@
                 Width="Auto"
                 Height="Auto">
 
-            <Canvas Name="mKeyCanvas">
+            <Canvas Name="mKeyCanvas" AllowDrop="True"
+                    Drop="DropKey"
+                    DragOver="RepositionKey"
+                    Background="Transparent">
             </Canvas>
         </Border>
     </StackPanel>

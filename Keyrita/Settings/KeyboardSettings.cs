@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Xml;
 using Keyrita.Gui;
 using Keyrita.Serialization;
@@ -40,6 +41,28 @@ namespace Keyrita.Settings
         /// </summary>
         [UIData("Standard")]
         StandardView,
+    }
+
+    /// <summary>
+    /// Whether or not to show which fingers are being used.
+    /// </summary>
+    public class ShowUsedFingers : OnOffSetting
+    {
+        public ShowUsedFingers() : 
+            base("Show Finger Usage", eOnOff.On, eSettingAttributes.Recall)
+        {
+        }
+    }
+
+    /// <summary>
+    /// Which type of heatmap should be displayed to the user.
+    /// </summary>
+    public class HeatmapSetting : EnumValueSetting<eHeatMap>
+    {
+        public HeatmapSetting() 
+            : base("Heatmap Type", eHeatMap.CharacterFrequency, eSettingAttributes.Recall)
+        {
+        }
     }
 
     /// <summary>
@@ -342,7 +365,7 @@ namespace Keyrita.Settings
 
         protected override void Load(string text)
         {
-            string[] layout = text.Split(" ");
+            string[] layout = text.Split(" ", StringSplitOptions.RemoveEmptyEntries);
 
             int index = 0;
 
@@ -358,8 +381,6 @@ namespace Keyrita.Settings
 
                 index++;
             }
-
-            TrySetToPending();
         }
 
         protected override void Save(XmlWriter writer)
@@ -402,14 +423,14 @@ namespace Keyrita.Settings
         /// <summary>
         /// Sets the keyboard layout to desired.
         /// </summary>
-        public override void SetToDesiredValue()
+        public override sealed void SetToDesiredValue()
         {
             CopyBoard(mPendingKeyState, mDesiredKeyState);
             TrySetToPending();
         }
 
 
-        protected override void SetToNewLimits()
+        protected override sealed void SetToNewLimits()
         {
             // Copy the pending board to the new layout.
             CopyBoard(mPendingKeyState, mNewKeyState);
@@ -437,7 +458,7 @@ namespace Keyrita.Settings
         /// </summary>
         /// <param name="kb1"></param>
         /// <param name="kb2"></param>
-        private static void CopyBoard(T[,] kb1, T[,] kb2)
+        protected static void CopyBoard(T[,] kb1, T[,] kb2)
         {
             for (int i = 0; i < ROWS; i++)
             {
@@ -455,7 +476,7 @@ namespace Keyrita.Settings
         /// <param name="kb1"></param>
         /// <param name="kb2"></param>
         /// <returns></returns>
-        private static int BoardsMatch(T[,] kb1, T[,] kb2)
+        public static int BoardsMatch(T[,] kb1, T[,] kb2)
         {
             var count = 0;
 
@@ -536,6 +557,26 @@ namespace Keyrita.Settings
         }
 
         #region Public manipulation interface
+
+        public void SwapKeys(char k1, char k2)
+        {
+            for (int i = 0; i < ROWS; i++)
+            {
+                for(int j = 0; j < COLS; j++)
+                {
+                    if (mKeyState[i, j] == k1)
+                    {
+                        mPendingKeyState[i, j] = k2;
+                    }
+                    else if (mKeyState[i, j] == k2)
+                    {
+                        mPendingKeyState[i, j] = k1;
+                    }
+                }
+            }
+
+            TrySetToPending(true);
+        }
 
         /// <summary>
         /// Reflects the keyboard state along the x axis.

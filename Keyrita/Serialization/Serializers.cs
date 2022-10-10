@@ -68,7 +68,7 @@ namespace Keyrita.Serialization
     {
         public string ToText(eFinger obj)
         {
-            return $"{obj.GetType()} {obj}";
+            return $"{obj}";
         }
 
         public override string ToText(object obj)
@@ -78,18 +78,13 @@ namespace Keyrita.Serialization
 
         public bool TryParse(string text, out eFinger obj)
         {
-            // Get the enum value from the text.
-            string[] value = text.Split(" ");
-
-            if(value.Length == 2)
+            if(Enum.TryParse<eFinger>(text, out obj))
             {
-                var v = Utils.GetEnumValue(value[0], value[1]);
-                obj = (eFinger)v;
                 return true;
             }
 
             obj = default(eFinger);
-            return false;
+            return true;
         }
 
         public override bool TryParse(string text, out object obj)
