@@ -575,6 +575,7 @@ namespace Keyrita.Settings
                 }
             }
 
+            CopyBoard(mDesiredKeyState, mPendingKeyState);
             TrySetToPending(true);
         }
 
@@ -594,6 +595,7 @@ namespace Keyrita.Settings
                 }
             }
 
+            CopyBoard(mDesiredKeyState, mPendingKeyState);
             TrySetToPending(true);
         }
 
@@ -610,6 +612,7 @@ namespace Keyrita.Settings
                 }
             }
 
+            CopyBoard(mDesiredKeyState, mPendingKeyState);
             TrySetToPending(true);
         }
 
