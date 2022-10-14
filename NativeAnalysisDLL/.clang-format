@@ -30,7 +30,7 @@ Cpp11BracedListStyle: false
 FixNamespaceComments: false
 IndentCaseLabels: false
 IndentPPDirectives: None
-IndentWidth: 4
+IndentWidth: 3
 MaxEmptyLinesToKeep: 10
 NamespaceIndentation: All
 PointerAlignment: Left
@@ -43,5 +43,5 @@ SpaceInEmptyParentheses: false
 SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
-TabWidth: 4
+TabWidth: 3
 UseTab: false

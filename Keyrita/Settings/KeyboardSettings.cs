@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Xml;
 using Keyrita.Gui;
+using Keyrita.Interop.NativeAnalysis;
 using Keyrita.Serialization;
 using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
@@ -86,7 +88,36 @@ namespace Keyrita.Settings
             if (SettingState.MeasurementSettings.AnalysisEnabled.Value.Equals(eOnOff.On) &&
                SettingState.KeyboardSettings.KeyboardValid.Value.Equals(eOnOff.On))
             {
-                // Todo: Perform keyboard analysis.
+                // Transforming the key state will be an operator.
+                List<char> characterSet = SettingState.MeasurementSettings.CharFrequencyData.UsedCharset.ToList();
+                var kbs = SettingState.KeyboardSettings.KeyboardState;
+
+                uint[,] bigramFreq = SettingState.MeasurementSettings.CharFrequencyData.BigramFreqCopy;
+
+                // Just for fun, compute it here when in reality this should just trigger the analysis system to run.
+                char[,] transformedKeyState = new char[3, 10];
+
+                eFinger[,] keyToFinger = SettingState.FingerSettings.KeyMappings.KeyStateCopy;
+                int[,] keyToFingerInt = new int[3, 10];
+                for (int i = 0; i < 3; i++)
+                {
+                    for (int j = 0; j < 10; j++)
+                    {
+                        keyToFingerInt[i, j] = (int)keyToFinger[i, j];
+                    }
+                }
+
+                for (int i = 0; i < 3; i++)
+                {
+                    for (int j = 0; j < 10; j++)
+                    {
+                        int charIdx = characterSet.IndexOf(kbs.GetValueAt(i, j));
+                        transformedKeyState[i, j] = (char)charIdx;
+                        LTrace.Assert(charIdx > 0);
+                    }
+                }
+
+                NativeAnalysis.MeasureTotalSFBs(transformedKeyState, bigramFreq, keyToFingerInt);
             }
         }
     }
@@ -362,6 +393,26 @@ namespace Keyrita.Settings
         public override bool HasValue => mKeyState != null;
         protected override bool ValueHasChanged => BoardsMatch(mPendingKeyState, mKeyState) > 0;
 
+        /// <summary>
+        /// Copies the key state to an array
+        /// </summary>
+        public T[,] KeyStateCopy
+        {
+            get
+            {
+                T[,] ret = new T[ROWS, COLS];
+
+                for (int i = 0; i < ROWS; i++)
+                {
+                    for (int j = 0; j < COLS; j++)
+                    {
+                        ret[i, j] = mKeyState[i, j];
+                    }
+                }
+
+                return ret;
+            }
+        }
 
         protected override void Load(string text)
         {

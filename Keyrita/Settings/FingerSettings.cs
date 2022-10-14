@@ -7,7 +7,7 @@ namespace Keyrita.Settings
     /// <summary>
     /// Each finger is given an enum token.
     /// </summary>
-    public enum eFinger
+    public enum eFinger : int
     {
         None,
         LeftPinkie,

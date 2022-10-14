@@ -23,23 +23,21 @@ namespace Keyrita.Settings
         {
         }
 
-        protected string DatasetText { get; set; }
-
         protected uint[] CharFreq => mCharFreq;
         protected uint[] mCharFreq;
-        protected long CharHitCount { get; set; }
+        public long CharHitCount { get; protected set; }
 
         protected uint[,] BigramFreq => mBigramFreq;
         protected uint[,] mBigramFreq;
-        protected long BigramHitCount { get; set; }
+        public long BigramHitCount { get; protected set; }
 
         protected uint[,,] TrigramFreq => mTrigramFreq;
         protected uint[,,] mTrigramFreq;
-        protected long TrigramHitCount { get; set; }
+        public long TrigramHitCount { get; protected set; }
 
         protected uint[,,] SkipgramFreq => mSkipgramFreq;
         protected uint[,,] mSkipgramFreq;
-        protected long[] SkipgramHitCount { get; set; } = new long[NativeAnalysis.SKIPGRAM_DEPTH];
+        public long[] SkipgramHitCount { get; protected set; } = new long[NativeAnalysis.SKIPGRAM_DEPTH];
 
         public string UsedCharset => mUsedCharset;
         protected string mUsedCharset;
@@ -47,15 +45,47 @@ namespace Keyrita.Settings
         public override bool HasValue => !(CharFreq == null || BigramFreq == null || TrigramFreq == null || SkipgramFreq == null || mUsedCharset == null);
         protected override bool ValueHasChanged => mValueHasChanged;
 
-        #region Progress Data
+        public uint[] CharFreqCopy
+        {
+            get
+            {
+                var ret = new uint[mCharFreq.Length];
 
-        public override double Progress => mProgress[0];
-        protected double[] mProgress = new double[1];
-        public override bool IsRunning => mIsRunning;
-        protected bool mIsRunning = false;
+                for(int i = 0; i < mCharFreq.Length; i++)
+                {
+                    ret[i] = mCharFreq[i];
+                }
 
-        protected bool[] mIsCanceled = new bool[1] { false };
+                return ret;
+            }
+        }
 
+        /// <summary>
+        /// Copies the array of bigram frequency data.
+        /// </summary>
+        public uint[,] BigramFreqCopy
+        {
+            get
+            {
+                uint[,] ret = new uint[mBigramFreq.GetLength(0), mBigramFreq.GetLength(1)];
+
+                for (int i = 0; i < mBigramFreq.GetLength(0); i++)
+                {
+                    for (int j = 0; j < mBigramFreq.GetLength(1); j++)
+                    {
+                        ret[i, j] = mBigramFreq[i, j];
+                    }
+                }
+
+                return ret;
+            }
+        }
+
+        /// <summary>
+        /// Gets the frequency of a character from the dataset.
+        /// </summary>
+        /// <param name="charIdx"></param>
+        /// <returns></returns>
         public double GetCharFreq(int charIdx)
         {
             if(HasValue)
@@ -89,6 +119,15 @@ namespace Keyrita.Settings
             return 0.0;
         }
 
+
+        #region Progress Data
+
+        public override double Progress => mProgress[0];
+        protected double[] mProgress = new double[1];
+        public override bool IsRunning => mIsRunning;
+        protected bool mIsRunning = false;
+
+        protected bool[] mIsCanceled = new bool[1] { false };
         public override void Cancel()
         {
             NotifyCanceled.NotifyGui(this);
@@ -164,7 +203,6 @@ namespace Keyrita.Settings
                     {
                         SkipgramHitCount[i] = 0;
                     }
-                    DatasetText = fileText;
 
                     mUsedCharset = GetCharList();
                     long charCount = NativeAnalysis.AnalyzeDataset(fileText, mUsedCharset,
