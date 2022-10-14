@@ -56,13 +56,10 @@
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
                 <ColumnDefinition Width="*"></ColumnDefinition>
             </Grid.ColumnDefinitions>
-            <local:MeasurementToolbar/>
-            <Separator Grid.Column="1"></Separator>
-
-            <Grid Grid.Column="2"
+            <local:MeasurementToolbar Grid.Column="0"/>
+            <Grid Grid.Column="1"
                   HorizontalAlignment="Center">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -72,10 +69,9 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <local:KeyboardControl Grid.Column="0"
-                                   Grid.Row="0"
-                                   x:Name="mKeyboardControl"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"/>
+                                       Grid.Row="0"
+                                       x:Name="mKeyboardControl"
+                                       VerticalAlignment="Center"/>
             </Grid>
         </Grid>
     </DockPanel>

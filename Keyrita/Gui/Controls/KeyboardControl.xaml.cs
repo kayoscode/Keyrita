@@ -11,7 +11,7 @@ namespace Keyrita.Gui.Controls
     /// </summary>
     public partial class KeyboardControl : UserControl
     {
-        private const int KEY_SIZE = 80;
+        private int keySize = 80;
 
         public KeyboardControl()
         {
@@ -23,8 +23,8 @@ namespace Keyrita.Gui.Controls
                 for (int j = 0; j < KeyboardStateSetting.COLS; j++)
                 {
                     var nextKey = new Key();
-                    nextKey.Width = KEY_SIZE;
-                    nextKey.Height = KEY_SIZE;
+                    nextKey.Width = keySize;
+                    nextKey.Height = keySize;
                     nextKey.MouseMove += MoveKey;
 
                     mKeyCanvas.Children.Add(nextKey);
@@ -109,6 +109,7 @@ namespace Keyrita.Gui.Controls
 
         protected void SyncWithKeyboard(SettingBase settingChanged)
         {
+            // Get the key size.
             SyncWithKeyboard();
         }
 
@@ -224,8 +225,8 @@ namespace Keyrita.Gui.Controls
 
             var offsetDifference = maxOffset - minOffset;
 
-            mKeyCanvas.Width = (KEY_SIZE + 4) * KeyboardStateSetting.COLS + (offsetDifference * KEY_SIZE) + 4;
-            mKeyCanvas.Height = (KEY_SIZE + 4) * KeyboardStateSetting.ROWS;
+            mKeyCanvas.Width = (keySize + 4) * KeyboardStateSetting.COLS + (offsetDifference * keySize) + 4;
+            mKeyCanvas.Height = (keySize + 4) * KeyboardStateSetting.ROWS;
 
             for(int i = 0; i < KeyboardStateSetting.ROWS; i++)
             {
@@ -233,8 +234,8 @@ namespace Keyrita.Gui.Controls
                 {
                     var nextKey = mKeyCanvas.Children[keyIndex++];
 
-                    Canvas.SetTop(nextKey, i * (KEY_SIZE + 4));
-                    Canvas.SetLeft(nextKey, j * (KEY_SIZE + 4) + (double)RowOffsets[i].Value * (double)KEY_SIZE - (minOffset * KEY_SIZE) + 4);
+                    Canvas.SetTop(nextKey, i * (keySize + 4));
+                    Canvas.SetLeft(nextKey, j * (keySize + 4) + (double)RowOffsets[i].Value * (double)keySize - (minOffset * keySize) + 4);
                 }
             }
         }
