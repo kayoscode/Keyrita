@@ -55,13 +55,7 @@ namespace Keyrita
         public MainWindow()
         {
             InitializeComponent();
-
             CreateUndoRedoCommand();
-
-            mKeyboardDisplay.Setting = KeyboardDisplaySetting;
-            mShowFingerUsage.Setting = SettingState.KeyboardSettings.ShowFingerUsage;
-            mHeatMapSetting.Setting = SettingState.KeyboardSettings.DisplayedHeatMap;
-            mShowAnnotations.Setting = ShowAnnotationsSetting;
 
             mKeyboardControl.KeyboardState = SettingState.KeyboardSettings.KeyboardState;
             mKeyboardControl.KeyMappings = SettingState.FingerSettings.KeyMappings;

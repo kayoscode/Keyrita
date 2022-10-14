@@ -8,8 +8,9 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel>
         <Border BorderThickness="2"
-                BorderBrush="Black"
-                Background="LightGray"
+                BorderBrush="Transparent"
+                CornerRadius="8"
+                Background="Transparent"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
                 Width="Auto"

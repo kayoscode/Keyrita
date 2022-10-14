@@ -34,24 +34,24 @@ namespace Keyrita.Gui.Controls
     /// </summary>
     public partial class Key : UserControl
     {
-        private Vector3 LowFreq = new Vector3(255, 255, 255);
-        private Vector3 HighFreq = new Vector3(255, 0, 0);
+        private Color LowestFreq = Color.FromRgb(125, 125, 125);
+        private Color HighestFreq = (Color)ColorConverter.ConvertFromString("#4c3549");
 
         private static readonly IReadOnlyDictionary<eFinger, SolidColorBrush> FingerToColor = new Dictionary<eFinger, SolidColorBrush>()
         {
             { eFinger.None,         Brushes.Gray },
-            { eFinger.LeftPinkie,   new SolidColorBrush(Color.FromRgb(181, 192, 0)) },
-            { eFinger.LeftRing,     new SolidColorBrush(Color.FromRgb(117, 4, 108)) },
-            { eFinger.LeftMiddle,   new SolidColorBrush(Color.FromRgb(0, 192, 43)) },
-            { eFinger.LeftIndex,    new SolidColorBrush(Color.FromRgb(232, 37, 14)) },
+            { eFinger.LeftPinkie,   new SolidColorBrush((Color)ColorConverter.ConvertFromString("#ffbb33")) },
+            { eFinger.LeftRing,     new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00c851")) },
+            { eFinger.LeftMiddle,   new SolidColorBrush((Color)ColorConverter.ConvertFromString("#33b5e5")) },
+            { eFinger.LeftIndex,    new SolidColorBrush((Color)ColorConverter.ConvertFromString("#978de2")) },
 
             { eFinger.LeftThumb,    Brushes.Magenta },
             { eFinger.RightThumb,   Brushes.Maroon },
 
-            { eFinger.RightIndex,   new SolidColorBrush(Color.FromRgb(0, 192, 191)) },
-            { eFinger.RightMiddle,   new SolidColorBrush(Color.FromRgb(0, 192, 43)) },
-            { eFinger.RightRing,     new SolidColorBrush(Color.FromRgb(117, 4, 108)) },
-            { eFinger.RightPinkie,   new SolidColorBrush(Color.FromRgb(181, 192, 0)) },
+            { eFinger.RightIndex,   new SolidColorBrush((Color)ColorConverter.ConvertFromString("#d38b5d")) },
+            { eFinger.RightMiddle,   new SolidColorBrush((Color)ColorConverter.ConvertFromString("#33b5e5")) },
+            { eFinger.RightRing,     new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00c851")) },
+            { eFinger.RightPinkie,   new SolidColorBrush((Color)ColorConverter.ConvertFromString("#ffbb33")) },
         };
 
 
@@ -79,13 +79,27 @@ namespace Keyrita.Gui.Controls
             mKeyCharacter = newValue;
             mBorder.BorderBrush = FingerToColor[newValue.Finger];
 
-            Vector3 color = Vector3.Lerp(LowFreq, HighFreq, (float)newValue.HeatmapValue);
-            mBorder.Background = new SolidColorBrush(Color.FromArgb((byte)(150 + (105 * newValue.HeatmapValue)), (byte)color.X, (byte)color.Y, (byte)color.Z));
+            Color keyHighlightColor = GetGradientColor((float)mKeyCharacter.HeatmapValue);
+            mBorder.Background = new SolidColorBrush(keyHighlightColor);
 
             if(mKeyCharacter != null)
             {
                 mChar.Text = "" + mKeyCharacter.Character;
             }
+        }
+
+        protected Color GetGradientColor(float heatmapValue)
+        {
+            Color startColor = LowestFreq;
+            Color endColor = HighestFreq;
+            float weight = heatmapValue;
+
+            Color keyHighlight = Color.FromRgb(
+                (byte)Math.Round(startColor.R * (1 - weight) + endColor.R * weight),
+                (byte)Math.Round(startColor.G * (1 - weight) + endColor.G * weight),
+                (byte)Math.Round(startColor.B * (1 - weight) + endColor.B * weight));
+
+            return keyHighlight;
         }
 
         public KeyCharacterWrapper KeyCharacter

@@ -11,20 +11,14 @@ namespace Keyrita.Gui.Dialogs
         public SettingsDialog()
         {
             InitializeComponent();
-            mKeyboardDisplay.Setting = KeyboardDisplaySetting;
-            mKeyboardShape.Setting = KeyboardShapeSetting;
-            mLanguage.Setting = LanguageSetting;
+
+            mKeyboardDisplay.Setting = SettingState.KeyboardSettings.KeyboardDisplay as EnumValueSetting;
+            mKeyboardShape.Setting = SettingState.KeyboardSettings.KeyboardShape as EnumValueSetting;
+            mLanguage.Setting = SettingState.KeyboardSettings.KeyboardLanguage as EnumValueSetting;
+            mShowFingerUsage.Setting = SettingState.KeyboardSettings.ShowFingerUsage as OnOffSetting;
+            mHeatMapSetting.Setting = SettingState.KeyboardSettings.DisplayedHeatMap as EnumValueSetting;
 
             this.ResizeMode = System.Windows.ResizeMode.NoResize;
         }
-
-        private EnumValueSetting KeyboardDisplaySetting =>
-            SettingState.KeyboardSettings.KeyboardDisplay as EnumValueSetting;
-
-        private EnumValueSetting KeyboardShapeSetting =>
-            SettingState.KeyboardSettings.KeyboardShape as EnumValueSetting;
-
-        private EnumValueSetting LanguageSetting =>
-            SettingState.KeyboardSettings.KeyboardLanguage as EnumValueSetting;
     }
 }

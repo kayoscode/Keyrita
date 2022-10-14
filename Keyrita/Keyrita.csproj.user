@@ -7,6 +7,9 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
+    <Compile Update="Gui\Controls\ActionButton.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Gui\Controls\ButtonMenuItem.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -14,6 +17,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Gui\Controls\KeyboardControl.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Gui\Controls\MeasurementToolbar.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Gui\Controls\MenuItemOpenDlg.xaml.cs">
@@ -36,6 +42,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Page Update="Gui\Controls\ActionButton.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Gui\Controls\ButtonMenuItem.xaml">
       <SubType>Designer</SubType>
     </Page>
@@ -43,6 +52,9 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Gui\Controls\KeyboardControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Gui\Controls\MeasurementToolbar.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Gui\Controls\MenuItemOpenDlg.xaml">

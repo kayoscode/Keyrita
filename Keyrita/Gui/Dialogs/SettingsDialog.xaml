@@ -5,19 +5,29 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Keyrita.Gui.Dialogs"
         xmlns:settings="clr-namespace:Keyrita.Gui.Controls"
+        xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
         mc:Ignorable="d"
         Title="Settings" Height="450" Width="800">
-     <StackPanel HorizontalAlignment="Left"
+    <Window.Style>
+        <Style TargetType="Window" BasedOn="{StaticResource {x:Type Window}}"/>
+    </Window.Style>
+    <StackPanel HorizontalAlignment="Left"
                  Margin="25, 0, 25, 0">
         <settings:SetRadioButton Width="150"
                        Height="Auto"
                        Margin="0,0,0,10"
                        x:Name="mKeyboardDisplay"/>
         <settings:SetComboBox Width="150"
-                       Height="50"
-                       x:Name="mKeyboardShape"/>
+                           Height="50"
+                           x:Name="mHeatMapSetting"/>
+        <settings:SetCheckBox Width="150"
+                           Height="50"
+                           x:Name="mShowFingerUsage"/>
         <settings:SetComboBox Width="150"
-                       Height="50"
-                       x:Name="mLanguage"/>
-     </StackPanel>
+                              Height="50"
+                              x:Name="mKeyboardShape"/>
+        <settings:SetComboBox Width="150"
+                              Height="50"
+                              x:Name="mLanguage"/>
+    </StackPanel>
 </local:WindowBase>

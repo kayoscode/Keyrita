@@ -24,7 +24,6 @@ namespace Keyrita.Gui.Controls
         private void SyncWithSetting()
         {
             mRadioButton.Children.Clear();
-
             foreach (Enum token in Setting.ValidTokens)
             {
                 RadioButton item = new RadioButton();

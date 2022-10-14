@@ -56,22 +56,6 @@ namespace Keyrita.Settings
 
         protected bool[] mIsCanceled = new bool[1] { false };
 
-        /// <summary>
-        /// Gets the highest frequency that's not a space.
-        /// </summary>
-        public double MaxCharFreq
-        {
-            get
-            {
-                if (HasValue)
-                {
-                    return mCharFreq.Max() / (double)CharHitCount;
-                }
-
-                return 1.0;
-            }
-        }
-
         public double GetCharFreq(int charIdx)
         {
             if(HasValue)
@@ -81,35 +65,6 @@ namespace Keyrita.Settings
             }
 
             return 0.0;
-        }
-
-        /// <summary>
-        /// Returns the highest number of hits in any bigram.
-        /// </summary>
-        public double MaxBigramFreq
-        {
-            get
-            {
-                if (HasValue && BigramHitCount != 0)
-                {
-                    uint maxHits = 0;
-
-                    for(int i = 0; i < mBigramFreq.GetLength(0); i++)
-                    {
-                        for(int j = 0; j < mBigramFreq.GetLength(1); j++)
-                        {
-                            if (mBigramFreq[i, j] > maxHits)
-                            {
-                                maxHits = mBigramFreq[i, j];
-                            }
-                        }
-                    }
-
-                    return maxHits / BigramHitCount;
-                }
-
-                return 1.0;
-            }
         }
 
         /// <summary>

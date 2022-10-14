@@ -9,10 +9,14 @@
                            Height="1000"
                            MinWidth="1200"
                            MinHeight="900">
+    <Window.Style>
+        <Style TargetType="Window" BasedOn="{StaticResource {x:Type Window}}"></Style>
+    </Window.Style>
     <DockPanel>
         <Menu DockPanel.Dock="Top"
-            FlowDirection="LeftToRight"
-            IsMainMenu="True">
+              FlowDirection="LeftToRight"
+              IsMainMenu="True"
+              Background="#515052">
             <MenuItem Header="File">
                 <MenuItem Header="_New" 
                           Click="SetToDefaults"/>
@@ -55,25 +59,8 @@
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
                 <ColumnDefinition Width="*"></ColumnDefinition>
             </Grid.ColumnDefinitions>
-            <StackPanel Grid.Column="0"
-                    HorizontalAlignment="Left"
-                    Margin="25, 0, 25, 0">
-                <local:SetRadioButton Width="150"
-                           Height="Auto"
-                           x:Name="mKeyboardDisplay"/>
-                <local:SetCheckBox Width="150"
-                           Height="50"
-                           x:Name="mShowFingerUsage"/>
-                <local:SetComboBox Width="150"
-                           Height="50"
-                           x:Name="mHeatMapSetting"/>
-                <local:SetCheckBox Width="150"
-                           Height="50"
-                           x:Name="mShowAnnotations"/>
-            </StackPanel>
-
-            <Separator Grid.Column="1"
-                   Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"></Separator>
+            <local:MeasurementToolbar/>
+            <Separator Grid.Column="1"></Separator>
 
             <Grid Grid.Column="2"
                   HorizontalAlignment="Center">

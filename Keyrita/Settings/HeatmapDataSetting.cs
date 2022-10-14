@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
 using System.Xml;
 using Keyrita.Gui;
 using Keyrita.Settings.SettingUtil;
@@ -48,12 +46,22 @@ namespace Keyrita.Settings
             // Dependent on char frequencies, and the type of heatmap to display.
             SettingState.KeyboardSettings.DisplayedHeatMap.AddDependent(this);
             SettingState.MeasurementSettings.CharFrequencyData.AddDependent(this);
+            SettingState.KeyboardSettings.KeyboardState.AddDependent(this);
         }
 
         protected override void ChangeLimits()
         {
             mHeatMapData.Clear();
             mValueHasChanged = true;
+
+            var usedKeys = new HashSet<char>();
+            for(int i = 0; i < KeyboardStateSetting.ROWS; i++)
+            {
+                for(int j = 0; j < KeyboardStateSetting.COLS; j++)
+                {
+                    usedKeys.Add(SettingState.KeyboardSettings.KeyboardState.GetValueAt(i, j));
+                }
+            }
 
             string allCharacters = SettingState.MeasurementSettings.CharFrequencyData.UsedCharset;
             if(allCharacters != null)
@@ -62,10 +70,9 @@ namespace Keyrita.Settings
                 {
                     case eHeatMap.CharacterFrequency:
                         // Compute the heatmap value for each key.
-                        LoadCharFrequencyHeatMap(allCharacters);
+                        LoadCharFrequencyHeatMap(allCharacters, usedKeys);
                         break;
                     case eHeatMap.BigramFrequency:
-                        LoadBigramFrequencyHeatMap(allCharacters);
                         break;
                     case eHeatMap.TrigramFrequency:
                         break;
@@ -73,60 +80,27 @@ namespace Keyrita.Settings
             }
         }
 
-        protected void LoadCharFrequencyHeatMap(string allCharacters)
+        protected void LoadCharFrequencyHeatMap(string allCharacters, HashSet<char> usedKeys)
         {
             var kfd = SettingState.MeasurementSettings.CharFrequencyData;
 
-            double maxCharFrequency = kfd.MaxCharFreq;
+            double maxCharFrequency = -1;
+            for(int i = 0; i < allCharacters.Length; i++)
+            {
+                if (usedKeys.Contains(allCharacters[i]))
+                {
+                    double freq = kfd.GetCharFreq(i);
+                    if(freq > maxCharFrequency)
+                    {
+                        maxCharFrequency = freq;
+                    }
+                }
+            }
 
             for(int i = 0; i < allCharacters.Length; i++)
             {
                 mHeatMapData[allCharacters[i]] = kfd.GetCharFreq(i) / maxCharFrequency;
             }
-        }
-
-        protected void LoadBigramFrequencyHeatMap(string allCharacters)
-        {
-            // If a character is involved in a bigram it will be added to the bigram heatmap data.
-            var kfd = SettingState.MeasurementSettings.CharFrequencyData;
-            double maxFreq = kfd.MaxBigramFreq;
-
-            // All each character to the dictionary.
-            for(int i = 0; i < allCharacters.Length; i++)
-            {
-                mHeatMapData.Add(allCharacters[i], 0);
-            }
-
-            for(int i = 0; i < allCharacters.Length; i++)
-            {
-                for(int j = 0; j < allCharacters.Length; j++)
-                {
-                    if (i == j)
-                    {
-                        continue;
-                    }
-
-                    var bigramFrequency = kfd.GetBigramFreq(i, j);
-
-                    // Both characters should report that they were part of the bigram.
-                    mHeatMapData[allCharacters[i]] += bigramFrequency;
-                    mHeatMapData[allCharacters[j]] += bigramFrequency;
-                }
-            }
-
-            double freqMax = 0;
-            for(int i = 0; i < allCharacters.Length; i++)
-            {
-                if (mHeatMapData[allCharacters[i]] > freqMax)
-                {
-                    freqMax = HeatMapData[allCharacters[i]];
-                }
-            } 
-
-            for(int i = 0; i < allCharacters.Length; i++)
-            {
-                mHeatMapData[allCharacters[i]] /= freqMax;
-            } 
         }
 
         public override void SetToDefault()
@@ -165,5 +139,4 @@ namespace Keyrita.Settings
             }
         }
     }
-
 }

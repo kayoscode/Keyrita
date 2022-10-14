@@ -62,6 +62,9 @@ namespace Keyrita.Settings
         public OnOffSetting AnalysisEnabled { get; } =
             new AnalysisEnabledSetting();
 
+        public ElementSetSetting<eMeasurements> AvailableMeasurements { get; } =
+            new AvailableMeasurementList();
+
         public IReadOnlyDictionary<int, ConcreteValueSetting<double>> RowOffsets => mRowOffsets;
         protected Dictionary<int, ConcreteValueSetting<double>> mRowOffsets = new Dictionary<int, ConcreteValueSetting<double>>();
 
@@ -80,9 +83,13 @@ namespace Keyrita.Settings
     public class UserActions
     {
         public IReadOnlyDictionary<eKeyboardReflectDirection, ActionSetting> ReflectActions => mReflectActions;
+        public IReadOnlyDictionary<eMeasurements, ActionSetting> AddMeasurements => mAddMeasurements;
 
         private Dictionary<eKeyboardReflectDirection, ActionSetting> mReflectActions =
             new Dictionary<eKeyboardReflectDirection, ActionSetting>();
+
+        private Dictionary<eMeasurements, ActionSetting> mAddMeasurements =
+            new Dictionary<eMeasurements, ActionSetting>();
 
         public UserActions()
         {
@@ -90,6 +97,12 @@ namespace Keyrita.Settings
                      Utils.GetTokens<eKeyboardReflectDirection>())
             {
                 mReflectActions[dir] = new UserActionReflect(dir);
+            }
+
+            foreach (var meas in
+                     Utils.GetTokens<eMeasurements>())
+            {
+                mAddMeasurements[meas] = new AddMeasurementAction(meas);
             }
         }
     }

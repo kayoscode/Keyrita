@@ -1,11 +1,6 @@
-﻿using System;
-using System.CodeDom;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using Keyrita.Settings;
 using Keyrita.Settings.SettingUtil;
 
@@ -68,6 +63,7 @@ namespace Keyrita.Gui.Controls
                 StartDragDropData data = new StartDragDropData((Key)sender,
                                                                 e.GetPosition((UIElement)sender),
                                                                 e.GetPosition(mKeyCanvas));
+                Panel.SetZIndex((UIElement)sender, 10000);
                 ((UIElement)sender).IsHitTestVisible = false;
                 DragDrop.DoDragDrop((DependencyObject) sender, 
                     new DataObject(DataFormats.Serializable, data), 
@@ -94,6 +90,7 @@ namespace Keyrita.Gui.Controls
             Point offset = data.ClickedOffset;
             Key key = data.ClickedKey;
             Key draggedOverKey = e.Source as Key;
+            Panel.SetZIndex(key, 0);
             key.IsHitTestVisible = true;
 
             if (draggedOverKey != null && draggedOverKey != key)

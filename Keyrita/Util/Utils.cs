@@ -106,5 +106,10 @@ namespace Keyrita.Util
         }
 
         private static Dictionary<Enum, UIDataAttribute> mCachedUIData = new();
+
+        public static double Logerp(double a, double b, double t)
+        {
+            return a * Math.Pow(b / a, t);
+        }
     }
 }
