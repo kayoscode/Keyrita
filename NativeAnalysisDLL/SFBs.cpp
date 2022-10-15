@@ -3,7 +3,7 @@
 #include <map>
 #include <vector>
 
-#define DAIDX(x, y) ((x * 30) + y)
+#define GET_BG(x, y) ((x * numValidChars) + y)
 
 /// <summary>
 /// Create an enumeration of all keys on the layout which will be pressed with the same finger.
@@ -26,14 +26,18 @@ static void CreateSameFingerMappings(int* keyToFinger, std::vector<std::tuple<in
    }
 }
 
-long long CalculateTotalSFBs(char* keyboardState, char* bigramFreq, std::vector<std::tuple<int, int>>& sameFingerKeys) {
+long long CalculateTotalSFBs(char* keyboardState, unsigned int* bigramFreq, std::vector<std::tuple<int, int>>& sameFingerKeys,
+    int numValidChars) {
    long long totalSfbs = 0;
 
    for (std::tuple<int, int> sfk : sameFingerKeys) {
       int idx1 = std::get<0>(sfk);
       int idx2 = std::get<1>(sfk);
 
-      totalSfbs += bigramFreq[DAIDX(idx1, idx2)];
+      int k1 = keyboardState[idx1];
+      int k2 = keyboardState[idx2];
+
+      totalSfbs += bigramFreq[GET_BG(k1, k2)];
    }
 
    return totalSfbs;
@@ -47,10 +51,10 @@ extern "C" {
 /// <param name="keyboardState"></param>
 /// <param name="bigramFreq"></param>
 /// <returns></returns>
-__declspec(dllexport) long long __cdecl MeasureTotalSFBs(char* keyboardState, char* bigramFreq, int* keyToFinger) {
+__declspec(dllexport) long long __cdecl MeasureTotalSFBs(char* keyboardState, unsigned int* bigramFreq, int* keyToFinger, int numValidChars) {
    std::vector<std::tuple<int, int>> sameFingerKeys;
    CreateSameFingerMappings(keyToFinger, sameFingerKeys);
 
-   return CalculateTotalSFBs(keyboardState, bigramFreq, sameFingerKeys);
+   return CalculateTotalSFBs(keyboardState, bigramFreq, sameFingerKeys, numValidChars);
 }
 }

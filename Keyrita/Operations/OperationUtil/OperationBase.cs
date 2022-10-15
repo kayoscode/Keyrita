@@ -39,11 +39,6 @@ namespace Keyrita.Operations.OperationUtil
         public Enum Op { get; private set; }
 
         /// <summary>
-        /// The identifier for the output result.
-        /// </summary>
-        public Enum OutputId { get; private set; }
-
-        /// <summary>
         /// The list of operations which must be complete in order to compute this op.
         /// </summary>
         public IList<Enum> InputOps { get; private set; } = new List<Enum>();
@@ -62,6 +57,14 @@ namespace Keyrita.Operations.OperationUtil
         /// </summary>
         public abstract void Compute();
 
+        public virtual void ConnectInputs()
+        {
+            foreach(Enum op in InputOps)
+            {
+                OperationSystem.InstallOp(op);
+            }
+        }
+
         /// <summary>
         /// Adds an input operator to the network.
         /// </summary>
@@ -77,14 +80,5 @@ namespace Keyrita.Operations.OperationUtil
         /// </summary>
         /// <returns></returns>
         public abstract AnalysisResult GetResult();
-
-        /// <summary>
-        /// Asserts that the result of this operation will go into the specified signal.
-        /// </summary>
-        /// <param name="signal"></param>
-        public void SetOutputId(Enum signal)
-        {
-            OutputId = signal;
-        }
     }
 }

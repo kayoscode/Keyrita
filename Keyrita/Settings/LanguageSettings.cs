@@ -23,11 +23,11 @@ namespace Keyrita.Settings
         {
         }
 
-        protected uint[] CharFreq => mCharFreq;
+        public uint[] CharFreq => mCharFreq;
         protected uint[] mCharFreq;
         public long CharHitCount { get; protected set; }
 
-        protected uint[,] BigramFreq => mBigramFreq;
+        public uint[,] BigramFreq => mBigramFreq;
         protected uint[,] mBigramFreq;
         public long BigramHitCount { get; protected set; }
 
@@ -44,42 +44,6 @@ namespace Keyrita.Settings
 
         public override bool HasValue => !(CharFreq == null || BigramFreq == null || TrigramFreq == null || SkipgramFreq == null || mUsedCharset == null);
         protected override bool ValueHasChanged => mValueHasChanged;
-
-        public uint[] CharFreqCopy
-        {
-            get
-            {
-                var ret = new uint[mCharFreq.Length];
-
-                for(int i = 0; i < mCharFreq.Length; i++)
-                {
-                    ret[i] = mCharFreq[i];
-                }
-
-                return ret;
-            }
-        }
-
-        /// <summary>
-        /// Copies the array of bigram frequency data.
-        /// </summary>
-        public uint[,] BigramFreqCopy
-        {
-            get
-            {
-                uint[,] ret = new uint[mBigramFreq.GetLength(0), mBigramFreq.GetLength(1)];
-
-                for (int i = 0; i < mBigramFreq.GetLength(0); i++)
-                {
-                    for (int j = 0; j < mBigramFreq.GetLength(1); j++)
-                    {
-                        ret[i, j] = mBigramFreq[i, j];
-                    }
-                }
-
-                return ret;
-            }
-        }
 
         /// <summary>
         /// Gets the frequency of a character from the dataset.
@@ -158,7 +122,7 @@ namespace Keyrita.Settings
         /// Returns a sorted list of valid characters.
         /// </summary>
         /// <returns></returns>
-        protected string GetCharList()
+        public string GetCharList()
         {
             StringBuilder available = new StringBuilder();
 

@@ -2,7 +2,8 @@
   "profiles": {
     "Keyrita": {
       "commandName": "Project",
-      "nativeDebugging": true
+      "nativeDebugging": false,
+      "hotReloadEnabled": true
     }
   }
 }

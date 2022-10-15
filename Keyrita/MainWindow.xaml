@@ -24,6 +24,8 @@
                       Click="LoadSettings"/>
                 <MenuItem Header="_Save"
                       Click="SaveSettings"/>
+                <MenuItem Header="_Export as KLC"
+                      Click="SaveKLC"/>
                 <MenuItem Header="_Load Dataset"
                                       Click="LoadDataset"/>
             </MenuItem>

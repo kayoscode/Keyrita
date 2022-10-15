@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Keyrita.Measurements;
 using Keyrita.Util;
 
 namespace Keyrita.Operations.OperationUtil
@@ -12,15 +13,25 @@ namespace Keyrita.Operations.OperationUtil
         private static IDictionary<Enum, OperationBase> InstalledOps = new Dictionary<Enum, OperationBase>();
         public static IDictionary<Enum, AnalysisResult> ResolvedOps = new Dictionary<Enum, AnalysisResult>();
 
+        private static IReadOnlyDictionary<Type, OpFactory> mOpFactories = new Dictionary<Type, OpFactory>()
+        {
+            { typeof(eMeasurements), new MeasOpFactory() },
+            { typeof(eDependentOps), new DependentOpFactory() },
+        };
+
         /// <summary>
         /// Installs an op into this network.
         /// </summary>
         /// <param name="op"></param>
-        public static void InstallOp(OperationBase op)
+        public static void InstallOp(Enum op)
         {
-            if (!InstalledOps.ContainsKey(op.Op))
+            LTrace.Assert(mOpFactories.ContainsKey(op.GetType()), "Invalid op type");
+
+            if (!InstalledOps.ContainsKey(op))
             {
-                InstalledOps[op.Op] = op;
+                InstalledOps[op] = mOpFactories[op.GetType()].CreateOp(op);
+                LTrace.Assert(InstalledOps[op] != null, "Unimplemented operation");
+                InstalledOps[op].ConnectInputs();
             }
         }
 
@@ -28,11 +39,13 @@ namespace Keyrita.Operations.OperationUtil
         /// Removes an operation from the network.
         /// </summary>
         /// <param name="op"></param>
-        public static void UninstallOp(OperationBase op)
+        public static void UninstallOp(Enum op)
         {
-            if (InstalledOps.ContainsKey(op.Op))
+            LTrace.Assert(mOpFactories.ContainsKey(op.GetType()), "Invalid op type");
+
+            if (InstalledOps.ContainsKey(op))
             {
-                InstalledOps.Remove(op.Op);
+                InstalledOps.Remove(op);
             }
             else
             {
@@ -50,8 +63,8 @@ namespace Keyrita.Operations.OperationUtil
             // Go through each operation, and make sure their dependents have been resolved. If so,
             foreach(var op in InstalledOps)
             {
-                LTrace.Assert(op.Value != null);
-                LTrace.Assert(op.Value.Op == op.Key);
+                LTrace.Assert(op.Value != null, "Sanity check failed.");
+                LTrace.Assert(op.Value.Op.Equals(op.Key), "Sanity check failed.");
                 ResolveOp(op.Value);
             }
         }
@@ -62,7 +75,7 @@ namespace Keyrita.Operations.OperationUtil
         /// <param name="op"></param>
         public static void ResolveOp(OperationBase op)
         {
-            if (ResolvedOps.ContainsKey(op.OutputId))
+            if (ResolvedOps.ContainsKey(op.Op))
             {
                 return;
             }
@@ -77,7 +90,7 @@ namespace Keyrita.Operations.OperationUtil
             var result = op.GetResult();
 
             LTrace.Assert(result != null);
-            ResolvedOps[op.OutputId] = result;
+            ResolvedOps[op.Op] = result;
         }
     }
 }

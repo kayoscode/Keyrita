@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using Keyrita.Measurements;
 using Keyrita.Settings;
 using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;

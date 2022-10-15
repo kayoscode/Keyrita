@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Keyrita.Gui;
 using Keyrita.Settings.SettingUtil;
 
 namespace Keyrita.Settings
@@ -9,17 +10,28 @@ namespace Keyrita.Settings
     /// </summary>
     public enum eFinger : int
     {
+        [UIData("None")]
         None,
+        [UIData("Left Pinkie", "LPink")]
         LeftPinkie,
+        [UIData("Left Ring", "LRing")]
         LeftRing,
+        [UIData("Left Middle", "LMidl")]
         LeftMiddle,
+        [UIData("Left Index", "LIndx")]
         LeftIndex,
+        [UIData("Left Thumb", "LThmb")]
         LeftThumb,
 
+        [UIData("Right Thumb", "RThmb")]
         RightThumb,
+        [UIData("Right Index", "RIndx")]
         RightIndex,
+        [UIData("Right Middle", "RMidd")]
         RightMiddle,
+        [UIData("Right Ring", "RRing")]
         RightRing,
+        [UIData("Right Pinkie", "RPink")]
         RightPinkie,
     }
 

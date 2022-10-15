@@ -8,6 +8,17 @@ namespace Keyrita.Interop.NativeAnalysis
 {
     public class NativeAnalysis
     {
+        [DllImport("user32.dll")]
+        public static extern short VkKeyScan(char c);
+
+        [DllImport("user32.dll", SetLastError=true)]
+        public static extern int ToAscii(
+            uint uVirtKey,
+            uint uScanCode,
+            byte[] lpKeyState,
+            out uint lpChar,
+            uint flags);
+
         [DllImport("NativeAnalysisDll.dll", CharSet = CharSet.Unicode, SetLastError = true,
             CallingConvention = CallingConvention.Cdecl)]
         private static extern long AnalyzeDataset([In] [MarshalAs(UnmanagedType.LPWStr)] string dataset, int datasetSize,
@@ -71,7 +82,7 @@ namespace Keyrita.Interop.NativeAnalysis
 
         [DllImport("NativeAnalysisDll.dll", CharSet = CharSet.Unicode, SetLastError = true,
         CallingConvention = CallingConvention.Cdecl)]
-        private static extern long MeasureTotalSFBs(IntPtr keyboardState, IntPtr bigramFreq);
+        private static extern long MeasureTotalSFBs(IntPtr keyboardState, IntPtr bigramFreq, IntPtr keyToFinger, int numValidChars);
 
         /// <summary>
         /// Returns the total number of bigrams in the layout.
@@ -79,7 +90,7 @@ namespace Keyrita.Interop.NativeAnalysis
         /// <param name="keyboardState"></param>
         /// <param name="bigramFreq"></param>
         /// <param name=""></param>
-        public static long MeasureTotalSFBs(char[,] keyboardState, uint[,] bigramFreq, int[,] keyToFinger)
+        public static long MeasureTotalSFBs(byte[,] keyboardState, uint[,] bigramFreq, int[,] keyToFinger)
         {
             var h_keyboardState = GCHandle.Alloc(keyboardState, GCHandleType.Pinned);
             var h_bigramFreq = GCHandle.Alloc(bigramFreq, GCHandleType.Pinned);
@@ -88,7 +99,7 @@ namespace Keyrita.Interop.NativeAnalysis
             long totalSfbs = 0;
             try
             {
-                totalSfbs = MeasureTotalSFBs(h_keyboardState.AddrOfPinnedObject(), h_bigramFreq.AddrOfPinnedObject());
+                totalSfbs = MeasureTotalSFBs(h_keyboardState.AddrOfPinnedObject(), h_bigramFreq.AddrOfPinnedObject(), h_keyToFinger.AddrOfPinnedObject(), bigramFreq.GetLength(0));
             }
             finally
             {

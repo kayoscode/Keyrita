@@ -1,5 +1,6 @@
 ﻿using Keyrita.Gui;
 using Keyrita.Gui.Controls;
+using Keyrita.Measurements;
 using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
 using Microsoft.Win32;

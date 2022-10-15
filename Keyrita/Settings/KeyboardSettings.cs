@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Xml;
 using Keyrita.Gui;
 using Keyrita.Interop.NativeAnalysis;
+using Keyrita.Operations.OperationUtil;
 using Keyrita.Serialization;
 using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
@@ -81,43 +80,20 @@ namespace Keyrita.Settings
         protected override void SetDependencies()
         {
             SettingState.KeyboardSettings.KeyboardState.AddDependent(this);
+            SettingState.KeyboardSettings.KeyboardValid.AddDependent(this);
+            SettingState.MeasurementSettings.AnalysisEnabled.AddDependent(this);
         }
 
         protected override void DoAction()
         {
-            if (SettingState.MeasurementSettings.AnalysisEnabled.Value.Equals(eOnOff.On) &&
-               SettingState.KeyboardSettings.KeyboardValid.Value.Equals(eOnOff.On))
+            if(SettingState.MeasurementSettings.AnalysisEnabled.HasValue && SettingState.KeyboardSettings.KeyboardValid.HasValue)
             {
-                // Transforming the key state will be an operator.
-                List<char> characterSet = SettingState.MeasurementSettings.CharFrequencyData.UsedCharset.ToList();
-                var kbs = SettingState.KeyboardSettings.KeyboardState;
-
-                uint[,] bigramFreq = SettingState.MeasurementSettings.CharFrequencyData.BigramFreqCopy;
-
-                // Just for fun, compute it here when in reality this should just trigger the analysis system to run.
-                char[,] transformedKeyState = new char[3, 10];
-
-                eFinger[,] keyToFinger = SettingState.FingerSettings.KeyMappings.KeyStateCopy;
-                int[,] keyToFingerInt = new int[3, 10];
-                for (int i = 0; i < 3; i++)
+                if (SettingState.MeasurementSettings.AnalysisEnabled.Value.Equals(eOnOff.On) &&
+                   SettingState.KeyboardSettings.KeyboardValid.Value.Equals(eOnOff.On))
                 {
-                    for (int j = 0; j < 10; j++)
-                    {
-                        keyToFingerInt[i, j] = (int)keyToFinger[i, j];
-                    }
+                    // Resolve the ops.
+                    OperationSystem.ResolveOps();
                 }
-
-                for (int i = 0; i < 3; i++)
-                {
-                    for (int j = 0; j < 10; j++)
-                    {
-                        int charIdx = characterSet.IndexOf(kbs.GetValueAt(i, j));
-                        transformedKeyState[i, j] = (char)charIdx;
-                        LTrace.Assert(charIdx > 0);
-                    }
-                }
-
-                NativeAnalysis.MeasureTotalSFBs(transformedKeyState, bigramFreq, keyToFingerInt);
             }
         }
     }

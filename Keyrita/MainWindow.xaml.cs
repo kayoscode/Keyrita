@@ -4,6 +4,7 @@ using Keyrita.Util;
 using Microsoft.Win32;
 using System;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Windows;
@@ -33,6 +34,7 @@ namespace Keyrita
 
         public void CreateUndoRedoCommand()
         {
+            // Undo
             CommandBinding undoCmdBinding = new CommandBinding(
                 ApplicationCommands.Undo,
                 TriggerUndo);
@@ -50,12 +52,31 @@ namespace Keyrita
             this.CommandBindings.Add(redoCmdBinding);
         }
 
+        public void CreateNewSaveOpenCommands()
+        {
+            CommandBinding saveCmdBinding = new CommandBinding(
+                ApplicationCommands.Save,
+                SaveSettings);
+            this.CommandBindings.Add(saveCmdBinding);
+
+            CommandBinding openCmdBinding = new CommandBinding(
+                ApplicationCommands.Open,
+                LoadSettings);
+            this.CommandBindings.Add(openCmdBinding);
+
+            CommandBinding newCmdBinding = new CommandBinding(
+                ApplicationCommands.New,
+                SetToDefaults);
+            this.CommandBindings.Add(newCmdBinding);
+        }
+
         #endregion
 
         public MainWindow()
         {
             InitializeComponent();
             CreateUndoRedoCommand();
+            CreateNewSaveOpenCommands();
 
             mKeyboardControl.KeyboardState = SettingState.KeyboardSettings.KeyboardState;
             mKeyboardControl.KeyMappings = SettingState.FingerSettings.KeyMappings;
@@ -143,6 +164,18 @@ namespace Keyrita
                 {
                     SettingsSystem.SaveSettings(fileWriter, false);
                 }
+            }
+        }
+
+        protected void SaveKLC(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                LTrace.LogInfo($"Exporting as KLC {saveFileDialog.FileName}");
+                Util.KBDTextFile.Serialize(saveFileDialog.FileName, "Set Name", "Write Description", CultureInfo.CurrentCulture, "Write Company", "(c) Copyright",
+                    SettingState.KeyboardSettings.KeyboardState.KeyStateCopy);
             }
         }
 
