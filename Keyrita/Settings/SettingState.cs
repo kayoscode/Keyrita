@@ -69,11 +69,19 @@ namespace Keyrita.Settings
         public IReadOnlyDictionary<int, ConcreteValueSetting<double>> RowOffsets => mRowOffsets;
         protected Dictionary<int, ConcreteValueSetting<double>> mRowOffsets = new Dictionary<int, ConcreteValueSetting<double>>();
 
+        public IReadOnlyDictionary<eMeasurements, MeasurementInstalledSetting> InstalledMeasurements => mInstalledMeasurements;
+        protected Dictionary<eMeasurements, MeasurementInstalledSetting> mInstalledMeasurements = new Dictionary<eMeasurements, MeasurementInstalledSetting>(); 
+
         public MeasurementSettings()
         {
             for (var i = 0; i < KeyboardStateSetting.ROWS; i++)
             {
                 mRowOffsets[i] = new RowHorizontalOffsetSetting(i);
+            }
+
+            foreach(eMeasurements meas in Utils.GetTokens<eMeasurements>())
+            {
+                mInstalledMeasurements.Add(meas, new MeasurementInstalledSetting(meas));
             }
         }
     }

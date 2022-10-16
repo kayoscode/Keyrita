@@ -43,14 +43,14 @@ namespace Keyrita.Settings.SettingUtil
     /// </summary>
     public abstract class EnumValueSetting : SettingBase
     {
-        protected EnumValueSetting(string settingName, Enum defaultValue, eSettingAttributes attributes)
-            : this(settingName, attributes)
+        protected EnumValueSetting(string settingName, Enum defaultValue, eSettingAttributes attributes, Enum sInstance = null)
+            : this(settingName, attributes, sInstance)
         {
             mDefaultValue = defaultValue;
         }
 
-        protected EnumValueSetting(string settingName, eSettingAttributes attributes)
-            : base(settingName, attributes)
+        protected EnumValueSetting(string settingName, eSettingAttributes attributes, Enum sInstance = null)
+            : base(settingName, attributes, sInstance)
         {
         }
 
@@ -224,8 +224,8 @@ namespace Keyrita.Settings.SettingUtil
     public abstract class EnumValueSetting<TEnum> : EnumValueSetting, IEnumValueSetting
         where TEnum : Enum
     {
-        protected EnumValueSetting(string settingName, TEnum defaultValue, eSettingAttributes attributes)
-            : base(settingName, defaultValue, attributes)
+        protected EnumValueSetting(string settingName, TEnum defaultValue, eSettingAttributes attributes, Enum sInstance = null)
+            : base(settingName, defaultValue, attributes, sInstance)
         {
             mValidTokens.Clear();
 
@@ -255,8 +255,8 @@ namespace Keyrita.Settings.SettingUtil
         {
         }
 
-        public OnOffSetting(string settingName, eOnOff defaultValue, eSettingAttributes attributes)
-            : base(settingName, defaultValue, attributes)
+        public OnOffSetting(string settingName, eOnOff defaultValue, eSettingAttributes attributes, Enum sInstance = null)
+            : base(settingName, defaultValue, attributes, sInstance)
         {
         }
 

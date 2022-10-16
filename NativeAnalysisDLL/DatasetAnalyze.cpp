@@ -3,6 +3,10 @@
 #include <map>
 
 extern "C" {
+/// <summary>
+/// TODO
+/// This is hardcoded for now, make that NOT so.
+/// </summary>
 std::map<wchar_t, wchar_t> ToLowerSpecialCases{
    { ':', ';' },
    { '"', '\'' },

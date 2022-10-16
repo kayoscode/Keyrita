@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Keyrita.Measurements;
 using Keyrita.Operations.OperationUtil;
 using Keyrita.Settings.SettingUtil;
@@ -23,6 +24,8 @@ namespace Keyrita.Settings
     /// </summary>
     public class AddMeasurementAction : ActionSetting
     {
+        protected eMeasurements Meas => (eMeasurements)this.SInstance;
+
         public AddMeasurementAction(eMeasurements measurement)
             : base(measurement.UIText(), measurement)
         {
@@ -30,7 +33,44 @@ namespace Keyrita.Settings
 
         protected override void DoAction()
         {
-            OperationSystem.InstallOp(this.SInstance);
+            SettingState.MeasurementSettings.InstalledMeasurements[Meas].TurnMeasOn();
+        }
+    }
+
+    /// <summary>
+    /// On if the measurement is installed, off otherwise.
+    /// </summary>
+    public class MeasurementInstalledSetting : OnOffSetting
+    {
+        public MeasurementInstalledSetting(eMeasurements measurement)
+            : base($"Measurement OnOff State", eOnOff.Off, eSettingAttributes.Recall, measurement)
+        {
+        }
+
+        protected override void Action()
+        {
+            if (this.IsOn)
+            {
+                OperationSystem.InstallOp(this.SInstance);
+            }
+            else
+            {
+                OperationSystem.UninstallOp(this.SInstance);
+            }
+        }
+
+        public void TurnMeasOn()
+        {
+            this.mValidTokens.Clear();
+            this.mValidTokens.Add(eOnOff.On);
+            this.SetToNewLimits();
+        }
+
+        public void TurnMeasOff()
+        {
+            this.mValidTokens.Clear();
+            this.mValidTokens.Add(eOnOff.Off);
+            this.SetToNewLimits();
         }
     }
 }

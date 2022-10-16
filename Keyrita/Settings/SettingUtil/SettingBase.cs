@@ -103,9 +103,9 @@ namespace Keyrita.Settings.SettingUtil
         {
             mAttributes = attributes;
             mSettingName = settingName;
+            this.SInstance = sInstance;
 
             SettingsSystem.RegisterSetting(this);
-            this.SInstance = sInstance;
         }
 
         /// <summary>

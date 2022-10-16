@@ -52,7 +52,6 @@ namespace Keyrita.Measurements
             long sfbs = NativeAnalysis.MeasureTotalSFBs(transformedKbState.TransformedKbState, bigramFreq, keyToFingerInt);
             double totalSfbs = (double)sfbs / (double)SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
             result.TotalBigrams = totalSfbs * 100;
-            LTrace.LogInfo($"{result.TotalBigrams}");
         }
 
         public override AnalysisResult GetResult()

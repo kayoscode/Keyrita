@@ -47,10 +47,6 @@ namespace Keyrita.Operations.OperationUtil
             {
                 InstalledOps.Remove(op);
             }
-            else
-            {
-                LTrace.Assert(false, "Attempted to remove an op that wasn't installed");
-            }
         }
 
         /// <summary>
