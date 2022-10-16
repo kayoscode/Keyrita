@@ -52,6 +52,20 @@ namespace Keyrita
             this.CommandBindings.Add(redoCmdBinding);
         }
 
+        /// <summary>
+        /// Clear the selection if they press escape.
+        /// </summary>
+        /// <param name="e"></param>
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+
+            if (!e.Handled && e.Key == Key.Escape && Keyboard.Modifiers == ModifierKeys.None)
+            {
+                SettingState.KeyboardSettings.SelectedKey.SetSelection(' ');
+            }
+        }
+
         public void CreateNewSaveOpenCommands()
         {
             CommandBinding saveCmdBinding = new CommandBinding(

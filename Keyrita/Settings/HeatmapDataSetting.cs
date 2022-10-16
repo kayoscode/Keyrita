@@ -23,11 +23,8 @@ namespace Keyrita.Settings
         [UIData("Relative Char Freq")]
         RelativeCharacterFrequency,
 
-        [UIData("Bigram Frequency")]
+        [UIData("Bigram Freq")]
         BigramFrequency,
-
-        [UIData("Trigram Frequency")]
-        TrigramFrequency
     }
 
     /// <summary>
@@ -128,8 +125,6 @@ namespace Keyrita.Settings
                     case eHeatMap.BigramFrequency:
                         LoadBigramFrequencyHeatMap(allCharacters, usedKeys, selectedKey);
                         break;
-                    case eHeatMap.TrigramFrequency:
-                        break;
                 }
             }
         }
@@ -176,7 +171,7 @@ namespace Keyrita.Settings
             var kfd = SettingState.MeasurementSettings.CharFrequencyData;
             double maxFreq = -1;
 
-            if (allCharacters.Contains(selectedKey))
+            if (allCharacters.Contains(selectedKey) && usedKeys.Contains(selectedKey))
             {
                 int selectedKeyIdx = allCharacters.IndexOf(selectedKey);
 
@@ -196,10 +191,6 @@ namespace Keyrita.Settings
                 {
                     mHeatMapData[allCharacters[i]] = Math.Min(1, kfd.GetBigramFreq(selectedKeyIdx, i) / maxFreq);
                 }
-            }
-            else
-            {
-                LTrace.Assert(false, "Selected key must be in the set of all characters");
             }
         }
 
