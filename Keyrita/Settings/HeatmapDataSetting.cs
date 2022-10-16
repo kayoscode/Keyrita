@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Windows.Markup.Localizer;
 using System.Xml;
 using Keyrita.Gui;
 using Keyrita.Settings.SettingUtil;
@@ -22,6 +23,12 @@ namespace Keyrita.Settings
 
         [UIData("Relative Char Freq")]
         RelativeCharacterFrequency,
+
+        [UIData("Post-Char Freq")]
+        PostKeyBigramFrequency,
+
+        [UIData("Pre-Char Freq")]
+        PreCharBigramFrequency,
 
         [UIData("Bigram Freq")]
         BigramFrequency,
@@ -122,6 +129,12 @@ namespace Keyrita.Settings
                     case eHeatMap.RelativeCharacterFrequency:
                         LoadCharFrequencyHeatMap(allCharacters, usedKeys, selectedKey);
                         break;
+                    case eHeatMap.PostKeyBigramFrequency:
+                        LoadPostBigramFrequencyHeatMap(allCharacters, usedKeys, selectedKey);
+                        break;
+                    case eHeatMap.PreCharBigramFrequency:
+                        LoadPreBigramFrequencyHeatMap(allCharacters, usedKeys, selectedKey);
+                        break;
                     case eHeatMap.BigramFrequency:
                         LoadBigramFrequencyHeatMap(allCharacters, usedKeys, selectedKey);
                         break;
@@ -166,6 +179,56 @@ namespace Keyrita.Settings
             }
         }
 
+        protected void LoadPostBigramFrequencyHeatMap(string allCharacters, HashSet<char> usedKeys, char selectedKey)
+        {
+            var kfd = SettingState.MeasurementSettings.CharFrequencyData;
+            double maxFreq = -1;
+
+            if (allCharacters.Contains(selectedKey) && usedKeys.Contains(selectedKey))
+            {
+                int selectedKeyIdx = allCharacters.IndexOf(selectedKey);
+
+                for(int i = 0; i < allCharacters.Length; i++)
+                {
+                    double freq = kfd.GetBigramFreq(selectedKeyIdx, i);
+                    if(freq > maxFreq)
+                    {
+                        maxFreq = freq;
+                    }
+                }
+
+                for(int i = 0; i < allCharacters.Length; i++)
+                {
+                    mHeatMapData[allCharacters[i]] = Math.Min(1, kfd.GetBigramFreq(selectedKeyIdx, i) / maxFreq);
+                }
+            }
+        }
+
+        protected void LoadPreBigramFrequencyHeatMap(string allCharacters, HashSet<char> usedKeys, char selectedKey)
+        {
+            var kfd = SettingState.MeasurementSettings.CharFrequencyData;
+            double maxFreq = -1;
+
+            if (allCharacters.Contains(selectedKey) && usedKeys.Contains(selectedKey))
+            {
+                int selectedKeyIdx = allCharacters.IndexOf(selectedKey);
+
+                for(int i = 0; i < allCharacters.Length; i++)
+                {
+                    double freq = kfd.GetBigramFreq(i, selectedKeyIdx);
+                    if(freq > maxFreq)
+                    {
+                        maxFreq = freq;
+                    }
+                }
+
+                for(int i = 0; i < allCharacters.Length; i++)
+                {
+                    mHeatMapData[allCharacters[i]] = Math.Min(1, kfd.GetBigramFreq(i, selectedKeyIdx) / maxFreq);
+                }
+            }
+        }
+
         protected void LoadBigramFrequencyHeatMap(string allCharacters, HashSet<char> usedKeys, char selectedKey)
         {
             var kfd = SettingState.MeasurementSettings.CharFrequencyData;
@@ -177,19 +240,22 @@ namespace Keyrita.Settings
 
                 for(int i = 0; i < allCharacters.Length; i++)
                 {
-                    if (usedKeys.Contains(allCharacters[i]))
+                    double freq = kfd.GetBigramFreq(i, selectedKeyIdx);
+                    double freq2 = kfd.GetBigramFreq(selectedKeyIdx, i);
+                    freq = freq + freq2;
+
+                    if(freq > maxFreq)
                     {
-                        double freq = kfd.GetBigramFreq(selectedKeyIdx, i);
-                        if(freq > maxFreq)
-                        {
-                            maxFreq = freq;
-                        }
+                        maxFreq = freq;
                     }
                 }
 
                 for(int i = 0; i < allCharacters.Length; i++)
                 {
-                    mHeatMapData[allCharacters[i]] = Math.Min(1, kfd.GetBigramFreq(selectedKeyIdx, i) / maxFreq);
+                    mHeatMapData[allCharacters[i]] = kfd.GetBigramFreq(i, selectedKeyIdx);
+                    mHeatMapData[allCharacters[i]] += kfd.GetBigramFreq(selectedKeyIdx, i);
+                    mHeatMapData[allCharacters[i]] /= maxFreq;
+                    mHeatMapData[allCharacters[i]] = Math.Min(1, mHeatMapData[allCharacters[i]]);
                 }
             }
         }
