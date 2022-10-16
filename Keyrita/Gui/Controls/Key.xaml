@@ -9,13 +9,13 @@
              xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI">
     <Border Name="mSelectionBorder"
             BorderThickness="2"
-            CornerRadius="16"
+            CornerRadius="10"
             Background="Transparent"
             BorderBrush="Transparent">
         <Grid>
             <Border Name="mBorder"
                     BorderThickness="2"
-                    CornerRadius="16"
+                    CornerRadius="10"
                     Panel.ZIndex="0"
                     Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}">
                 <AccessText HorizontalAlignment="Center"
