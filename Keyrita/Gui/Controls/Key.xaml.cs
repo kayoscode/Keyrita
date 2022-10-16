@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Keyrita.Settings;
+using Keyrita.Settings.SettingUtil;
 
 namespace Keyrita.Gui.Controls
 { 
@@ -57,6 +58,10 @@ namespace Keyrita.Gui.Controls
         public Key()
         {
             InitializeComponent();
+
+            mSelectedKey = SettingState.KeyboardSettings.SelectedKey;
+            mSelectedKey.ValueChangedNotifications.AddGui(SyncWithSelectedKey);
+            SyncWithSelectedKey(null);
         }
 
         private static readonly DependencyProperty KeyCharacterProperty =
@@ -84,8 +89,10 @@ namespace Keyrita.Gui.Controls
 
             if(mKeyCharacter != null)
             {
-                mChar.Text = "" + mKeyCharacter.Character;
+                mChar.Text = "_" + mKeyCharacter.Character;
             }
+
+            SyncWithSelectedKey(null);
         }
 
         protected Color GetGradientColor(float heatmapValue, Color highestFreqColor)
@@ -115,5 +122,36 @@ namespace Keyrita.Gui.Controls
         }
 
         protected KeyCharacterWrapper mKeyCharacter;
+
+        #region Key Selection
+
+        protected void SyncWithSelectedKey(SettingBase changedSetting)
+        {
+            if (SettingState.KeyboardSettings.SelectedKey.HasValue)
+            {
+                if (mKeyCharacter != null && SettingState.KeyboardSettings.SelectedKey.Value == mKeyCharacter.Character)
+                {
+                    SetSelected();
+                }
+                else
+                {
+                    SetUnselected();
+                }
+            }
+        }
+
+        public void SetSelected()
+        {
+            mSelectionBorder.BorderBrush = Brushes.White;
+        }
+
+        public void SetUnselected()
+        {
+            mSelectionBorder.BorderBrush = Brushes.Transparent;
+        }
+
+        protected SelectedKeySetting mSelectedKey;
+
+        #endregion
     }
 }

@@ -44,6 +44,9 @@ namespace Keyrita.Settings
 
         public HeatmapDataSetting HeatmapData { get; } =
             new HeatmapDataSetting();
+
+        public SelectedKeySetting SelectedKey { get; } =
+            new SelectedKeySetting();
     }
 
     /// <summary>

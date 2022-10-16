@@ -1,8 +1,10 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Keyrita.Settings;
 using Keyrita.Settings.SettingUtil;
+using Keyrita.Util;
 
 namespace Keyrita.Gui.Controls
 {
@@ -26,6 +28,8 @@ namespace Keyrita.Gui.Controls
                     nextKey.Width = keySize;
                     nextKey.Height = keySize;
                     nextKey.MouseMove += MoveKey;
+                    nextKey.MouseDoubleClick += SelectKey;
+                    AccessKeyManager.AddAccessKeyPressedHandler(nextKey, SelectKey);
 
                     mKeyCanvas.Children.Add(nextKey);
                 }
@@ -39,6 +43,24 @@ namespace Keyrita.Gui.Controls
                 RowOffsets[i].LimitsChangedNotifications.AddGui(SyncWithShape);
             }
         }
+
+        #region Key selection
+
+        protected void SelectKey(object sender, EventArgs args)
+        {
+            Key key = sender as Key;
+
+            if(key != null)
+            {
+                SettingState.KeyboardSettings.SelectedKey.SetSelection(key.KeyCharacter.Character);
+            }
+            else
+            {
+                LTrace.Assert(false, "Select key event triggered without a key.");
+            }
+        }
+
+        #endregion
 
         #region Drag and Drop
 
@@ -107,6 +129,23 @@ namespace Keyrita.Gui.Controls
 
         #region Keyboard Sync
 
+        protected void CanvasSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            // We want to fill the canvas and we know that there are 10.75 keys across.
+            // Make sure we don't take too much space vertically as well.
+            keySize = (int)(mKeyCanvas.ActualWidth / 10.75);
+            double fontSize = (((mKeyCanvas.ActualWidth / 12) / 3 * 2) / 5) * 5.5;
+
+            foreach (Key key in mKeyCanvas.Children)
+            {
+                key.Width = keySize;
+                key.Height = keySize;
+                key.mChar.FontSize = fontSize;
+            }
+
+            SyncWithShape();
+        }
+
         protected void SyncWithKeyboard(SettingBase settingChanged)
         {
             // Get the key size.
@@ -117,7 +156,6 @@ namespace Keyrita.Gui.Controls
         {
             // Go through each of the children and update with the correct key from the kb setting.
             int index = 0;
-
             foreach (var key in mKeyCanvas.Children)
             {
                 int row = index / KeyboardStateSetting.COLS;
@@ -223,10 +261,9 @@ namespace Keyrita.Gui.Controls
                 }
             }
 
-            var offsetDifference = maxOffset - minOffset;
+            mKeyCanvas.Height = (keySize) * KeyboardStateSetting.ROWS;
 
-            mKeyCanvas.Width = (keySize + 4) * KeyboardStateSetting.COLS + (offsetDifference * keySize) + 4;
-            mKeyCanvas.Height = (keySize + 4) * KeyboardStateSetting.ROWS;
+            var offsetDifference = maxOffset - minOffset;
 
             for(int i = 0; i < KeyboardStateSetting.ROWS; i++)
             {
@@ -234,8 +271,8 @@ namespace Keyrita.Gui.Controls
                 {
                     var nextKey = mKeyCanvas.Children[keyIndex++];
 
-                    Canvas.SetTop(nextKey, i * (keySize + 4));
-                    Canvas.SetLeft(nextKey, j * (keySize + 4) + (double)RowOffsets[i].Value * (double)keySize - (minOffset * keySize) + 4);
+                    Canvas.SetTop(nextKey, i * (keySize));
+                    Canvas.SetLeft(nextKey, j * (keySize) + (double)RowOffsets[i].Value * (double)keySize - (minOffset * keySize));
                 }
             }
         }

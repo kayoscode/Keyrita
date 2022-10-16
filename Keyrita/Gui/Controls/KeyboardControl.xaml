@@ -6,21 +6,32 @@
              xmlns:local="clr-namespace:Keyrita.Gui.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <StackPanel>
-        <Border BorderThickness="2"
-                BorderBrush="Transparent"
-                CornerRadius="8"
-                Background="Transparent"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Top"
-                Width="Auto"
-                Height="Auto">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width=".15*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width=".15*"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="1"
+                    Grid.Row="1"
+                    Name="mStackPanel">
+            <Border BorderThickness="2"
+                    BorderBrush="Transparent"
+                    CornerRadius="8"
+                    Background="Transparent"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Width="Auto"
+                    Height="Auto">
 
-            <Canvas Name="mKeyCanvas" AllowDrop="True"
-                    Drop="DropKey"
-                    DragOver="RepositionKey"
-                    Background="Transparent">
-            </Canvas>
-        </Border>
-    </StackPanel>
+                <Canvas Name="mKeyCanvas" AllowDrop="True"
+                        Drop="DropKey"
+                        DragOver="RepositionKey"
+                        Background="Transparent"
+                        Width="{Binding Path=ActualWidth, ElementName=mStackPanel}"
+                        SizeChanged="CanvasSizeChanged">
+                </Canvas>
+            </Border>
+        </StackPanel>
+    </Grid>
 </UserControl>

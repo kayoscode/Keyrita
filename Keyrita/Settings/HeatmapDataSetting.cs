@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Xml;
 using Keyrita.Gui;
 using Keyrita.Settings.SettingUtil;
+using Keyrita.Util;
 
 namespace Keyrita.Settings
 {
@@ -21,6 +24,46 @@ namespace Keyrita.Settings
 
         [UIData("Trigram Frequency")]
         TrigramFrequency
+    }
+
+    /// <summary>
+    /// The key the user currently has selected. Used for
+    /// visualizing where the key is on the keyboard and for heatmap data.
+    /// </summary>
+    public class SelectedKeySetting : ConcreteValueSetting<char>
+    {
+        public SelectedKeySetting() 
+            : base("Selected Key", ' ', eSettingAttributes.Recall)
+        {
+        }
+
+        protected override void SetDependencies()
+        {
+            SettingState.KeyboardSettings.AvailableCharSet.AddDependent(this);
+        }
+
+        public void SetSelection(char selection)
+        {
+            if (SettingState.KeyboardSettings.AvailableCharSet.Collection.Contains(selection))
+            {
+                mPendingValue = selection;
+            }
+            else
+            {
+                LTrace.Assert(false, "Attempted to select an invalid key");
+                mPendingValue = ' ';
+            }
+
+            TrySetToPending();
+        }
+
+        protected override void ChangeLimits()
+        {
+            if (!SettingState.KeyboardSettings.AvailableCharSet.Collection.Contains(mValue))
+            {
+                mValue = ' ';
+            }
+        }
     }
 
     /// <summary>
