@@ -11,7 +11,7 @@ namespace Keyrita.Gui.Controls
     /// <summary>
     /// Interaction logic for MeasurementToolbar.xaml
     /// </summary>
-    public partial class MeasurementToolbar : UserControl
+    public partial class MeasurementToolbar : UserControlBase
     {
         public MeasurementToolbar()
         {
@@ -41,5 +41,10 @@ namespace Keyrita.Gui.Controls
         }
 
         protected ElementSetSetting<eMeasurements> mAvailableMeasurements;
+
+        protected override void OnClose()
+        {
+            mAvailableMeasurements.ValueChangedNotifications.Remove(SyncWithAvailableMeasurements);
+        }
     }
 }

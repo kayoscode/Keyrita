@@ -7,6 +7,7 @@ using System.Collections.Specialized;
 using System.Configuration;
 using System.Linq;
 using System.Reflection;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
@@ -57,6 +58,29 @@ namespace Keyrita.Settings.SettingUtil
         public override void PreInitialization()
         {
             base.PreInitialization();
+        }
+
+        public override string ToolTip
+        {
+            get
+            {
+                if (HasValue)
+                {
+                    return Value.UIToolTip();
+                }
+
+                return base.ToolTip;
+            }
+        }
+
+        public virtual string GetToolTipForToken(Enum token)
+        {
+            if (mValidTokens.Contains(token))
+            {
+                return token.UIToolTip();
+            }
+
+            return null;
         }
 
         public Enum Value { get; private set; }

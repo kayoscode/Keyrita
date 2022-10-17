@@ -8,10 +8,24 @@ using Keyrita.Util;
 
 namespace Keyrita.Gui.Controls
 {
+    public class StartDragDropData
+    {
+        public StartDragDropData(Key clickedKey, Point clickOffset, Point startPosition)
+        {
+            ClickedKey = clickedKey;
+            ClickedOffset = clickOffset;
+            StartPosition = startPosition;
+        }
+
+        public Key ClickedKey;
+        public Point ClickedOffset;
+        public Point StartPosition;
+    }
+
     /// <summary>
     /// Interaction logic for KeyboardControl.xaml
     /// </summary>
-    public partial class KeyboardControl : UserControl
+    public partial class KeyboardControl : UserControlBase
     {
         private int keySize = 80;
 
@@ -29,6 +43,7 @@ namespace Keyrita.Gui.Controls
                     nextKey.Height = keySize;
                     nextKey.MouseMove += MoveKey;
                     nextKey.MouseDoubleClick += SelectKey;
+                    nextKey.KeyHeatMap = SettingState.KeyboardSettings.HeatmapData;
                     AccessKeyManager.AddAccessKeyPressedHandler(nextKey, SelectKey);
 
                     mKeyCanvas.Children.Add(nextKey);
@@ -63,20 +78,6 @@ namespace Keyrita.Gui.Controls
         #endregion
 
         #region Drag and Drop
-
-        class StartDragDropData
-        {
-            public StartDragDropData(Key clickedKey, Point clickOffset, Point startPosition)
-            {
-                ClickedKey = clickedKey;
-                ClickedOffset = clickOffset;
-                StartPosition = startPosition;
-            }
-
-            public Key ClickedKey;
-            public Point ClickedOffset;
-            public Point StartPosition;
-        }
 
         protected void MoveKey(object sender, MouseEventArgs e)
         {
@@ -163,7 +164,6 @@ namespace Keyrita.Gui.Controls
                 var k = (Key)key;
                 var character = '*';
                 var finger = eFinger.None;
-                double heatmapValue = 0.0;
 
                 if(mKeyboardState != null)
                 {
@@ -175,12 +175,7 @@ namespace Keyrita.Gui.Controls
                     finger = mKeyMappings.GetValueAt(row, col);
                 }
 
-                if(mHeatmap != null && mHeatmap.HeatMapData.ContainsKey(character))
-                {
-                    heatmapValue = mHeatmap.HeatMapData[character];
-                }
-
-                k.KeyCharacter = new KeyCharacterWrapper(character, finger, heatmapValue);
+                k.KeyCharacter = new KeyCharacterWrapper(character, finger);
                 index++;
             }
 
@@ -335,55 +330,6 @@ namespace Keyrita.Gui.Controls
 
         #endregion
 
-        #region Most Frequent Keys
-
-        private static readonly DependencyProperty HeatmapDataProperty =
-            DependencyProperty.Register(nameof(KeyHeatMap),
-                                        typeof(HeatmapDataSetting),
-                                        typeof(KeyboardControl),
-                                        new PropertyMetadata(OnHeatmapDataChanged));
-
-        private static void OnHeatmapDataChanged(DependencyObject source,
-                                             DependencyPropertyChangedEventArgs e)
-        {
-            var control = source as KeyboardControl;
-            control.UpdateCharFrequency(e.NewValue as HeatmapDataSetting);
-        }
-
-        private void UpdateCharFrequency(HeatmapDataSetting newValue)
-        {
-            // Unregister setting change listeners.
-            if (mHeatmap != null)
-            {
-                mHeatmap.ValueChangedNotifications.Remove(SyncWithKeyboard);
-                mHeatmap.LimitsChangedNotifications.Remove(SyncWithKeyboard);
-            }
-
-            mHeatmap = newValue;
-
-            if(mHeatmap != null)
-            {
-                mHeatmap.ValueChangedNotifications.AddGui(SyncWithKeyboard);
-                mHeatmap.LimitsChangedNotifications.AddGui(SyncWithKeyboard);
-                SyncWithKeyboard();
-            }
-        }
-
-        public HeatmapDataSetting KeyHeatMap
-        {
-            get
-            {
-                return mHeatmap;
-            }
-            set
-            {
-                SetValue(HeatmapDataProperty, value);
-            }
-        }
-
-        protected HeatmapDataSetting mHeatmap;
-
-        #endregion
 
         #region Show Finger Usage
 
@@ -434,5 +380,20 @@ namespace Keyrita.Gui.Controls
         protected OnOffSetting mShowFingerUsage;
 
         #endregion
+
+        protected override void OnClose()
+        {
+            // Remove row listeners
+            for(int i = 0; i < KeyboardStateSetting.ROWS; i++)
+            {
+                RowOffsets[i] = SettingState.MeasurementSettings.RowOffsets[i];
+                RowOffsets[i].LimitsChangedNotifications.Remove(SyncWithShape);
+                RowOffsets[i].LimitsChangedNotifications.Remove(SyncWithShape);
+            }
+
+            KeyboardState = null;
+            KeyMappings = null;
+            ShowFingerUsage = null;
+        }
     }
 }

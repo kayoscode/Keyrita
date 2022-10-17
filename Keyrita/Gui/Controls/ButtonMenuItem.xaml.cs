@@ -8,14 +8,16 @@ namespace Keyrita.Gui.Controls
 {
     /// <summary>
     /// Interaction logic for ButtonMenuItem.xaml
+    /// NOTE: this will not unregister ui notifications on close.
+    /// IF I EVER ADD A MENU TO A NON MAIN WINDOW, THAT NEEDS TO BE FIXED.!!
     /// </summary>
     public partial class ButtonMenuItem : MenuItem
     {
         public ButtonMenuItem()
         {
             InitializeComponent();
-
             Click += MenuItemClicked;
+            SyncWithSetting(this.mAction);
         }
 
         protected void MenuItemClicked(object sender, RoutedEventArgs e)
@@ -33,15 +35,22 @@ namespace Keyrita.Gui.Controls
         {
             // Check for null.
             ButtonMenuItem dlg = (ButtonMenuItem)source;
-            dlg.mAction = (ActionSetting)e.NewValue;
+            dlg.SyncWithSetting((ActionSetting)e.NewValue);
+        }
 
-            if (dlg.Action == null)
+        protected void SyncWithSetting(ActionSetting newAction)
+        {
+            this.mAction = (ActionSetting)newAction;
+
+            if (this.Action == null)
             {
-                dlg.IsEnabled = false;
+                this.IsEnabled = false;
             }
             else
             {
-                dlg.IsEnabled = true;
+                this.IsEnabled = true;
+                this.Header = this.mAction.SettingName;
+                this.ToolTip = this.mAction.ToolTip;
             }
         }
 

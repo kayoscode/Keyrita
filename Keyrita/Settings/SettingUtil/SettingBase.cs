@@ -129,6 +129,17 @@ namespace Keyrita.Settings.SettingUtil
             return builder.ToString();
         }
 
+        /// <summary>
+        /// If the setting appears in the UI, this returns the text which will be shown.
+        /// </summary>
+        public virtual string ToolTip
+        {
+            get
+            {
+                return null;
+            }
+        }
+
         public abstract bool HasValue { get; }
 
         /// <summary>

@@ -10,8 +10,10 @@ namespace Keyrita.Gui
     public enum eDlgId
     {
         // UIData is the name of the window in this context.
-        [UIData("Settings")]
-        SettingsDlg
+        [UIData("Settings", "Opens the main settings dialog")]
+        SettingsDlg,
+        [UIData("Swap Characters", "Opens a dialog which allows you to swap characters with others in the available set.")]
+        SetCharactersDlg
     }
 
     /// <summary>
@@ -25,6 +27,8 @@ namespace Keyrita.Gui
             {
                 case eDlgId.SettingsDlg:
                     return new SettingsDialog();
+                case eDlgId.SetCharactersDlg:
+                    return new AvailableChars();
                 default:
                     LTrace.Assert(false, "Unsupported dialog");
                     return null;

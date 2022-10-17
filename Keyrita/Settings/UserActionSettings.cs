@@ -1,12 +1,17 @@
 ﻿using System.Runtime.CompilerServices;
+using Keyrita.Gui;
 using Keyrita.Settings.SettingUtil;
+using Keyrita.Util;
 
 namespace Keyrita.Settings
 {
     public enum eKeyboardReflectDirection
     {
+        [UIData("Horizontal", "Reflects each key across the Y axis")]
         Horizontal,
+        [UIData("Vertical", "Reflects each key across the X axis")]
         Vertical,
+        [UIData("Both", "Reflects each key across the X and Y axis")]
         Both
     }
 
@@ -18,8 +23,16 @@ namespace Keyrita.Settings
         protected eKeyboardReflectDirection Dir => (eKeyboardReflectDirection)this.SInstance;
 
         public UserActionReflect(eKeyboardReflectDirection rd)
-           : base($"Reflect {rd}", rd)
+           : base(rd.UIText(), rd)
         {
+        }
+
+        public override string ToolTip
+        {
+            get
+            {
+                return Dir.UIToolTip();
+            }
         }
 
         protected override void DoAction()

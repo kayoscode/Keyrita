@@ -1,4 +1,5 @@
-﻿using Keyrita.Settings;
+﻿using Keyrita.Gui.Dialogs;
+using Keyrita.Settings;
 using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
 using Microsoft.Win32;
@@ -16,7 +17,7 @@ namespace Keyrita
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : WindowBase
     {
         private static FieldInfo MenuDropAlignmentField;
 
@@ -32,26 +33,6 @@ namespace Keyrita
 
         #region Command Bindings
 
-        public void CreateUndoRedoCommand()
-        {
-            // Undo
-            CommandBinding undoCmdBinding = new CommandBinding(
-                ApplicationCommands.Undo,
-                TriggerUndo);
-
-            this.CommandBindings.Add(undoCmdBinding);
-
-            // Redo
-            KeyGesture newRedoKeyBinding = new KeyGesture(Key.Z, ModifierKeys.Shift | ModifierKeys.Control);
-            ApplicationCommands.Redo.InputGestures.Add(newRedoKeyBinding);
-
-            CommandBinding redoCmdBinding = new CommandBinding(
-                ApplicationCommands.Redo,
-                TriggerRedo);
-
-            this.CommandBindings.Add(redoCmdBinding);
-        }
-
         /// <summary>
         /// Clear the selection if they press escape.
         /// </summary>
@@ -66,36 +47,19 @@ namespace Keyrita
             }
         }
 
-        public void CreateNewSaveOpenCommands()
-        {
-            CommandBinding saveCmdBinding = new CommandBinding(
-                ApplicationCommands.Save,
-                SaveSettings);
-            this.CommandBindings.Add(saveCmdBinding);
-
-            CommandBinding openCmdBinding = new CommandBinding(
-                ApplicationCommands.Open,
-                LoadSettings);
-            this.CommandBindings.Add(openCmdBinding);
-
-            CommandBinding newCmdBinding = new CommandBinding(
-                ApplicationCommands.New,
-                SetToDefaults);
-            this.CommandBindings.Add(newCmdBinding);
-        }
-
         #endregion
 
         public MainWindow()
         {
             InitializeComponent();
-            CreateUndoRedoCommand();
-            CreateNewSaveOpenCommands();
+
+            mSetCharsMenu.Dialog = Gui.eDlgId.SetCharactersDlg;
+            mSettingsMenu.Dialog = Gui.eDlgId.SettingsDlg;
 
             mKeyboardControl.KeyboardState = SettingState.KeyboardSettings.KeyboardState;
             mKeyboardControl.KeyMappings = SettingState.FingerSettings.KeyMappings;
-            mKeyboardControl.KeyHeatMap = SettingState.KeyboardSettings.HeatmapData;
             mKeyboardControl.ShowFingerUsage = SettingState.KeyboardSettings.ShowFingerUsage;
+            mHeatMapSetting.Setting = SettingState.KeyboardSettings.HeatmapType;
 
             mLoadDatasetProgressBar.Setting = SettingState.MeasurementSettings.CharFrequencyData;
 
@@ -122,64 +86,6 @@ namespace Keyrita
 
         private OnOffSetting ShowAnnotationsSetting =>
             SettingState.MeasurementSettings.ShowAnnotations as OnOffSetting;
-
-        protected void TriggerUndo(object sender, RoutedEventArgs e)
-        {
-            SettingsSystem.Undo();
-        }
-
-        protected void TriggerRedo(object sender, RoutedEventArgs e)
-        {
-            SettingsSystem.Redo();
-        }
-
-        protected void SetToDefaults(object sender, RoutedEventArgs e)
-        {
-            MessageBoxResult result = MessageBox.Show("This action cannot be undone, continue? (Dataset will remain loaded)",
-                                                      "Confirmation", MessageBoxButton.YesNo);
-
-            if(result == MessageBoxResult.Yes)
-            {
-                SettingsSystem.DefaultSettings();
-            }
-        }
-
-        protected void LoadSettings(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-
-            if (openFileDialog.ShowDialog() == true)
-            {
-                LTrace.LogInfo("Loading settings");
-
-                try
-                {
-                    XmlDocument xmlReader = new XmlDocument();
-                    xmlReader.Load(openFileDialog.FileName);
-                    SettingsSystem.LoadSettings(xmlReader, false);
-                }
-                catch (Exception)
-                {
-                    LTrace.Assert(false, "Failed to load file");
-                }
-            }
-        }
-
-        protected void SaveSettings(object sender, RoutedEventArgs e)
-        {
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
-
-            if (saveFileDialog.ShowDialog() == true)
-            {
-                LTrace.LogInfo($"Saving settings to file {saveFileDialog.FileName}");
-
-                using (XmlWriter fileWriter = XmlWriter.Create(saveFileDialog.FileName,
-                        new XmlWriterSettings { Indent = true }))
-                {
-                    SettingsSystem.SaveSettings(fileWriter, false);
-                }
-            }
-        }
 
         protected void SaveKLC(object sender, RoutedEventArgs e)
         {

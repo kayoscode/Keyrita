@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="Keyrita.Gui.Controls.SetCheckBox"
+﻿<local:UserControlBase x:Class="Keyrita.Gui.Controls.SetCheckBox"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -28,4 +28,4 @@
                    Unchecked="mCheckBox_Unchecked"
                    VerticalAlignment="Center"/>
     </Grid>
-</UserControl>
+</local:UserControlBase>

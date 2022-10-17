@@ -7,7 +7,7 @@ namespace Keyrita.Gui.Controls
     /// <summary>
     /// Interaction logic for SetCheckBox.xaml
     /// </summary>
-    public partial class SetCheckBox : UserControl
+    public partial class SetCheckBox : UserControlBase
     {
         public SetCheckBox()
         {
@@ -70,6 +70,7 @@ namespace Keyrita.Gui.Controls
                 mSetting.LimitsChangedNotifications.AddGui(SettingUpdated);
 
                 mSettingName.Text = Setting.SettingName;
+                mSettingName.ToolTip = Setting.ToolTip;
                 SyncWithSetting();
             }
         }
@@ -90,5 +91,10 @@ namespace Keyrita.Gui.Controls
         }
 
         private OnOffSetting mSetting;
+
+        protected override void OnClose()
+        {
+            Setting = null;
+        }
     }
 }

@@ -7,25 +7,19 @@ namespace Keyrita.Measurements
     /// </summary>
     public enum eMeasurements
     {
-        [UIData("SFB")]
+        [UIData("SFB", "Shows the bigrams which use the same finger")]
         SameFingerBigram,
-        [UIData("SFS")]
+        [UIData("SFS", "Shows the skipgrams which use the same finger")]
         SameFingerSkipgrams,
-        [UIData("Inrolls")]
-        InRolls,
-        [UIData("Outrolls")]
-        OutRolls,
-        [UIData("Alternations")]
+        [UIData("Rolls", "Shows in/out rolls")]
+        Rolls,
+        [UIData("Alternations", "Shows the alternation rate")]
         Alternations,
-        [UIData("Left Hand Usage")]
-        LeftHandBalance,
-        [UIData("Right Hand Usage")]
-        RightHandBalance,
-        [UIData("Redirects")]
+        [UIData("Hand Usage", "Shows the hand balance")]
+        HandBalance,
+        [UIData("Redirects", "Shows the redirection rate")]
         Redirects,
-        [UIData("Bad Redirects")]
-        BadRedirects,
-        [UIData("Finger Usage")]
+        [UIData("Finger Usage", "Shows finger balance stats")]
         FingerUsage,
     }
 }

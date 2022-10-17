@@ -9,7 +9,7 @@ namespace Keyrita.Gui.Controls
     /// <summary>
     /// Interaction logic for ProgressBar.xaml
     /// </summary>
-    public partial class SetProgressBar : UserControl
+    public partial class SetProgressBar : UserControlBase
     {
         public SetProgressBar()
         {
@@ -87,5 +87,10 @@ namespace Keyrita.Gui.Controls
         }
 
         private ProgressSetting mSetting;
+
+        protected override void OnClose()
+        {
+            Setting = null;
+        }
     }
 }

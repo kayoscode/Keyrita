@@ -9,7 +9,7 @@ namespace Keyrita.Gui.Controls
     /// <summary>
     /// Interaction logic for DropdownList.xaml
     /// </summary>
-    public partial class SetComboBox : UserControl
+    public partial class SetComboBox : UserControlBase
     {
         public SetComboBox()
         {
@@ -29,6 +29,7 @@ namespace Keyrita.Gui.Controls
             {
                 ComboBoxItem item = new ComboBoxItem();
                 item.Content = token.UIText();
+                item.ToolTip = Setting.GetToolTipForToken(token);
                 item.HorizontalAlignment = this.HorizontalAlignment;
                 item.HorizontalContentAlignment = this.HorizontalAlignment;
                 item.VerticalAlignment = this.VerticalAlignment;
@@ -37,6 +38,7 @@ namespace Keyrita.Gui.Controls
             }
 
             mComboBox.IsEnabled = Setting.ValidTokens.Count > 1;
+            this.ToolTip = Setting.ToolTip;
 
             SetSelection();
         }
@@ -112,5 +114,10 @@ namespace Keyrita.Gui.Controls
         }
 
         private EnumValueSetting mSetting;
+
+        protected override void OnClose()
+        {
+            Setting = null;
+        }
     }
 }

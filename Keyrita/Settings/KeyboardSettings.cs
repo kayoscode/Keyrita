@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Xml;
 using Keyrita.Gui;
-using Keyrita.Interop.NativeAnalysis;
 using Keyrita.Operations.OperationUtil;
 using Keyrita.Serialization;
 using Keyrita.Settings.SettingUtil;
@@ -35,23 +33,31 @@ namespace Keyrita.Settings
         /// <summary>
         /// Displays the keyboard as a 3x10 grid.
         /// </summary>
-        [UIData("Grid")]
+        [UIData("Grid", "Keys are lined up vertically")]
         GridView,
         /// <summary>
         /// Displays the keyboard with the same offsets you would expect from a real keyboard.
         /// </summary>
-        [UIData("Standard")]
+        [UIData("Standard", "Displays the keys offset as they would be on a standard keyboard")]
         StandardView,
     }
 
     /// <summary>
     /// Whether or not to show which fingers are being used.
     /// </summary>
-    public class ShowUsedFingers : OnOffSetting
+    public class ShowFingerUsage : OnOffSetting
     {
-        public ShowUsedFingers() : 
+        public ShowFingerUsage() : 
             base("Show Finger Usage", eOnOff.On, eSettingAttributes.Recall)
         {
+        }
+
+        public override string ToolTip
+        {
+            get
+            {
+                return "Colors each key to indicate which finger will be used to click the key";
+            }
         }
     }
 
@@ -311,8 +317,8 @@ namespace Keyrita.Settings
     /// </summary>
     public class CharacterSetSetting : ElementSetSetting<char>
     {
-        private string EnglishCharSet = "qwertyuiopasdfghjkl;zxcvbnm,./' ";
-        private string EnglishUKCharSet = "qwertyuiopasdfghjkl;zxcvbnm,./' ";
+        private string EnglishCharSet = "qwertyuiopasdfghjkl;zxcvbnm,./' \\-=";
+        private string EnglishUKCharSet = "qwertyuiopasdfghjkl;zxcvbnm,./' \\-=";
 
         public CharacterSetSetting()
             : base("Available Character Set", eSettingAttributes.None)

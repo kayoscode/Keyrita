@@ -1,4 +1,4 @@
-﻿<Window x:Class="Keyrita.MainWindow"
+﻿<dialogs:WindowBase  xmlns:dialogs="clr-namespace:Keyrita.Gui.Dialogs" x:Class="Keyrita.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -36,14 +36,17 @@
                       Click="TriggerRedo"/>
                 <Separator></Separator>
                 <MenuItem Header="Reflect">
-                    <local:ButtonMenuItem Header="Vertical"
-                                          x:Name="mFlipVertMenuItem"/>
-                    <local:ButtonMenuItem Header="Horizontal"
-                                          x:Name="mFlipHorzMenuItem"/>
+                    <local:ButtonMenuItem x:Name="mFlipVertMenuItem"/>
+                    <local:ButtonMenuItem x:Name="mFlipHorzMenuItem"/>
                 </MenuItem>
                 <Separator></Separator>
-                <local:MenuItemOpenDlg Header="Settings"
-                                   Dialog="{Binding Path=eDlgId.SettingsDlg}"/>
+                <local:MenuItemOpenDlg x:Name="mSetCharsMenu"/>
+                <local:MenuItemOpenDlg x:Name="mSettingsMenu"/>
+            </MenuItem>
+            <MenuItem Header="Heatmap">
+                <local:SetComboBox Width="150"
+                                   Height="50"
+                                   x:Name="mHeatMapSetting"/>
             </MenuItem>
             <MenuItem Header="Analyze">
                 <MenuItem Header="_Configure"/>
@@ -77,4 +80,4 @@
             </Grid>
         </Grid>
     </DockPanel>
-</Window>
+</dialogs:WindowBase>

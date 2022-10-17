@@ -9,7 +9,7 @@ namespace Keyrita.Gui.Controls
     /// <summary>
     /// Interaction logic for DropdownList.xaml
     /// </summary>
-    public partial class SetRadioButton : UserControl
+    public partial class SetRadioButton : UserControlBase
     {
         public SetRadioButton()
         {
@@ -29,6 +29,7 @@ namespace Keyrita.Gui.Controls
                 RadioButton item = new RadioButton();
                 item.GroupName = mSetting.SettingName;
                 item.Content = token.UIText();
+                item.ToolTip = Setting.GetToolTipForToken(token);
                 item.Checked += mRadioButton_SelectionChanged;
 
                 item.HorizontalAlignment = HorizontalAlignment.Stretch;
@@ -126,5 +127,10 @@ namespace Keyrita.Gui.Controls
         }
 
         private EnumValueSetting mSetting;
+
+        protected override void OnClose()
+        {
+            Setting = null;
+        }
     }
 }

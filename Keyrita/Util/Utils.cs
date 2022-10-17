@@ -105,6 +105,17 @@ namespace Keyrita.Util
             return data != null ? data.Abbreviation : "";
         }
 
+        public static string UIToolTip(this Enum token)
+        {
+            if (mCachedUIData.TryGetValue(token, out UIDataAttribute uiData))
+            {
+                return uiData.ToolTip;
+            }
+
+            var data = CacheUIText(token);
+            return data != null ? data.ToolTip : "";
+        }
+
         private static Dictionary<Enum, UIDataAttribute> mCachedUIData = new();
 
         public static double Logerp(double a, double b, double t)

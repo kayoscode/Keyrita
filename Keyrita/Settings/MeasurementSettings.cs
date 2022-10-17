@@ -26,6 +26,14 @@ namespace Keyrita.Settings
     {
         protected eMeasurements Meas => (eMeasurements)this.SInstance;
 
+        public override string ToolTip
+        {
+            get
+            {
+                return this.SInstance.UIToolTip();
+            }
+        }
+
         public AddMeasurementAction(eMeasurements measurement)
             : base(measurement.UIText(), measurement)
         {

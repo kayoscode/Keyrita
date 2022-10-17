@@ -1,4 +1,8 @@
 ﻿using Keyrita.Settings;
+using Keyrita.Util;
+using Microsoft.Win32;
+using System.DirectoryServices.ActiveDirectory;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -14,6 +18,7 @@ namespace Keyrita.Gui.Controls
             InitializeComponent();
 
             Click += MenuItemClicked;
+            SyncWithDialog(this.Dialog);
         }
 
         protected void MenuItemClicked(object sender, RoutedEventArgs e)
@@ -31,7 +36,14 @@ namespace Keyrita.Gui.Controls
                                                DependencyPropertyChangedEventArgs e)
         {
             MenuItemOpenDlg dlg = (MenuItemOpenDlg)source;
-            dlg.Dialog = (eDlgId)e.NewValue;
+            dlg.SyncWithDialog((eDlgId)e.NewValue);
+        }
+
+        public void SyncWithDialog(eDlgId dlg)
+        {
+            mDialog = dlg;
+            Header = dlg.UIText();
+            ToolTip = dlg.UIToolTip();
         }
 
         public eDlgId Dialog

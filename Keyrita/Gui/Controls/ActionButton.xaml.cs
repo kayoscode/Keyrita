@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 using Keyrita.Settings.SettingUtil;
 
@@ -7,12 +8,13 @@ namespace Keyrita.Gui.Controls
     /// <summary>
     /// Interaction logic for ActionButton.xaml
     /// </summary>
-    public partial class ActionButton : UserControl
+    public partial class ActionButton : UserControlBase
     {
         public ActionButton()
         {
             InitializeComponent();
             this.mButton.Click += PerformAction;
+            SyncWithSetting(this.mAction);
         }
 
         protected void PerformAction(object sender, RoutedEventArgs e)
@@ -30,16 +32,22 @@ namespace Keyrita.Gui.Controls
         {
             // Check for null.
             ActionButton button = (ActionButton)source;
-            button.mAction = (ActionSetting)e.NewValue;
+            button.SyncWithSetting((ActionSetting)e.NewValue);
+        }
 
-            if (button.Action == null)
+        protected void SyncWithSetting(ActionSetting newAction)
+        {
+            this.mAction = newAction;
+
+            if (this.Action == null)
             {
-                button.IsEnabled = false;
+                this.IsEnabled = false;
             }
             else
             {
-                button.IsEnabled = true;
-                button.mButton.Content = button.mAction.SettingName;
+                this.IsEnabled = true;
+                this.mButton.Content = mAction.SettingName;
+                this.mButton.ToolTip = mAction.ToolTip;
             }
         }
 
@@ -56,5 +64,10 @@ namespace Keyrita.Gui.Controls
         }
 
         protected ActionSetting mAction;
+
+        protected override void OnClose()
+        {
+            Action = null;
+        }
     }
 }

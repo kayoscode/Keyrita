@@ -37,9 +37,9 @@ namespace Keyrita.Settings
             new KeyboardValidSetting();
 
         public OnOffSetting ShowFingerUsage { get; } =
-            new ShowUsedFingers();
+            new ShowFingerUsage();
 
-        public EnumValueSetting<eHeatMap> DisplayedHeatMap { get; } =
+        public EnumValueSetting<eHeatMap> HeatmapType { get; } =
             new HeatmapSetting();
 
         public HeatmapDataSetting HeatmapData { get; } =

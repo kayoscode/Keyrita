@@ -7,7 +7,8 @@
         xmlns:settings="clr-namespace:Keyrita.Gui.Controls"
         xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
         mc:Ignorable="d"
-        Title="Settings" Height="450" Width="800">
+        Title="Settings" Height="450" Width="800"
+        ResizeMode="NoResize">
     <Window.Style>
         <Style TargetType="Window" BasedOn="{StaticResource {x:Type Window}}"/>
     </Window.Style>

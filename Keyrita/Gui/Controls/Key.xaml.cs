@@ -18,22 +18,20 @@ namespace Keyrita.Gui.Controls
         /// Standard constructor.
         /// </summary>
         /// <param name="character"></param>
-        public KeyCharacterWrapper(char character, eFinger finger, double heatmapValue)
+        public KeyCharacterWrapper(char character, eFinger finger)
         {
             Character = character;
             Finger = finger;
-            HeatmapValue = heatmapValue;
         }
 
         public char Character { get; private set; }
         public eFinger Finger { get; private set; }
-        public double HeatmapValue { get; private set; }
     }
 
     /// <summary>
     /// Interaction logic for Key.xaml
     /// </summary>
-    public partial class Key : UserControl
+    public partial class Key : UserControlBase
     {
         private Color LowestFreq = Color.FromRgb(42, 43, 52);
 
@@ -83,16 +81,13 @@ namespace Keyrita.Gui.Controls
             mKeyCharacter = newValue;
             mBorder.BorderBrush = FingerToColor[newValue.Finger];
 
-            Color keyHighlightColor = GetGradientColor((float)mKeyCharacter.HeatmapValue, 
-                FingerToColor[newValue.Finger].Color);
-            mBorder.Background = new SolidColorBrush(keyHighlightColor);
-
             if(mKeyCharacter != null)
             {
                 mChar.Text = "_" + mKeyCharacter.Character;
             }
 
             SyncWithSelectedKey(null);
+            SyncWithHeatmap(null);
         }
 
         protected Color GetGradientColor(float heatmapValue, Color highestFreqColor)
@@ -153,5 +148,76 @@ namespace Keyrita.Gui.Controls
         protected SelectedKeySetting mSelectedKey;
 
         #endregion
+
+        #region Heatmap properties
+
+        protected void SyncWithHeatmap(SettingBase changedSetting)
+        {
+            double heatmapValue = 0;  
+
+            if(KeyCharacter != null && mHeatmap != null && mHeatmap.HeatMapData.ContainsKey(KeyCharacter.Character))
+            {
+                heatmapValue = mHeatmap.HeatMapData[KeyCharacter.Character];
+
+                Color keyHighlightColor = GetGradientColor((float)heatmapValue, 
+                    FingerToColor[KeyCharacter.Finger].Color);
+                mBorder.Background = new SolidColorBrush(keyHighlightColor);
+            }
+        }
+
+        private static readonly DependencyProperty HeatmapDataProperty =
+            DependencyProperty.Register(nameof(KeyHeatMap),
+                                        typeof(HeatmapDataSetting),
+                                        typeof(Key),
+                                        new PropertyMetadata(OnHeatmapDataChanged));
+
+        private static void OnHeatmapDataChanged(DependencyObject source,
+                                             DependencyPropertyChangedEventArgs e)
+        {
+            var control = source as Key;
+            control.UpdateCharFrequency(e.NewValue as HeatmapDataSetting);
+        }
+
+        private void UpdateCharFrequency(HeatmapDataSetting newValue)
+        {
+            // Unregister setting change listeners.
+            if (mHeatmap != null)
+            {
+                mHeatmap.ValueChangedNotifications.Remove(SyncWithHeatmap);
+                mHeatmap.LimitsChangedNotifications.Remove(SyncWithHeatmap);
+            }
+
+            mHeatmap = newValue;
+
+            if(mHeatmap != null)
+            {
+                mHeatmap.ValueChangedNotifications.AddGui(SyncWithHeatmap);
+                mHeatmap.LimitsChangedNotifications.AddGui(SyncWithHeatmap);
+                SyncWithHeatmap(null);
+            }
+        }
+
+        public HeatmapDataSetting KeyHeatMap
+        {
+            get
+            {
+                return mHeatmap;
+            }
+            set
+            {
+                SetValue(HeatmapDataProperty, value);
+            }
+        }
+
+        protected HeatmapDataSetting mHeatmap;
+
+        #endregion
+
+        protected override void OnClose()
+        {
+            // Remove all event handlers.
+            mSelectedKey.ValueChangedNotifications.Remove(SyncWithSelectedKey);
+            KeyHeatMap = null;
+        }
     }
 }

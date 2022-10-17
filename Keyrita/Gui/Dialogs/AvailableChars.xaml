@@ -1,0 +1,17 @@
+﻿<local:WindowBase x:Class="Keyrita.Gui.Dialogs.AvailableChars"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Keyrita.Gui.Dialogs"
+        xmlns:controls="clr-namespace:Keyrita.Gui.Controls"
+        mc:Ignorable="d"
+        Title="Set Active Characters" Height="450" Width="800"
+        ResizeMode="NoResize">
+    <Window.Style>
+        <Style TargetType="Window" BasedOn="{StaticResource {x:Type Window}}"/>
+    </Window.Style>
+    <Grid>
+        <controls:UnusedCharacters x:Name="mAvailableChars"/>
+    </Grid>
+</local:WindowBase>

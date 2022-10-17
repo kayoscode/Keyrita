@@ -37,6 +37,12 @@
     <Compile Update="Gui\Controls\SetRadioButton.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Gui\Controls\UnusedCharacters.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Gui\Dialogs\AvailableChars.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Gui\Dialogs\SettingsDialog.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -67,6 +73,12 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Gui\Controls\SetRadioButton.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Gui\Controls\UnusedCharacters.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Gui\Dialogs\AvailableChars.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Gui\Dialogs\SettingsDialog.xaml">

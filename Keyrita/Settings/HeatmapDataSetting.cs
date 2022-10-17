@@ -15,22 +15,22 @@ namespace Keyrita.Settings
     /// </summary>
     public enum eHeatMap
     {
-        [UIData("None")]
+        [UIData("None", "No heatmap data is displayed")]
         None,
 
-        [UIData("Char Freq")]
+        [UIData("Char Freq", "Shows which keys are most common according to the loaded dataset")]
         CharacterFrequency,
 
-        [UIData("Relative Char Freq")]
+        [UIData("Relative Char Freq", "Shows how common other keys are compared to the selected key")]
         RelativeCharacterFrequency,
 
-        [UIData("Post-Char Freq")]
+        [UIData("Post-Char Freq", "Shows how common a key is to be hit AFTER the selected key")]
         PostKeyBigramFrequency,
 
-        [UIData("Pre-Char Freq")]
+        [UIData("Pre-Char Freq", "Shows how common a key is to be hit BEFORE the selected key")]
         PreCharBigramFrequency,
 
-        [UIData("Bigram Freq")]
+        [UIData("Bigram Freq", "Shows how common every other key is hit next to the selected key")]
         BigramFrequency,
     }
 
@@ -95,7 +95,7 @@ namespace Keyrita.Settings
         protected override void SetDependencies()
         {
             // Dependent on char frequencies, and the type of heatmap to display.
-            SettingState.KeyboardSettings.DisplayedHeatMap.AddDependent(this);
+            SettingState.KeyboardSettings.HeatmapType.AddDependent(this);
             SettingState.MeasurementSettings.CharFrequencyData.AddDependent(this);
             SettingState.KeyboardSettings.KeyboardState.AddDependent(this);
             SettingState.KeyboardSettings.SelectedKey.AddDependent(this);
@@ -120,7 +120,7 @@ namespace Keyrita.Settings
 
             if(allCharacters != null)
             {
-                switch (SettingState.KeyboardSettings.DisplayedHeatMap.Value)
+                switch (SettingState.KeyboardSettings.HeatmapType.Value)
                 {
                     case eHeatMap.CharacterFrequency:
                         // Compute the heatmap value for each key.
@@ -283,6 +283,7 @@ namespace Keyrita.Settings
 
         protected override void SetToNewLimits()
         {
+            TrySetToPending(false);
         }
 
         protected override void TrySetToPending(bool userInitiated = false)
