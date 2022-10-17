@@ -36,6 +36,7 @@ namespace Keyrita.Gui.Dialogs
         protected void LoadSettings(object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "XML Files (*.xml)|*.xml";
 
             if (openFileDialog.ShowDialog() == true)
             {
@@ -57,6 +58,7 @@ namespace Keyrita.Gui.Dialogs
         protected void SaveSettings(object sender, RoutedEventArgs e)
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "XML Files (*.xml)|*.xml";
 
             if (saveFileDialog.ShowDialog() == true)
             {

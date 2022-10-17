@@ -90,6 +90,7 @@ namespace Keyrita
         protected void SaveKLC(object sender, RoutedEventArgs e)
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "KLC files (*.klc)|*.klc";
 
             if (saveFileDialog.ShowDialog() == true)
             {
