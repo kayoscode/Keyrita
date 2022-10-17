@@ -40,7 +40,7 @@ namespace Keyrita.Gui.Controls
 
         #endregion
 
-        protected void SyncWithKeyboard(SettingBase settingChanged)
+        protected void SyncWithKeyboard(object settingChanged)
         {
             // Get the key size.
             SyncWithAvailableChars();

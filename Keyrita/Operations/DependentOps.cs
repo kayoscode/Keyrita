@@ -31,7 +31,7 @@ namespace Keyrita.Operations
         {
         }
 
-        public override void Compute()
+        protected override void Compute()
         {
             result = new CharacterSetAsListResult(this.Op);
             List<char> characterSet = SettingState.MeasurementSettings.CharFrequencyData.UsedCharset.ToList<char>();
@@ -62,7 +62,7 @@ namespace Keyrita.Operations
         {
         }
 
-        public override void Compute()
+        protected override void Compute()
         {
             result = new KeyToFingerAsIntResult(this.Op);
 
@@ -105,7 +105,7 @@ namespace Keyrita.Operations
             AddInputOp(eDependentOps.CharacterSetAsList);
         }
 
-        public override void Compute()
+        protected override void Compute()
         {
             result = new TransformedKbStateResult(this.Op);
 

@@ -22,7 +22,7 @@ namespace Keyrita.Gui.Controls
             SyncWithAvailableMeasurements(null);
         }
 
-        protected void SyncWithAvailableMeasurements(SettingBase changedSetting)
+        protected void SyncWithAvailableMeasurements(object changedSetting)
         {
             mUserMeasurements.Children.Clear();
 

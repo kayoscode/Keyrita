@@ -24,7 +24,7 @@ namespace Keyrita.Measurements
         public double TotalBigrams { get; set; }
     }
 
-    public class FindSFBs : OperationBase
+    public class FindSFBs : FingerHandMeasurement
     {
         protected SFBResult result;
 
@@ -35,7 +35,7 @@ namespace Keyrita.Measurements
             AddInputOp(eDependentOps.TransfomedKbState);
         }
 
-        public override void Compute()
+        protected override void Compute()
         {
             result = new SFBResult(this.Op);
 
@@ -52,6 +52,8 @@ namespace Keyrita.Measurements
             long sfbs = NativeAnalysis.MeasureTotalSFBs(transformedKbState.TransformedKbState, bigramFreq, keyToFingerInt);
             double totalSfbs = (double)sfbs / (double)SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
             result.TotalBigrams = totalSfbs * 100;
+
+            SetTotalResult(result.TotalBigrams);
         }
 
         public override AnalysisResult GetResult()

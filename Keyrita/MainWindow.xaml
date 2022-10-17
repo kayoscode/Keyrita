@@ -77,6 +77,10 @@
                                        Grid.Row="0"
                                        x:Name="mKeyboardControl"
                                        VerticalAlignment="Center"/>
+                <local:MeasurementOutput Grid.Column="0"
+                                         Grid.Row="1"
+                                         x:Name="mMeasurementOutputControl"
+                                         VerticalAlignment="Center"/>
             </Grid>
         </Grid>
     </DockPanel>

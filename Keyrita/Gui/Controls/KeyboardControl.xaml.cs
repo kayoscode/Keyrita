@@ -106,20 +106,18 @@ namespace Keyrita.Gui.Controls
             Canvas.SetTop(key, position.Y - offset.Y);
         }
 
+        /// <summary>
+        /// Just put the key back in the original position, it wasn't dropped over another key.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         protected void DropKey(object sender, DragEventArgs e)
         {
-            // Swap the keys.
             StartDragDropData data = (StartDragDropData)e.Data.GetData(DataFormats.Serializable);
             Point offset = data.ClickedOffset;
             Key key = data.ClickedKey;
-            Key draggedOverKey = e.Source as Key;
             Panel.SetZIndex(key, 0);
             key.IsHitTestVisible = true;
-
-            if (draggedOverKey != null && draggedOverKey != key)
-            {
-                KeyboardState.SwapKeys(key.KeyCharacter.Character, draggedOverKey.KeyCharacter.Character);
-            }
 
             // Reset key to original position.
             Canvas.SetLeft(key, data.StartPosition.X - offset.X);
@@ -147,7 +145,7 @@ namespace Keyrita.Gui.Controls
             SyncWithShape();
         }
 
-        protected void SyncWithKeyboard(SettingBase settingChanged)
+        protected void SyncWithKeyboard(object settingChanged)
         {
             // Get the key size.
             SyncWithKeyboard();
@@ -232,7 +230,7 @@ namespace Keyrita.Gui.Controls
 
         #region Layout Sync
 
-        protected void SyncWithShape(SettingBase settingChanged)
+        protected void SyncWithShape(object settingChanged)
         {
             SyncWithShape();
         }

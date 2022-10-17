@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
 
 namespace Keyrita.Operations.OperationUtil
@@ -34,6 +35,11 @@ namespace Keyrita.Operations.OperationUtil
     public abstract class OperationBase
     {
         /// <summary>
+        /// To inform the gui if an operation has changed its value.
+        /// </summary>
+        public ChangeNotification ValueChangedNotifications = new ChangeNotification();
+
+        /// <summary>
         /// The Id for this operator.
         /// </summary>
         public Enum Op { get; private set; }
@@ -52,10 +58,16 @@ namespace Keyrita.Operations.OperationUtil
             Op = id;
         }
 
+        public void PerformOp()
+        {
+            Compute();
+            ValueChangedNotifications.NotifyGui(this);
+        }
+
         /// <summary>
         /// Abstract method which should be used to compute the result of the operation.
         /// </summary>
-        public abstract void Compute();
+        protected abstract void Compute();
 
         public virtual void ConnectInputs()
         {

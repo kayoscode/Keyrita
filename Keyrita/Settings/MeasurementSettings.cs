@@ -57,7 +57,7 @@ namespace Keyrita.Settings
 
         protected override void Action()
         {
-            if (this.IsOn)
+            if(this.IsOn)
             {
                 OperationSystem.InstallOp(this.SInstance);
             }
@@ -69,16 +69,14 @@ namespace Keyrita.Settings
 
         public void TurnMeasOn()
         {
-            this.mValidTokens.Clear();
-            this.mValidTokens.Add(eOnOff.On);
-            this.SetToNewLimits();
+            this.PendingValue = eOnOff.On;
+            this.TrySetToPending();
         }
 
         public void TurnMeasOff()
         {
-            this.mValidTokens.Clear();
-            this.mValidTokens.Add(eOnOff.Off);
-            this.SetToNewLimits();
+            this.PendingValue = eOnOff.Off;
+            this.TrySetToPending();
         }
     }
 }

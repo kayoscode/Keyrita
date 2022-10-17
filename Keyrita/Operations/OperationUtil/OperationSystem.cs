@@ -19,6 +19,16 @@ namespace Keyrita.Operations.OperationUtil
             { typeof(eDependentOps), new DependentOpFactory() },
         };
 
+        public static OperationBase GetInstalledOperation(Enum op)
+        {
+            if(op != null && InstalledOps.TryGetValue(op, out OperationBase output))
+            {
+                return output;
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Installs an op into this network.
         /// </summary>
@@ -31,7 +41,11 @@ namespace Keyrita.Operations.OperationUtil
             {
                 InstalledOps[op] = mOpFactories[op.GetType()].CreateOp(op);
                 LTrace.Assert(InstalledOps[op] != null, "Unimplemented operation");
-                InstalledOps[op].ConnectInputs();
+
+                if(InstalledOps[op] != null)
+                {
+                    InstalledOps[op].ConnectInputs();
+                }
             }
         }
 
@@ -82,7 +96,7 @@ namespace Keyrita.Operations.OperationUtil
                 ResolveOp(InstalledOps[dependentOp]);
             }
 
-            op.Compute();
+            op.PerformOp();
             var result = op.GetResult();
 
             LTrace.Assert(result != null);

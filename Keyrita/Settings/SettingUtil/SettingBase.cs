@@ -33,7 +33,7 @@ namespace Keyrita.Settings.SettingUtil
     /// </summary>
     public class ChangeNotification
     {
-        public delegate void ChangeNotif(SettingBase settingChanged);
+        public delegate void ChangeNotif(object settingChanged);
         protected List<ChangeNotif> Notifications = new List<ChangeNotif>();
 
         public void AddGui(ChangeNotif notificationFunc)
@@ -46,7 +46,7 @@ namespace Keyrita.Settings.SettingUtil
             Notifications.Remove(changeNotif);
         }
 
-        public void NotifyGui(SettingBase setting)
+        public void NotifyGui(object setting)
         {
             foreach (var gui in Notifications)
             {
@@ -84,7 +84,7 @@ namespace Keyrita.Settings.SettingUtil
         public string SettingName => mSettingName;
         private string mSettingName;
 
-        protected Enum SInstance { get; private set; }
+        public Enum SInstance { get; protected set; }
 
         public void AddDependent(SettingBase setting)
         {
@@ -271,9 +271,6 @@ namespace Keyrita.Settings.SettingUtil
                     // Perform the seting action.
                     action();
 
-                    // Notify GUIs.
-                    ValueChangedNotifications.NotifyGui(this);
-
                     LTrace.LogInfo($"{mSettingName}: {description}");
 
                     foreach (SettingBase dependent in mDependents)
@@ -285,6 +282,9 @@ namespace Keyrita.Settings.SettingUtil
 
                     // Perform a generic action when the value of a setting changes.
                     Action();
+
+                    // Notify GUIs.
+                    ValueChangedNotifications.NotifyGui(this);
 
                     // Store the previous state for undo/redo
                     if(userInitiated && mAttributes.HasFlag(eSettingAttributes.Recall))

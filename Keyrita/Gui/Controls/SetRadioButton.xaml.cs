@@ -16,7 +16,7 @@ namespace Keyrita.Gui.Controls
             InitializeComponent();
         }
 
-        private void SettingUpdated(SettingBase changedSetting)
+        private void SettingUpdated(object changedSetting)
         {
             SyncWithSetting();
         }

@@ -52,6 +52,24 @@ namespace Keyrita.Gui.Controls
             { eFinger.RightPinkie,   new SolidColorBrush((Color)ColorConverter.ConvertFromString("#978de2")) },
         };
 
+        #region
+
+        protected void DropKey(object sender, DragEventArgs e)
+        {
+            // Swap the keys.
+            StartDragDropData data = (StartDragDropData)e.Data.GetData(DataFormats.Serializable);
+            Key key = data.ClickedKey;
+            Key draggedOverKey = e.Source as Key;
+            Panel.SetZIndex(key, 0);
+            key.IsHitTestVisible = true;
+
+            if (draggedOverKey != null && draggedOverKey != key)
+            {
+                SettingState.KeyboardSettings.KeyboardState.SwapKeys(key.KeyCharacter.Character, draggedOverKey.KeyCharacter.Character);
+            }
+        }
+
+        #endregion
 
         public Key()
         {
@@ -59,6 +77,10 @@ namespace Keyrita.Gui.Controls
 
             mSelectedKey = SettingState.KeyboardSettings.SelectedKey;
             mSelectedKey.ValueChangedNotifications.AddGui(SyncWithSelectedKey);
+
+            this.AllowDrop = true;
+            this.Drop += DropKey;
+
             SyncWithSelectedKey(null);
         }
 
@@ -120,7 +142,7 @@ namespace Keyrita.Gui.Controls
 
         #region Key Selection
 
-        protected void SyncWithSelectedKey(SettingBase changedSetting)
+        protected void SyncWithSelectedKey(object changedSetting)
         {
             if (SettingState.KeyboardSettings.SelectedKey.HasValue)
             {
@@ -151,7 +173,7 @@ namespace Keyrita.Gui.Controls
 
         #region Heatmap properties
 
-        protected void SyncWithHeatmap(SettingBase changedSetting)
+        protected void SyncWithHeatmap(object changedSetting)
         {
             double heatmapValue = 0;  
 

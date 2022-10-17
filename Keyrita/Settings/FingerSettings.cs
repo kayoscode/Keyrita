@@ -12,26 +12,26 @@ namespace Keyrita.Settings
     {
         [UIData("None")]
         None,
-        [UIData("Left Pinkie", "LPink")]
+        [UIData("Left Pinkie", null, "LPink")]
         LeftPinkie,
-        [UIData("Left Ring", "LRing")]
+        [UIData("Left Ring", null, "LRing")]
         LeftRing,
-        [UIData("Left Middle", "LMidl")]
+        [UIData("Left Middle", null, "LMid")]
         LeftMiddle,
-        [UIData("Left Index", "LIndx")]
+        [UIData("Left Index", null, "LInd")]
         LeftIndex,
-        [UIData("Left Thumb", "LThmb")]
+        [UIData("Left Thumb", null, "LThmb")]
         LeftThumb,
 
-        [UIData("Right Thumb", "RThmb")]
+        [UIData("Right Thumb", null, "RThmb")]
         RightThumb,
-        [UIData("Right Index", "RIndx")]
+        [UIData("Right Index", null, "RInd")]
         RightIndex,
-        [UIData("Right Middle", "RMidd")]
+        [UIData("Right Middle", null, "RMid")]
         RightMiddle,
-        [UIData("Right Ring", "RRing")]
+        [UIData("Right Ring", null, "RRing")]
         RightRing,
-        [UIData("Right Pinkie", "RPink")]
+        [UIData("Right Pinkie", null, "RPink")]
         RightPinkie,
     }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Windows.Markup.Localizer;
 using System.Xml;
@@ -179,6 +180,14 @@ namespace Keyrita.Settings
             }
         }
 
+        protected void ClearHeatmap(string allCharacters)
+        {
+            for(int i = 0; i < allCharacters.Length; i++)
+            {
+                mHeatMapData[allCharacters[i]] = 0.0;
+            }
+        }
+
         protected void LoadPostBigramFrequencyHeatMap(string allCharacters, HashSet<char> usedKeys, char selectedKey)
         {
             var kfd = SettingState.MeasurementSettings.CharFrequencyData;
@@ -201,6 +210,10 @@ namespace Keyrita.Settings
                 {
                     mHeatMapData[allCharacters[i]] = Math.Min(1, kfd.GetBigramFreq(selectedKeyIdx, i) / maxFreq);
                 }
+            }
+            else
+            {
+                ClearHeatmap(allCharacters);
             }
         }
 
@@ -226,6 +239,10 @@ namespace Keyrita.Settings
                 {
                     mHeatMapData[allCharacters[i]] = Math.Min(1, kfd.GetBigramFreq(i, selectedKeyIdx) / maxFreq);
                 }
+            }
+            else
+            {
+                ClearHeatmap(allCharacters);
             }
         }
 
@@ -257,6 +274,10 @@ namespace Keyrita.Settings
                     mHeatMapData[allCharacters[i]] /= maxFreq;
                     mHeatMapData[allCharacters[i]] = Math.Min(1, mHeatMapData[allCharacters[i]]);
                 }
+            }
+            else
+            {
+                ClearHeatmap(allCharacters);
             }
         }
 

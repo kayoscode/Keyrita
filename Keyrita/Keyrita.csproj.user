@@ -19,6 +19,12 @@
     <Compile Update="Gui\Controls\KeyboardControl.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Gui\Controls\MeasurementLine.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Gui\Controls\MeasurementOutput.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Gui\Controls\MeasurementToolbar.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -58,6 +64,12 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Gui\Controls\KeyboardControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Gui\Controls\MeasurementLine.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Gui\Controls\MeasurementOutput.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Gui\Controls\MeasurementToolbar.xaml">
