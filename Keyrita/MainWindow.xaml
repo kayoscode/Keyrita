@@ -80,7 +80,7 @@
                 <local:MeasurementOutput Grid.Column="0"
                                          Grid.Row="1"
                                          x:Name="mMeasurementOutputControl"
-                                         VerticalAlignment="Center"/>
+                                         VerticalAlignment="Top"/>
             </Grid>
         </Grid>
     </DockPanel>
