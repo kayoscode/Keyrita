@@ -41,7 +41,7 @@ namespace Keyrita.Gui.Controls
                     var nextKey = new Key();
                     nextKey.Width = keySize;
                     nextKey.Height = keySize;
-                    nextKey.MouseMove += MoveKey;
+                    nextKey.MouseDown += MoveKey;
                     nextKey.MouseDoubleClick += SelectKey;
                     nextKey.KeyHeatMap = SettingState.KeyboardSettings.HeatmapData;
                     AccessKeyManager.AddAccessKeyPressedHandler(nextKey, SelectKey);
