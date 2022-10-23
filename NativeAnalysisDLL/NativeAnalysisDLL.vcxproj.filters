@@ -32,13 +32,10 @@
     <ClCompile Include="DatasetAnalyze.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Measure.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Generate.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SFBs.cpp">
+    <ClCompile Include="Measure.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

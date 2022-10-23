@@ -82,7 +82,11 @@ namespace Keyrita.Interop.NativeAnalysis
 
         [DllImport("NativeAnalysisDll.dll", CharSet = CharSet.Unicode, SetLastError = true,
         CallingConvention = CallingConvention.Cdecl)]
-        private static extern long MeasureTotalSFBs(IntPtr keyboardState, IntPtr bigramFreq, IntPtr keyToFinger, int numValidChars);
+        private static extern long MeasureTotalSFBs(IntPtr keyboardState, 
+            IntPtr bigramFreq, 
+            IntPtr keyToFinger, 
+            int numValidChars,
+            IntPtr perFingerResult);
 
         /// <summary>
         /// Returns the total number of bigrams in the layout.
@@ -90,21 +94,71 @@ namespace Keyrita.Interop.NativeAnalysis
         /// <param name="keyboardState"></param>
         /// <param name="bigramFreq"></param>
         /// <param name=""></param>
-        public static long MeasureTotalSFBs(byte[,] keyboardState, uint[,] bigramFreq, int[,] keyToFinger)
+        public static long MeasureTotalSFBs(byte[,] keyboardState, uint[,] bigramFreq, int[,] keyToFinger, long[] perFingerResult)
         {
             var h_keyboardState = GCHandle.Alloc(keyboardState, GCHandleType.Pinned);
             var h_bigramFreq = GCHandle.Alloc(bigramFreq, GCHandleType.Pinned);
             var h_keyToFinger = GCHandle.Alloc(keyToFinger, GCHandleType.Pinned);
+            var h_perFingerResult = GCHandle.Alloc(perFingerResult, GCHandleType.Pinned);
 
             long totalSfbs = 0;
             try
             {
-                totalSfbs = MeasureTotalSFBs(h_keyboardState.AddrOfPinnedObject(), h_bigramFreq.AddrOfPinnedObject(), h_keyToFinger.AddrOfPinnedObject(), bigramFreq.GetLength(0));
+                totalSfbs = MeasureTotalSFBs(h_keyboardState.AddrOfPinnedObject(), 
+                    h_bigramFreq.AddrOfPinnedObject(), 
+                    h_keyToFinger.AddrOfPinnedObject(), 
+                    bigramFreq.GetLength(0),
+                    h_perFingerResult.AddrOfPinnedObject());
             }
             finally
             {
+                h_perFingerResult.Free();
                 h_keyToFinger.Free();
                 h_bigramFreq.Free();
+                h_keyboardState.Free();
+            }
+
+            return totalSfbs;
+        }
+
+        [DllImport("NativeAnalysisDll.dll", CharSet = CharSet.Unicode, SetLastError = true,
+        CallingConvention = CallingConvention.Cdecl)]
+        private static extern long MeasureTotalRolls(IntPtr keyboardState, 
+            IntPtr trigramFreq, 
+            IntPtr keyToFinger, 
+            int numValidChars,
+            IntPtr perFingerResult);
+
+        /// <summary>
+        /// Measures the total rolls on the keyboard.
+        /// </summary>
+        /// <param name="keyboardState"></param>
+        /// <param name="trigramFreq"></param>
+        /// <param name="keyToFinger"></param>
+        /// <param name="perFingerResult"></param>
+        /// <returns></returns>
+        public static long MeasureTotalRolls(byte[,] keyboardState, uint[,,] trigramFreq,
+            int[,] keyToFinger, long[] perFingerResult)
+        {
+            var h_keyboardState = GCHandle.Alloc(keyboardState, GCHandleType.Pinned);
+            var h_trigramFreq = GCHandle.Alloc(trigramFreq, GCHandleType.Pinned);
+            var h_keyToFinger = GCHandle.Alloc(keyToFinger, GCHandleType.Pinned);
+            var h_perFingerResult = GCHandle.Alloc(perFingerResult, GCHandleType.Pinned);
+
+            long totalSfbs = 0;
+            try
+            {
+                totalSfbs = MeasureTotalSFBs(h_keyboardState.AddrOfPinnedObject(), 
+                    h_trigramFreq.AddrOfPinnedObject(), 
+                    h_keyToFinger.AddrOfPinnedObject(), 
+                    trigramFreq.GetLength(0),
+                    h_perFingerResult.AddrOfPinnedObject());
+            }
+            finally
+            {
+                h_perFingerResult.Free();
+                h_keyToFinger.Free();
+                h_trigramFreq.Free();
                 h_keyboardState.Free();
             }
 

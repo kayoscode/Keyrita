@@ -9,12 +9,7 @@ using Keyrita.Util;
 
 namespace Keyrita.Measurements
 {
-    public interface ISFBResult
-    {
-        double TotalBigrams { get; }
-    }
-
-    public class SFBResult : AnalysisResult, ISFBResult
+    public class SFBResult : AnalysisResult
     {
         public SFBResult(Enum resultId) 
             : base(resultId)
@@ -22,6 +17,8 @@ namespace Keyrita.Measurements
         }
 
         public double TotalBigrams { get; set; }
+        public double[] PerHandResult { get; private set; } = new double[2];
+        public double[] PerFingerResult { get; private set; } = new double[Utils.GetTokens<eFinger>().Count()];
     }
 
     public class FindSFBs : FingerHandMeasurement
@@ -48,10 +45,27 @@ namespace Keyrita.Measurements
             TransformedKbStateResult transformedKbState = (TransformedKbStateResult)OperationSystem.ResolvedOps[eDependentOps.TransfomedKbState];
 
             uint[,] bigramFreq = SettingState.MeasurementSettings.CharFrequencyData.BigramFreq;
+            long[] perFingerResult = new long[result.PerFingerResult.Count()];
+            long[] perHandResult = new long[result.PerHandResult.Count()];
+            long totalBigramCount = SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
 
-            long sfbs = NativeAnalysis.MeasureTotalSFBs(transformedKbState.TransformedKbState, bigramFreq, keyToFingerInt);
-            double totalSfbs = (double)sfbs / (double)SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
+            long sfbs = NativeAnalysis.MeasureTotalSFBs(transformedKbState.TransformedKbState, 
+                bigramFreq, 
+                keyToFingerInt, 
+                perFingerResult);
+
+            double totalSfbs = (double)sfbs / totalBigramCount;
             result.TotalBigrams = totalSfbs * 100;
+
+            int resultIdx = 0;
+            foreach(eFinger finger in Utils.GetTokens<eFinger>())
+            {
+                double fingerSfbs = ((double)perFingerResult[resultIdx] / totalBigramCount) * 100;
+                result.PerFingerResult[resultIdx] = fingerSfbs;
+                SetFingerResult(finger, fingerSfbs);
+
+                resultIdx++;
+            }
 
             SetTotalResult(result.TotalBigrams);
         }

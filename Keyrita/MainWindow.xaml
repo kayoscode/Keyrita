@@ -70,8 +70,9 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="2*"/>
                     <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
+                    <RowDefinition Height=".05*"/>
                 </Grid.RowDefinitions>
                 <local:KeyboardControl Grid.Column="0"
                                        Grid.Row="0"
@@ -80,7 +81,7 @@
                 <local:MeasurementOutput Grid.Column="0"
                                          Grid.Row="1"
                                          x:Name="mMeasurementOutputControl"
-                                         VerticalAlignment="Top"/>
+                                         VerticalAlignment="Bottom"/>
             </Grid>
         </Grid>
     </DockPanel>

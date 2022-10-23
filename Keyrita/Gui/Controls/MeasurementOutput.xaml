@@ -6,6 +6,83 @@
              xmlns:local="clr-namespace:Keyrita.Gui.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <StackPanel Name="mMeasLines">
-    </StackPanel>
+    <Border BorderThickness="1" BorderBrush="AliceBlue">
+        <StackPanel>
+            <Grid Name="mLineGrid">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="25"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.25*"></ColumnDefinition>
+                    <ColumnDefinition Width="1.05*"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <Border BorderThickness="0,0,1,1" BorderBrush="AliceBlue" Grid.Column="0">
+                    <TextBlock Text="Meas"
+                       FontSize="15" Padding="5,0,0,0"></TextBlock>
+                </Border>
+                <Border BorderThickness="0,0,1,1" BorderBrush="AliceBlue" Grid.Column="1">
+                    <TextBlock Text="Total"
+                       FontSize="15" Padding="5,0,0,0"></TextBlock>
+                </Border>
+                <Border BorderThickness="0,0,1,1" BorderBrush="AliceBlue" Grid.Column="2">
+                    <TextBlock Text="LP"
+                       FontSize="15" Padding="5,0,0,0"></TextBlock>
+                </Border>
+                <Border BorderThickness="0,0,1,1" BorderBrush="AliceBlue" Grid.Column="3">
+                    <TextBlock Text="LR"
+                       FontSize="15" Padding="5,0,0,0"></TextBlock>
+                </Border>
+                <Border BorderThickness="0,0,1,1" BorderBrush="AliceBlue" Grid.Column="4">
+                    <TextBlock Text="LM"
+                       FontSize="15" Padding="5,0,0,0"></TextBlock>
+                </Border>
+                <Border BorderThickness="0,0,1,1" BorderBrush="AliceBlue" Grid.Column="5">
+                    <TextBlock Text="LI"
+                       FontSize="15" Padding="5,0,0,0"></TextBlock>
+                </Border>
+                <Border BorderThickness="0,0,1,1" BorderBrush="AliceBlue" Grid.Column="6">
+                    <TextBlock Text="RI"
+                       FontSize="15" Padding="5,0,0,0"></TextBlock>
+                </Border>
+                <Border BorderThickness="0,0,1,1" BorderBrush="AliceBlue" Grid.Column="7">
+                    <TextBlock Text="RM"
+                       FontSize="15" Padding="5,0,0,0"></TextBlock>
+                </Border>
+                <Border BorderThickness="0,0,1,1" BorderBrush="AliceBlue" Grid.Column="8">
+                    <TextBlock Text="RR"
+                       FontSize="15" Padding="5,0,0,0"></TextBlock>
+                </Border>
+                <Border BorderThickness="0,0,1,1" BorderBrush="AliceBlue" Grid.Column="9">
+                    <TextBlock Text="RP"
+                       FontSize="15" Padding="5,0,0,0"></TextBlock>
+                </Border>
+                <Border BorderThickness="0,0,1,1" BorderBrush="AliceBlue" Grid.Column="10">
+                    <TextBlock Text="Left"
+                       FontSize="15" Padding="5,0,0,0"></TextBlock>
+                </Border>
+                <Border BorderThickness="0,0,1,1" BorderBrush="AliceBlue" Grid.Column="11">
+                    <TextBlock Text="Right"
+                       FontSize="15" Padding="5,0,0,0"></TextBlock>
+                </Border>
+            </Grid>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                          HorizontalScrollBarVisibility="Disabled"
+                          Height="300"
+                          Margin="-5,0,-5,0">
+                <StackPanel Name="mMeasLines"
+                            HorizontalAlignment="Stretch">
+                </StackPanel>
+            </ScrollViewer>
+        </StackPanel>
+    </Border>
 </local:UserControlBase>

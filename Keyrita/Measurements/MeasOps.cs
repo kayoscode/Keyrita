@@ -19,8 +19,12 @@ namespace Keyrita.Measurements
         SameFingerBigram,
         [UIData("SFS", "Shows the skipgrams which use the same finger")]
         SameFingerSkipgrams,
-        [UIData("Rolls", "Shows in/out rolls")]
+        [UIData("Rolls", "Shows total rolls")]
         Rolls,
+        [UIData("In-Rolls", "Shows in rolls")]
+        InRolls,
+        [UIData("Out-Rolls", "Shows out rolls")]
+        OutRolls,
         [UIData("Alternations", "Shows the alternation rate")]
         Alternations,
         [UIData("Hand Usage", "Shows the hand balance")]
@@ -29,6 +33,8 @@ namespace Keyrita.Measurements
         Redirects,
         [UIData("Finger Usage", "Shows finger balance stats")]
         FingerUsage,
+        [UIData("Finger speed", "Shows the speed you can expect from each finger")]
+        FingerSpeed,
     }
 
     /// <summary>
@@ -51,7 +57,6 @@ namespace Keyrita.Measurements
         #region Measurement Display Contract
 
         public abstract uint NumUICols { get; }
-        public abstract string UIRowName(uint rowIdx);
         public abstract double UIRowValue(uint rowIdx);
         public abstract Brush UIRowColor(uint rowIdx);
 
@@ -94,19 +99,26 @@ namespace Keyrita.Measurements
             NeutralChangeBrush,
         };
 
-        private static Dictionary<eFinger, uint> FINGER_TO_ROW = new Dictionary<eFinger, uint>() 
+        protected static readonly uint mFingerStartingIndex = 3;
+
+        protected static readonly Dictionary<eFinger, uint> FINGER_TO_ROW = new Dictionary<eFinger, uint>() 
         {
-            {eFinger.LeftPinkie, 3 },
-            {eFinger.LeftRing, 4 },
-            {eFinger.LeftMiddle, 5 },
-            {eFinger.LeftIndex, 6 },
-            {eFinger.RightIndex, 7 },
-            {eFinger.RightMiddle, 8 },
-            {eFinger.RightRing, 9 },
-            {eFinger.RightPinkie, 10 }
+            {eFinger.LeftPinkie, 1 },
+            {eFinger.LeftRing, 2 },
+            {eFinger.LeftMiddle, 3 },
+            {eFinger.LeftIndex, 4 },
+            {eFinger.RightIndex, 5 },
+            {eFinger.RightMiddle, 6 },
+            {eFinger.RightRing, 7 },
+            {eFinger.RightPinkie, 8 },
+
+            // Technically these aren't valid.
+            {eFinger.LeftThumb, 11 },
+            {eFinger.RightThumb, 12 },
+            {eFinger.None, 13 },
         };
 
-        private void SetResult(uint index, double result)
+        protected void SetResult(uint index, double result)
         {
             double roundedResult = Math.Round(result, 2, MidpointRounding.AwayFromZero);
             double absoluteDifference = Math.Abs(roundedResult - mResults[index]);
@@ -134,41 +146,19 @@ namespace Keyrita.Measurements
 
         protected void SetLeftHandResult(double result)
         {
-            SetResult(1, result);
+            SetResult(9, result);
         }
 
         protected void SetRightHandResult(double result)
         {
-            SetResult(2, result);
+            SetResult(10, result);
         }
 
         protected void SetFingerResult(eFinger finger, double result)
         {
-            LTrace.Assert(finger != eFinger.LeftThumb, "Cannot set value for thumb");
-            LTrace.Assert(finger != eFinger.RightThumb, "Cannot set value for thumb");
-            SetResult(FINGER_TO_ROW[finger], result);
-        }
-
-        public override string UIRowName(uint rowIdx)
-        {
-            switch (rowIdx)
+            if(finger != eFinger.RightThumb && finger != eFinger.LeftThumb && finger != eFinger.None)
             {
-                case 0: return "Total";
-                case 1: return "LH";
-                case 2: return "RH";
-                default:
-                    eFinger finger = eFinger.None;
-                    
-                    foreach(var i in FINGER_TO_ROW)
-                    {
-                        if(i.Value == rowIdx)
-                        {
-                            finger = i.Key;
-                            break;
-                        }
-                    }
-
-                    return finger.UIAbbreviation();
+                SetResult(FINGER_TO_ROW[finger], result);
             }
         }
 

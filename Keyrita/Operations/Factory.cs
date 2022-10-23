@@ -24,6 +24,8 @@ namespace Keyrita.Operations
             {
                 case eMeasurements.SameFingerBigram:
                     return new FindSFBs(meas);
+                case eMeasurements.SameFingerSkipgrams:
+                    return new FindSFBs(meas);
                 default:
                     return null;
             }

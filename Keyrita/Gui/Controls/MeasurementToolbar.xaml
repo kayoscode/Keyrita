@@ -7,7 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI">
-    <StackPanel Width="250">
+    <StackPanel Width="225">
         <TextBlock FontSize="25"
                    HorizontalAlignment="Center">Add Measurements</TextBlock>
         <StackPanel Name="mUserMeasurements">

@@ -17,40 +17,53 @@ namespace Keyrita.Gui.Controls
             InitializeComponent();
         }
 
+        public Grid ParentGrid
+        {
+            get
+            {
+                return mParentGrid;
+            }
+            set
+            {
+                mMeasurementGrid.ColumnDefinitions.Clear();
+
+                foreach(var colDef in value.ColumnDefinitions)
+                {
+                    var newCol = new ColumnDefinition();
+                    newCol.Width = new GridLength(colDef.Width.Value, colDef.Width.GridUnitType);
+                    mMeasurementGrid.ColumnDefinitions.Add(newCol);
+                }
+
+                this.mParentGrid = value;
+            }
+        }
+        protected Grid mParentGrid;
+
         #region Sync with linked operation
 
         protected void SyncWithMeasurement(object changedSetting)
         {
-            mMeasurementNameTextBlock.Text = mMeasurement.UIText();
-
             mMeasurementGrid.Children.Clear();
-            // Work out how the measurement wants to be output, and output it there.
 
-            // Add all of the necessary columns and put vertical separators between.
-            mMeasurementGrid.ColumnDefinitions.Clear();
+            TextBlock measName = new TextBlock();
+            measName.VerticalAlignment = VerticalAlignment.Center;
+            measName.Text = mMeasurement.UIText();
+            measName.FontSize = 15;
+            measName.Padding = new Thickness(5, 0, 0, 0);
+            Grid.SetColumn(measName, 0);
+            mMeasurementGrid.Children.Add(measName);
 
             for(uint i = 0; i < mMeasurementOp.NumUICols; i++)
             {
-                mMeasurementGrid.ColumnDefinitions.Add(new ColumnDefinition());
-                TextBlock colName = new TextBlock();
-                colName.VerticalAlignment = VerticalAlignment.Center;
-
                 TextBlock colResult = new TextBlock();
                 colResult.VerticalAlignment = VerticalAlignment.Center;
-
-                colName.Text = mMeasurementOp.UIRowName(i);
-                colName.FontSize = 15;
-                mMeasurementGrid.Children.Add(colName);
-                Grid.SetColumn(colName, (int)(i));
-                Grid.SetRow(colName, 0);
-
-
                 colResult.Text = String.Format("{0:0.##}", mMeasurementOp.UIRowValue(i));
                 colResult.FontSize = 15;
                 colResult.Foreground = mMeasurementOp.UIRowColor(i);
+                colResult.Padding = new Thickness(5, 0, 0, 0);
+
                 mMeasurementGrid.Children.Add(colResult);
-                Grid.SetColumn(colResult, (int)(i));
-                Grid.SetRow(colResult, 1);
+                Grid.SetColumn(colResult, (int)(i + 1));
             }
         }
 

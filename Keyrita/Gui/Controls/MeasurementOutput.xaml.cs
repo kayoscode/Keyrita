@@ -22,9 +22,10 @@ namespace Keyrita.Gui.Controls
                 meas.ValueChangedNotifications.AddGui(SyncWithInstalledMeasurements);
 
                 var measLine = new MeasurementLine();
+                measLine.ParentGrid = mLineGrid;
                 mMeasLines.Children.Add(measLine);
                 mMeasurementOnOffStates[meas.SInstance] = measLine;
-                measLine.Visibility = System.Windows.Visibility.Collapsed;
+                //measLine.Visibility = System.Windows.Visibility.Collapsed;
 
                 SyncWithInstalledMeasurements(meas);
             }
@@ -34,7 +35,7 @@ namespace Keyrita.Gui.Controls
         {
             var changedSetting = settingChange as OnOffSetting;
 
-            if(changedSetting != null && changedSetting.IsOn) 
+            if(changedSetting != null && changedSetting.IsOn)
             {
                 mMeasurementOnOffStates[((SettingBase)settingChange).SInstance].Measurement = changedSetting.SInstance;
             }
