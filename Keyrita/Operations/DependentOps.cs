@@ -16,6 +16,7 @@ namespace Keyrita.Operations
         TransfomedKbState,
         SameFingerMappings,
         BigramClassification,
+        TrigramStats
     }
 
     public class TransformedCharacterToFingerAsIntResult : AnalysisResult
@@ -62,7 +63,7 @@ namespace Keyrita.Operations
                     continue;
                 }
 
-                mResult.CharacterToFinger[i] = k2f.KeyToFinger[k.Item1, k.Item2];
+                mResult.CharacterToFinger[i] = k2f.KeyToFinger[k.Item1][k.Item2];
             }
         }
     }
@@ -111,11 +112,11 @@ namespace Keyrita.Operations
                 mResult.CharacterToKey[i] = (-1, -1);
             }
 
-            for(int i = 0; i < kbs.GetLength(0); i++)
+            for(int i = 0; i < kbs.Length; i++)
             {
-                for(int j = 0; j < kbs.GetLength(1); j++)
+                for(int j = 0; j < kbs[i].Length; j++)
                 {
-                    int k = kbs[i, j];
+                    int k = kbs[i][j];
                     mResult.CharacterToKey[k] = (i, j);
                 }
             }
@@ -181,7 +182,7 @@ namespace Keyrita.Operations
                 if (k1Loc.Item2 == -1)
                     continue;
 
-                int k1Finger = keyToFinger[k1Loc.Item1, k1Loc.Item2];
+                int k1Finger = keyToFinger[k1Loc.Item1][k1Loc.Item2];
                 eHand k1Hand = FingerUtil.GetHandForFingerAsInt(k1Finger);
                 LTrace.Assert(k1Hand != eHand.None);
 
@@ -191,7 +192,7 @@ namespace Keyrita.Operations
                     if (k2Loc.Item1 == -1 || i == j)
                         continue;
 
-                    int k2Finger = keyToFinger[k2Loc.Item1, k2Loc.Item2];
+                    int k2Finger = keyToFinger[k2Loc.Item1][k2Loc.Item2];
                     eHand k2Hand = FingerUtil.GetHandForFingerAsInt(k2Finger);
                     LTrace.Assert(k2Hand != eHand.None);
 
@@ -208,7 +209,7 @@ namespace Keyrita.Operations
                         // If we are on the right hand, going from a lower index to a higher index is an outroll.
                         else if(k1Hand == eHand.Right)
                         {
-                            if(k1Loc.Item2 > k2Loc.Item2)
+                            if(k1Finger > k2Finger)
                             {
                                 mResult.BigramClassifications[i, j] = BigramClassificationResult.eBigramClassification.InRoll;
                             }
@@ -219,78 +220,13 @@ namespace Keyrita.Operations
                         }
                         else
                         {
-                            if(k1Loc.Item2 > k2Loc.Item2)
+                            if(k1Finger > k2Finger)
                             {
                                 mResult.BigramClassifications[i, j] = BigramClassificationResult.eBigramClassification.Outroll;
                             }
                             else
                             {
                                 mResult.BigramClassifications[i, j] = BigramClassificationResult.eBigramClassification.InRoll;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Returns the keys which use the same fingers.
-    /// </summary>
-    class SameFingerMappingsResult : AnalysisResult
-    {
-        public SameFingerMappingsResult(Enum resultId) : base(resultId)
-        {
-        }
-
-        /// <summary>
-        /// Stores the start key, then end key, and the finger used as an integer. (In the order)
-        /// </summary>
-        public List<((int Row, int Col) FirstKey, (int Row, int Col) SecondKey, int Finger)> SameFingerMappings { get; set; } = new();
-    }
-
-    /// <summary>
-    /// Creates a list of keys which are pressed with the same finger. Dynamic based on which fingers are assigned to which keys.
-    /// </summary>
-    class SameFingerMappings : OperationBase
-    {
-        protected SameFingerMappingsResult mResult;
-
-        public SameFingerMappings() :
-            base(eDependentOps.SameFingerMappings)
-        {
-            mResult = new SameFingerMappingsResult(this.Op);
-            AddInputOp(eDependentOps.KeyToFingerAsInt);
-        }
-
-        public override AnalysisResult GetResult()
-        {
-            return mResult;
-        }
-
-        protected override void Compute()
-        {
-            mResult.SameFingerMappings.Clear();
-            KeyToFingerAsIntResult k2fResult = (KeyToFingerAsIntResult)OperationSystem.ResolvedOps[eDependentOps.KeyToFingerAsInt];
-            var keyToFinger = k2fResult.KeyToFinger;
-
-            // We want to iterate through each key and determine which finger is used for it. Using that, create an enumeration of all keys which must use the same finger.
-            // This doesn't include keys which are identical.
-            // Were enumerating the values like this because in the future, it will make sense to reuse
-            for(int k1i = 0; k1i < 3; k1i++)
-            {
-                for(int k1j = 0; k1j < 10; k1j++)
-                {
-                    for(int k2i = 0; k2i < 3; k2i++)
-                    {
-                        for(int k2j = 0; k2j < 10; k2j++)
-                        {
-                            if (k1i == k2i && k1j == k2j) {
-                                continue;
-                            }
-
-                            if (keyToFinger[k1i, k1j] == keyToFinger[k2i, k2j]) {
-                                mResult.SameFingerMappings.Add(((k1i, k1j), (k2i, k2j), keyToFinger[k1i, k1j]));
                             }
                         }
                     }
@@ -336,7 +272,7 @@ namespace Keyrita.Operations
         {
         }
 
-        public int[,] KeyToFinger { get; set; }
+        public int[][] KeyToFinger { get; set; }
     }
 
     class KeyToFingerAsInt : OperationBase
@@ -353,12 +289,18 @@ namespace Keyrita.Operations
 
             var k2f = SettingState.FingerSettings.KeyMappings;
 
-            int[,] keyToFingerInt = new int[3, 10];
-            for (int i = 0; i < 3; i++)
+            int[][] keyToFingerInt = new int[KeyboardStateSetting.ROWS + 1][];
+
+            // Add the space key.
+            keyToFingerInt[KeyboardStateSetting.ROWS] = new int[1];
+            keyToFingerInt[KeyboardStateSetting.ROWS][0] = (int)eFinger.LeftThumb;
+
+            for (int i = 0; i < KeyboardStateSetting.ROWS; i++)
             {
-                for (int j = 0; j < 10; j++)
+                keyToFingerInt[i] = new int[KeyboardStateSetting.COLS];
+                for (int j = 0; j < KeyboardStateSetting.COLS; j++)
                 {
-                    keyToFingerInt[i, j] = (int)k2f.GetValueAt(i, j);
+                    keyToFingerInt[i][j] = (int)k2f.GetValueAt(i, j);
                 }
             }
 
@@ -378,7 +320,7 @@ namespace Keyrita.Operations
         {
         }
 
-        public byte[,] TransformedKbState { get; set; }
+        public byte[][] TransformedKbState { get; set; }
     }
 
     /// <summary>
@@ -402,14 +344,20 @@ namespace Keyrita.Operations
             var kbs = SettingState.KeyboardSettings.KeyboardState;
 
             // Just for fun, compute it here when in reality this should just trigger the analysis system to run.
-            byte[,] transformedKeyState = new byte[3, 10];
+            byte[][] transformedKeyState = new byte[KeyboardStateSetting.ROWS + 1][];
+            transformedKeyState[KeyboardStateSetting.ROWS] = new byte[1];
 
-            for (int i = 0; i < 3; i++)
+            // Add space to map.
+            int charIdx = characterSet.IndexOf(' ');
+            transformedKeyState[KeyboardStateSetting.ROWS][0] = (byte)charIdx;
+
+            for (int i = 0; i < KeyboardStateSetting.ROWS; i++)
             {
-                for (int j = 0; j < 10; j++)
+                transformedKeyState[i] = new byte[KeyboardStateSetting.COLS];
+                for (int j = 0; j < KeyboardStateSetting.COLS; j++)
                 {
-                    int charIdx = characterSet.IndexOf(kbs.GetValueAt(i, j));
-                    transformedKeyState[i, j] = (byte)charIdx;
+                    charIdx = characterSet.IndexOf(kbs.GetValueAt(i, j));
+                    transformedKeyState[i][j] = (byte)charIdx;
                     LTrace.Assert(charIdx > 0, "Character on keyboard not found in available charset.");
                 }
             }

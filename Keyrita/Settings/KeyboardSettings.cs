@@ -288,7 +288,7 @@ namespace Keyrita.Settings
         public RowHorizontalOffsetSetting(int rowIndex)
             : base("Row " + rowIndex + " Offset", 0.0, eSettingAttributes.None)
         {
-            LTrace.Assert(rowIndex < 3, "Only three rows supported");
+            LTrace.Assert(rowIndex < KeyboardStateSetting.ROWS, "Only three rows supported");
 
             this.RowIndex = rowIndex;
             mLimitValue = STANDARD_ROW_OFFSETS[rowIndex];
@@ -513,9 +513,9 @@ namespace Keyrita.Settings
         {
             var count = 0;
 
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < KeyboardStateSetting.ROWS; i++)
             {
-                for (int j = 0; j < 10; j++)
+                for (int j = 0; j < KeyboardStateSetting.COLS; j++)
                 {
                     if (!EqualityComparer<T>.Default.Equals(kb1[i,j], kb2[i, j]))
                     {

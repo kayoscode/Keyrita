@@ -52,14 +52,14 @@ namespace Keyrita.Operations
                     return new KeyToFingerAsInt();
                 case eDependentOps.TransfomedKbState:
                     return new TransformedKbState();
-                case eDependentOps.SameFingerMappings:
-                    return new SameFingerMappings();
                 case eDependentOps.BigramClassification:
                     return new BigramClassification();
                 case eDependentOps.TransformedCharacterToFingerAsInt:
                     return new TransformedCharacterToFingerAsInt();
                 case eDependentOps.TransformedCharacterToKey:
                     return new TransformedCharacterToKey();
+                case eDependentOps.TrigramStats:
+                    return new TrigramStats();
                 default:
                     return null;
             }
