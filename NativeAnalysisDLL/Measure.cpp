@@ -29,21 +29,6 @@ static void CreateSameFingerMappings(int* keyToFinger, std::vector<std::tuple<in
 
 long long CalculateTotalSFBs(char* keyboardState, unsigned int* bigramFreq, std::vector<std::tuple<int, int, int>>& sameFingerKeys,
     int numValidChars, long long* perFingerResults) {
-    long long totalSfbs = 0;
-
-    for (std::tuple<int, int, int> sfk : sameFingerKeys) {
-        int idx1 = std::get<0>(sfk);
-        int idx2 = std::get<1>(sfk);
-
-        int k1 = keyboardState[idx1];
-        int k2 = keyboardState[idx2];
-
-        int addedSfbs = bigramFreq[GET_BG(k1, k2)];
-        totalSfbs += addedSfbs;
-        perFingerResults[std::get<2>(sfk)] += addedSfbs;
-    }
-
-    return totalSfbs;
 }
 
 long long CalculateTotalSFSs(char* keyboardState, unsigned int* trigramFreq, 
@@ -66,14 +51,10 @@ __declspec(dllexport) long long __cdecl MeasureTotalSFBs(char* keyboardState,
     int numValidChars,
     long long* perFingerResults) 
 {
-    std::vector<std::tuple<int, int, int>> sameFingerKeys;
-    CreateSameFingerMappings(keyToFinger, sameFingerKeys);
-
-    return CalculateTotalSFBs(keyboardState, bigramFreq, sameFingerKeys, numValidChars, perFingerResults);
 }
 
 /// <summary>
-/// Measures the total number trigrams which start and end on the same finger.
+/// Measures the total number of rolls found in the bigrams.
 /// </summary>
 /// <param name="keyboardState"></param>
 /// <param name="trigramFreq"></param>
@@ -81,7 +62,7 @@ __declspec(dllexport) long long __cdecl MeasureTotalSFBs(char* keyboardState,
 /// <param name="numValidChars"></param>
 /// <param name="perFingerResults"></param>
 /// <returns></returns>
-__declspec(dllexport) long long __cdecl MeasureTotalSFSs(char* keyboardState,
+__declspec(dllexport) long long __cdecl MeasureTotalRolls(char* keyboardState,
     unsigned int* trigramFreq,
     int* keyToFinger,
     int numValidChars,

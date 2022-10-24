@@ -41,7 +41,18 @@ namespace Keyrita.Settings
 
         protected override void DoAction()
         {
-            SettingState.MeasurementSettings.InstalledMeasurements[Meas].TurnMeasOn();
+            if (SettingState.MeasurementSettings.InstalledPerFingerMeasurements.ContainsKey(Meas))
+            {
+                SettingState.MeasurementSettings.InstalledPerFingerMeasurements[Meas].TurnMeasOn();
+            }
+            else if (SettingState.MeasurementSettings.InstalledDynamicMeasurements.ContainsKey(Meas))
+            {
+                SettingState.MeasurementSettings.InstalledDynamicMeasurements[Meas].TurnMeasOn();
+            }
+            else
+            {
+                LTrace.Assert(false);
+            }
         }
     }
 

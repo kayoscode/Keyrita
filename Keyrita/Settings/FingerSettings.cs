@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Keyrita.Gui;
 using Keyrita.Settings.SettingUtil;
+using Keyrita.Util;
 
 namespace Keyrita.Settings
 {
@@ -33,6 +34,48 @@ namespace Keyrita.Settings
         RightRing,
         [UIData("Right Pinkie", null, "RPink")]
         RightPinkie,
+    }
+
+    public enum eHand : int
+    {
+        None,
+        Left,
+        Right
+    }
+
+    /// <summary>
+    /// Useful functions on fingers.
+    /// </summary>
+    public static class FingerUtil
+    {
+        private static eHand[] mFingerToHand = new eHand[]
+        {
+            eHand.None,
+
+            eHand.Left,
+            eHand.Left,
+            eHand.Left,
+            eHand.Left,
+            eHand.Left,
+
+            eHand.Right,
+            eHand.Right,
+            eHand.Right,
+            eHand.Right,
+            eHand.Right,
+        };
+
+        public static eHand GetHandForFingerAsInt(int finger)
+        {
+            return mFingerToHand[finger];
+        }
+
+        public static eHand GetOtherHand(eHand hand)
+        {
+            LTrace.Assert(hand != eHand.None);
+
+            return hand == eHand.Left ? eHand.Right : eHand.Left;
+        }
     }
 
     /// <summary>

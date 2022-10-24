@@ -7,10 +7,20 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI">
-    <StackPanel Width="225">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
         <TextBlock FontSize="25"
-                   HorizontalAlignment="Center">Add Measurements</TextBlock>
-        <StackPanel Name="mUserMeasurements">
-        </StackPanel>
-    </StackPanel>
+                   Grid.Row="0"
+               HorizontalAlignment="Center">Add Measurements</TextBlock>
+        <ScrollViewer Grid.Row="1"
+                  VerticalScrollBarVisibility="Auto" 
+                  HorizontalScrollBarVisibility="Disabled"
+                  Margin="-5,0,-5,0">
+            <StackPanel Name="mUserMeasurements">
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
 </local:UserControlBase>

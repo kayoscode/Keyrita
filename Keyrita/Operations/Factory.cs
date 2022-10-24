@@ -23,9 +23,9 @@ namespace Keyrita.Operations
             switch (meas)
             {
                 case eMeasurements.SameFingerBigram:
-                    return new FindSFBs(meas);
-                case eMeasurements.SameFingerSkipgrams:
-                    return new FindSFBs(meas);
+                    return new FindSFBs();
+                case eMeasurements.Rolls:
+                    return new Rolls();
                 default:
                     return null;
             }
@@ -47,11 +47,19 @@ namespace Keyrita.Operations
             switch (depOp)
             {
                 case eDependentOps.CharacterSetAsList:
-                    return new CharacterSetAsList(depOp);
+                    return new CharacterSetAsList();
                 case eDependentOps.KeyToFingerAsInt:
-                    return new KeyToFingerAsInt(depOp);
+                    return new KeyToFingerAsInt();
                 case eDependentOps.TransfomedKbState:
-                    return new TransformedKbState(depOp);
+                    return new TransformedKbState();
+                case eDependentOps.SameFingerMappings:
+                    return new SameFingerMappings();
+                case eDependentOps.BigramClassification:
+                    return new BigramClassification();
+                case eDependentOps.TransformedCharacterToFingerAsInt:
+                    return new TransformedCharacterToFingerAsInt();
+                case eDependentOps.TransformedCharacterToKey:
+                    return new TransformedCharacterToKey();
                 default:
                     return null;
             }

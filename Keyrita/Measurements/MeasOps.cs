@@ -21,20 +21,40 @@ namespace Keyrita.Measurements
         SameFingerSkipgrams,
         [UIData("Rolls", "Shows total rolls")]
         Rolls,
-        [UIData("In-Rolls", "Shows in rolls")]
-        InRolls,
-        [UIData("Out-Rolls", "Shows out rolls")]
-        OutRolls,
-        [UIData("Alternations", "Shows the alternation rate")]
+        [UIData("Alternations", "Shows the percent of trigrams which have a hand alternation")]
         Alternations,
         [UIData("Hand Usage", "Shows the hand balance")]
         HandBalance,
-        [UIData("Redirects", "Shows the redirection rate")]
+        [UIData("Redirects", "Shows the redirection rate for trigrams")]
         Redirects,
+        [UIData("One Hands", "Shows the percent of trigrams which are typed with one hand")]
+        OneHands,
+        [UIData("Home Usage", "Shows how often each finger will leave the homerow")]
+        HomerowUsage,
         [UIData("Finger Usage", "Shows finger balance stats")]
         FingerUsage,
         [UIData("Finger speed", "Shows the speed you can expect from each finger")]
         FingerSpeed,
+    }
+
+    public static class MeasUtil
+    {
+        public static IEnumerable<eMeasurements> PerFingerMeasurements = new List<eMeasurements>()
+        {
+            eMeasurements.SameFingerBigram,
+            eMeasurements.SameFingerSkipgrams,
+            eMeasurements.FingerUsage,
+            eMeasurements.FingerSpeed,
+            eMeasurements.HomerowUsage
+        };
+
+        public static IEnumerable<eMeasurements> DynamicMeasurements = new List<eMeasurements>()
+        {
+            eMeasurements.Rolls,
+            eMeasurements.Alternations,
+            eMeasurements.HandBalance,
+            eMeasurements.Redirects
+        };
     }
 
     /// <summary>
@@ -66,6 +86,69 @@ namespace Keyrita.Measurements
         protected eGoodChangeType GoodChangeType { get; set; } = eGoodChangeType.Down;
 
         #endregion
+    }
+
+    /// <summary>
+    /// Measurments which can have up to three results with varying types of outputs.
+    /// </summary>
+    public abstract class DynamicMeasurement : MeasurementOp
+    {
+        protected DynamicMeasurement(Enum id) :
+            base(id)
+        {
+        }
+
+        private const int NUM_RESULTS = 3;
+        private double[] mResults = new double[NUM_RESULTS];
+        private Brush[] mResultColors = new Brush[NUM_RESULTS]
+        {
+            NeutralChangeBrush,
+            NeutralChangeBrush,
+            NeutralChangeBrush,
+        };
+
+        protected void SetResult(uint index, double result)
+        {
+            double roundedResult = Math.Round(result, 2, MidpointRounding.AwayFromZero);
+            double absoluteDifference = Math.Abs(roundedResult - mResults[index]);
+
+            if (absoluteDifference <= .001 && absoluteDifference >= -.001)
+            {
+                mResultColors[index] = NeutralChangeBrush;
+            }
+            else if(roundedResult > mResults[index])
+            {
+                mResultColors[index] = GoodChangeType == eGoodChangeType.Up? GoodChangeBrush : BadChangeBrush;
+            }
+            else if(roundedResult < mResults[index])
+            {
+                mResultColors[index] = GoodChangeType == eGoodChangeType.Down? GoodChangeBrush : BadChangeBrush;
+            }
+
+            mResults[index] = roundedResult;
+        }
+
+        protected void SetTotalResult(double result)
+        {
+            SetResult(0, result);
+        }
+
+        public override double UIRowValue(uint rowIdx)
+        {
+            return mResults[rowIdx];
+        }
+
+        public override Brush UIRowColor(uint rowIdx)
+        {
+            return mResultColors[rowIdx];
+        }
+
+        /// <summary>
+        /// 8 Fingers and two hands.
+        /// Hands are the first two, and fingers are the second 8.
+        /// One for the total
+        /// </summary>
+        public override uint NumUICols => NUM_RESULTS;
     }
 
     /// <summary>

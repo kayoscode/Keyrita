@@ -31,7 +31,7 @@ namespace Keyrita.Settings
         protected uint[,] mBigramFreq;
         public long BigramHitCount { get; protected set; }
 
-        protected uint[,,] TrigramFreq => mTrigramFreq;
+        public uint[,,] TrigramFreq => mTrigramFreq;
         protected uint[,,] mTrigramFreq;
         public long TrigramHitCount { get; protected set; }
 
@@ -160,9 +160,6 @@ namespace Keyrita.Settings
                 {
                     Stopwatch sw = new Stopwatch();
                     sw.Start();
-                    CharHitCount = 0;
-                    BigramHitCount = 0;
-                    TrigramHitCount = 0;
                     for (int i = 0; i < SkipgramHitCount.Length; i++)
                     {
                         SkipgramHitCount[i] = 0;

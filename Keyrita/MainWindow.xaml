@@ -60,29 +60,30 @@
         </local:SetProgressBar>
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width=".012*"></ColumnDefinition>
+                <ColumnDefinition Width="350"></ColumnDefinition>
+                <ColumnDefinition Width=".012*"></ColumnDefinition>
                 <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width=".012*"></ColumnDefinition>
             </Grid.ColumnDefinitions>
-            <local:MeasurementToolbar Grid.Column="0"/>
-            <Grid Grid.Column="1"
-                  HorizontalAlignment="Center">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="2*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height=".05*"/>
-                </Grid.RowDefinitions>
-                <local:KeyboardControl Grid.Column="0"
-                                       Grid.Row="0"
-                                       x:Name="mKeyboardControl"
-                                       VerticalAlignment="Center"/>
-                <local:MeasurementOutput Grid.Column="0"
-                                         Grid.Row="1"
-                                         x:Name="mMeasurementOutputControl"
-                                         VerticalAlignment="Bottom"/>
-            </Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="2*"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+                <RowDefinition Height=".05*"></RowDefinition>
+            </Grid.RowDefinitions>
+            <local:MeasurementToolbar Grid.Column="1"
+                                      Grid.Row="0"
+                                      VerticalAlignment="Top"/>
+            <local:DynamicMeasurementOutput Grid.Column="1"
+                                            Grid.Row="1"
+                                            VerticalAlignment="Bottom"/>
+            <local:KeyboardControl Grid.Column="3"
+                                   Grid.Row="0"
+                                   x:Name="mKeyboardControl"
+                                   VerticalAlignment="Center"/>
+            <local:MeasurementOutput Grid.Column="3"
+                                     Grid.Row="1"
+                                     VerticalAlignment="Bottom"/>
         </Grid>
     </DockPanel>
 </dialogs:WindowBase>

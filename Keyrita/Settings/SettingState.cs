@@ -72,8 +72,11 @@ namespace Keyrita.Settings
         public IReadOnlyDictionary<int, ConcreteValueSetting<double>> RowOffsets => mRowOffsets;
         protected Dictionary<int, ConcreteValueSetting<double>> mRowOffsets = new Dictionary<int, ConcreteValueSetting<double>>();
 
-        public IReadOnlyDictionary<eMeasurements, MeasurementInstalledSetting> InstalledMeasurements => mInstalledMeasurements;
+        public IReadOnlyDictionary<eMeasurements, MeasurementInstalledSetting> InstalledPerFingerMeasurements => mInstalledMeasurements;
         protected Dictionary<eMeasurements, MeasurementInstalledSetting> mInstalledMeasurements = new Dictionary<eMeasurements, MeasurementInstalledSetting>(); 
+
+        public IReadOnlyDictionary<eMeasurements, MeasurementInstalledSetting> InstalledDynamicMeasurements => mInstalledDynamicMeasurements;
+        protected Dictionary<eMeasurements, MeasurementInstalledSetting> mInstalledDynamicMeasurements = new Dictionary<eMeasurements, MeasurementInstalledSetting>(); 
 
         public MeasurementSettings()
         {
@@ -82,9 +85,14 @@ namespace Keyrita.Settings
                 mRowOffsets[i] = new RowHorizontalOffsetSetting(i);
             }
 
-            foreach(eMeasurements meas in Utils.GetTokens<eMeasurements>())
+            foreach(eMeasurements meas in MeasUtil.PerFingerMeasurements)
             {
                 mInstalledMeasurements.Add(meas, new MeasurementInstalledSetting(meas));
+            }
+
+            foreach(eMeasurements meas in MeasUtil.DynamicMeasurements)
+            {
+                mInstalledDynamicMeasurements.Add(meas, new MeasurementInstalledSetting(meas));
             }
         }
     }

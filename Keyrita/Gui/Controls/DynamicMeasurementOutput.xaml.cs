@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using Keyrita.Operations.OperationUtil;
 using Keyrita.Settings;
@@ -9,15 +10,15 @@ namespace Keyrita.Gui.Controls
     /// <summary>
     /// Interaction logic for Measurements.xaml
     /// </summary>
-    public partial class MeasurementOutput : UserControlBase
+    public partial class DynamicMeasurementOutput : UserControlBase
     {
         protected Dictionary<Enum, MeasurementLine> mMeasurementOnOffStates = new Dictionary<Enum, MeasurementLine>();
 
-        public MeasurementOutput()
+        public DynamicMeasurementOutput()
         {
             InitializeComponent();
             
-            foreach(SettingBase meas in SettingState.MeasurementSettings.InstalledPerFingerMeasurements.Values)
+            foreach(SettingBase meas in SettingState.MeasurementSettings.InstalledDynamicMeasurements.Values)
             {
                 meas.ValueChangedNotifications.AddGui(SyncWithInstalledMeasurements);
 
