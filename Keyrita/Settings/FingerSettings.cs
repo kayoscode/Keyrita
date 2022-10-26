@@ -72,7 +72,7 @@ namespace Keyrita.Settings
 
         public static eHand GetOtherHand(eHand hand)
         {
-            LTrace.Assert(hand != eHand.None);
+            LogUtils.Assert(hand != eHand.None);
 
             return hand == eHand.Left ? eHand.Right : eHand.Left;
         }

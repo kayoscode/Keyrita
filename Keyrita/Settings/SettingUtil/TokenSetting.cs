@@ -140,7 +140,7 @@ namespace Keyrita.Settings.SettingUtil
                 return mValidTokens[index];
             }
 
-            LTrace.Assert(false);
+            LogUtils.Assert(false);
             return null;
         }
 

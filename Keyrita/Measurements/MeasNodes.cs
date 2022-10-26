@@ -21,18 +21,16 @@ namespace Keyrita.Measurements
         SameFingerSkipgrams,
         [UIData("Rolls", "Shows total rolls")]
         Rolls,
-        [UIData("Alternations", "Shows the percent of trigrams which have a hand alternation")]
+        [UIData("Alts", "Shows the percent of trigrams which have a hand alternation")]
         Alternations,
-        [UIData("Hand Usage", "Shows the hand balance")]
-        HandBalance,
+        [UIData("Finger Bal.", "Shows the hand balance and finger usage")]
+        FingerBalance,
         [UIData("Redirects", "Shows the redirection rate for trigrams")]
         Redirects,
         [UIData("One Hands", "Shows the percent of trigrams which are typed with one hand")]
         OneHands,
         [UIData("Home Usage", "Shows how often each finger will leave the homerow")]
         HomerowUsage,
-        [UIData("Finger Usage", "Shows finger balance stats")]
-        FingerUsage,
         [UIData("Finger speed", "Shows the speed you can expect from each finger")]
         FingerSpeed,
     }
@@ -43,7 +41,7 @@ namespace Keyrita.Measurements
         {
             eMeasurements.SameFingerBigram,
             eMeasurements.SameFingerSkipgrams,
-            eMeasurements.FingerUsage,
+            eMeasurements.FingerBalance,
             eMeasurements.FingerSpeed,
             eMeasurements.HomerowUsage
         };
@@ -52,16 +50,16 @@ namespace Keyrita.Measurements
         {
             eMeasurements.Rolls,
             eMeasurements.Alternations,
-            eMeasurements.HandBalance,
-            eMeasurements.Redirects
+            eMeasurements.Redirects,
+            eMeasurements.OneHands
         };
     }
 
     /// <summary>
     /// Base class which all measurement operations will use.
     /// </summary>
-    public abstract class MeasurementOp 
-        : OperationBase
+    public abstract class MeasurementNode 
+        : GraphNode
     {
         protected enum eGoodChangeType
         {
@@ -69,7 +67,7 @@ namespace Keyrita.Measurements
             Down
         }
 
-        protected MeasurementOp(Enum id) 
+        protected MeasurementNode(Enum id) 
             : base(id)
         {
         }
@@ -91,7 +89,7 @@ namespace Keyrita.Measurements
     /// <summary>
     /// Measurments which can have up to three results with varying types of outputs.
     /// </summary>
-    public abstract class DynamicMeasurement : MeasurementOp
+    public abstract class DynamicMeasurement : MeasurementNode
     {
         protected DynamicMeasurement(Enum id) :
             base(id)
@@ -154,7 +152,7 @@ namespace Keyrita.Measurements
     /// <summary>
     /// Lists measurements with independent stats for fingers, hands, and total
     /// </summary>
-    public abstract class FingerHandMeasurement : MeasurementOp
+    public abstract class FingerHandMeasurement : MeasurementNode
     {
         /// <summary>
         /// Standard constructor.

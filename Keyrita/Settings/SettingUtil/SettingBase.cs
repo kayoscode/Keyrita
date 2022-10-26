@@ -56,7 +56,7 @@ namespace Keyrita.Settings.SettingUtil
                 }
                 catch (Exception)
                 {
-                    LTrace.LogError("The gui encountered a seriuos error processing a change notification.");
+                    LogUtils.LogError("The gui encountered a seriuos error processing a change notification.");
                 }
             }
         }
@@ -271,7 +271,7 @@ namespace Keyrita.Settings.SettingUtil
                     // Perform the seting action.
                     action();
 
-                    LTrace.LogInfo($"{mSettingName}: {description}");
+                    LogUtils.LogInfo($"{mSettingName}: {description}");
 
                     foreach (SettingBase dependent in mDependents)
                     {
@@ -295,7 +295,7 @@ namespace Keyrita.Settings.SettingUtil
             }
             catch (Exception)
             {
-                LTrace.LogError("A serious error has occurred in a setting transaction");
+                LogUtils.LogError("A serious error has occurred in a setting transaction");
             }
         }
     }

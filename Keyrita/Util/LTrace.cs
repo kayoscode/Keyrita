@@ -16,9 +16,9 @@ namespace Keyrita.Util
         }
     }
 
-    internal static class LTrace
+    internal static class LogUtils
     {
-        static LTrace()
+        static LogUtils()
         {
             Trace.Listeners.Add(new TextWriterTraceListener("Output.log", "Debug"));
             LogInfo("Starting trace services");

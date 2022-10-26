@@ -25,8 +25,8 @@ namespace Keyrita.Measurements
 
         public Rolls() : base(eMeasurements.Rolls)
         {
-            mResult = new RollResult(this.Op);
-            AddInputOp(eDependentOps.TrigramStats);
+            mResult = new RollResult(this.NodeId);
+            AddInputNode(eInputNodes.TrigramStats);
         }
 
         public override AnalysisResult GetResult()
@@ -36,7 +36,7 @@ namespace Keyrita.Measurements
 
         protected override void Compute()
         {
-            TrigramStatsResult tgs = (TrigramStatsResult)OperationSystem.ResolvedOps[eDependentOps.TrigramStats];
+            TrigramStatsResult tgs = (TrigramStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TrigramStats];
             mResult.TotalRolls = tgs.TotalRolls;
             mResult.InRolls = tgs.InRolls;
             mResult.OutRolls = tgs.OutRolls;

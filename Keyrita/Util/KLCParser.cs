@@ -150,7 +150,7 @@ namespace Keyrita.Util
             // a result of -1 indicates no key translates to input character
             if (vkKeyScanResult == -1)
             {
-                LTrace.Assert(false, "No key mapping for " + c);
+                LogUtils.Assert(false, "No key mapping for " + c);
             }
 
             // vkKeyScanResult & 0xff is the base key, without any modifiers
@@ -164,7 +164,7 @@ namespace Keyrita.Util
             // return value of 1 expected (1 character copied to r)
             if (1 != NativeAnalysis.ToAscii(code, code, b, out r, 0))
             {
-                LTrace.Assert(false, "Could not translate modified state");
+                LogUtils.Assert(false, "Could not translate modified state");
             }
 
             return (char)r;
@@ -172,7 +172,7 @@ namespace Keyrita.Util
 
         private static Dictionary<string, (string, string)> CreateRowX(char[,] keys, int row)
         {
-            LTrace.Assert(row < 3, "Invalid VK row.");
+            LogUtils.Assert(row < 3, "Invalid VK row.");
             Dictionary<string, (string, string)> rowData = new Dictionary<string, (string, string)>();
 
             List<string> currentVKs = ROWX_OEM_VK[row];

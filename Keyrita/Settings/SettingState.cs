@@ -157,7 +157,7 @@ namespace Keyrita.Settings
         /// </summary>
         public static void Init()
         {
-            LTrace.LogInfo("Initializing setting system.");
+            LogUtils.LogInfo("Initializing setting system.");
             CreateSettings();
         }
 

@@ -151,7 +151,7 @@ namespace Keyrita.Settings.SettingUtil
         /// <param name="fileStream"></param>
         public static void SaveSettings(XmlWriter xmlWriter, bool undoredo)
         {
-            LTrace.Assert(Finalized, "Cannot save before finalized.");
+            LogUtils.Assert(Finalized, "Cannot save before finalized.");
 
             xmlWriter.WriteStartDocument();
             xmlWriter.WriteStartElement(SettingXMLNode);
@@ -168,7 +168,7 @@ namespace Keyrita.Settings.SettingUtil
 
         public static void LoadSettings(XmlDocument xmlReader, bool undoredo)
         {
-            LTrace.Assert(Finalized, "Cannot load before finalized.");
+            LogUtils.Assert(Finalized, "Cannot load before finalized.");
 
             XmlNode settingNode = xmlReader.SelectSingleNode(SettingXMLNode);
             XmlNodeList settings = settingNode.ChildNodes;
@@ -209,12 +209,12 @@ namespace Keyrita.Settings.SettingUtil
 
                 string uid = setting.GetSettingUniqueId();
 
-                LTrace.Assert(!mSettingsByUid.ContainsKey(uid), $"Two settings share the same UID: {uid}");
+                LogUtils.Assert(!mSettingsByUid.ContainsKey(uid), $"Two settings share the same UID: {uid}");
                 mSettingsByUid[uid] = setting;
             }
             else
             {
-                LTrace.Assert(false, "Cannot add settings once the system is finalized.");
+                LogUtils.Assert(false, "Cannot add settings once the system is finalized.");
             }
         }
 
@@ -233,7 +233,7 @@ namespace Keyrita.Settings.SettingUtil
             {
                 if (CheckForCircularDependenciesOnSetting(setting, checkedSettings, clashStack))
                 {
-                    LTrace.Assert(false, $"Circular dependency detected: {string.Join(",", clashStack)}");
+                    LogUtils.Assert(false, $"Circular dependency detected: {string.Join(",", clashStack)}");
                 }
             }
 
@@ -286,7 +286,7 @@ namespace Keyrita.Settings.SettingUtil
             }
             catch(Exception)
             {
-                LTrace.Assert(false, "An error occurred in graph order execution.");
+                LogUtils.Assert(false, "An error occurred in graph order execution.");
             }
 
             checkedSettings[setting] = true;

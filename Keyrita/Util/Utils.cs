@@ -40,7 +40,7 @@ namespace Keyrita.Util
             }
             else
             {
-                LTrace.Assert(false, "Enum set can only be created on an enumeration type.");
+                LogUtils.Assert(false, "Enum set can only be created on an enumeration type.");
             }
 
             // Never going to return null.
@@ -60,7 +60,7 @@ namespace Keyrita.Util
             }
             else
             {
-                LTrace.Assert(false, "Enum set can only be created on an enumeration type.");
+                LogUtils.Assert(false, "Enum set can only be created on an enumeration type.");
             }
 
             // Never going to return null.

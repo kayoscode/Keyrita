@@ -71,7 +71,7 @@ namespace Keyrita.Gui.Controls
             }
             else
             {
-                LTrace.Assert(false, "Select key event triggered without a key.");
+                LogUtils.Assert(false, "Select key event triggered without a key.");
             }
         }
 

@@ -98,7 +98,7 @@ namespace Keyrita.Settings
                    SettingState.KeyboardSettings.KeyboardValid.Value.Equals(eOnOff.On))
                 {
                     // Resolve the ops.
-                    OperationSystem.ResolveOps();
+                    AnalysisGraphSystem.ResolveGraph();
                 }
             }
         }
@@ -288,7 +288,7 @@ namespace Keyrita.Settings
         public RowHorizontalOffsetSetting(int rowIndex)
             : base("Row " + rowIndex + " Offset", 0.0, eSettingAttributes.None)
         {
-            LTrace.Assert(rowIndex < KeyboardStateSetting.ROWS, "Only three rows supported");
+            LogUtils.Assert(rowIndex < KeyboardStateSetting.ROWS, "Only three rows supported");
 
             this.RowIndex = rowIndex;
             mLimitValue = STANDARD_ROW_OFFSETS[rowIndex];
@@ -548,7 +548,7 @@ namespace Keyrita.Settings
             chars = chars.PadRight(30, '*');
 
             // There should be at least 30 characters in the set of available chars.
-            LTrace.Assert(chars.Length >= 30);
+            LogUtils.Assert(chars.Length >= 30);
 
             int strIndex = 0;
             for (int i = 0; i < ROWS; i++)
@@ -570,7 +570,7 @@ namespace Keyrita.Settings
             chars = chars.PadRight(30, '*');
 
             // There should be at least 30 characters in the set of available chars.
-            LTrace.Assert(chars.Length >= 30);
+            LogUtils.Assert(chars.Length >= 30);
 
             int strIndex = 0;
             for (int i = 0; i < ROWS; i++)

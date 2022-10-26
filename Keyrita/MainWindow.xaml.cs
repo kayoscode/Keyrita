@@ -25,7 +25,7 @@ namespace Keyrita
         {
             MenuDropAlignmentField = typeof(SystemParameters).GetField("_menuDropAlignment", 
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-            LTrace.Assert(MenuDropAlignmentField != null, "_menuDropAlignment item not found");
+            LogUtils.Assert(MenuDropAlignmentField != null, "_menuDropAlignment item not found");
 
             EnsureStandardPopupAlignment();
             SystemParameters.StaticPropertyChanged += SystemParameters_StaticPropertyChanged;
@@ -94,7 +94,7 @@ namespace Keyrita
 
             if (saveFileDialog.ShowDialog() == true)
             {
-                LTrace.LogInfo($"Exporting as KLC {saveFileDialog.FileName}");
+                LogUtils.LogInfo($"Exporting as KLC {saveFileDialog.FileName}");
                 Util.KBDTextFile.Serialize(saveFileDialog.FileName, "Set Name", "Write Description", CultureInfo.CurrentCulture, "Write Company", "(c) Copyright",
                     SettingState.KeyboardSettings.KeyboardState.KeyStateCopy);
             }
@@ -121,7 +121,7 @@ namespace Keyrita
 
             if (openFileDialog.ShowDialog() == true)
             {
-                LTrace.LogInfo("Loading dataset");
+                LogUtils.LogInfo("Loading dataset");
 
                 try
                 {
@@ -130,7 +130,7 @@ namespace Keyrita
                 }
                 catch (Exception)
                 {
-                    LTrace.Assert(false, "Unable to load dataset");
+                    LogUtils.Assert(false, "Unable to load dataset");
                 }
             }
         }

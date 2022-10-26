@@ -59,7 +59,7 @@ namespace Keyrita.Settings
             }
             else
             {
-                LTrace.Assert(false, "Attempted to select an invalid key");
+                LogUtils.Assert(false, "Attempted to select an invalid key");
                 mPendingValue = ' ';
             }
 
@@ -152,7 +152,7 @@ namespace Keyrita.Settings
             {
                 if (!allCharacters.Contains(selectedKey))
                 {
-                    LTrace.Assert(false, "Used keys should be a subset of all characters");
+                    LogUtils.Assert(false, "Used keys should be a subset of all characters");
                 }
                 else
                 {

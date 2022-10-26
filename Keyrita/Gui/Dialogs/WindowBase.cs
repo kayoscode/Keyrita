@@ -40,7 +40,7 @@ namespace Keyrita.Gui.Dialogs
 
             if (openFileDialog.ShowDialog() == true)
             {
-                LTrace.LogInfo("Loading settings");
+                LogUtils.LogInfo("Loading settings");
 
                 try
                 {
@@ -50,7 +50,7 @@ namespace Keyrita.Gui.Dialogs
                 }
                 catch (Exception)
                 {
-                    LTrace.Assert(false, "Failed to load file");
+                    LogUtils.Assert(false, "Failed to load file");
                 }
             }
         }
@@ -62,7 +62,7 @@ namespace Keyrita.Gui.Dialogs
 
             if (saveFileDialog.ShowDialog() == true)
             {
-                LTrace.LogInfo($"Saving settings to file {saveFileDialog.FileName}");
+                LogUtils.LogInfo($"Saving settings to file {saveFileDialog.FileName}");
 
                 using (XmlWriter fileWriter = XmlWriter.Create(saveFileDialog.FileName,
                         new XmlWriterSettings { Indent = true }))
@@ -133,7 +133,7 @@ namespace Keyrita.Gui.Dialogs
 
         protected override void OnClosed(EventArgs e)
         {
-            LTrace.LogInfo($"Closing window {this.Title}");
+            LogUtils.LogInfo($"Closing window {this.Title}");
             base.OnClosed(e);
         }
     }

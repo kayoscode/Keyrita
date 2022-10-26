@@ -32,7 +32,7 @@ namespace Keyrita.Operations.OperationUtil
     /// operations down the road. A fully generic AnalysisResult class is used to communicate the results 
     /// to the operators. Only when an operation has completed can the dependent ops do their work.
     /// </summary>
-    public abstract class OperationBase
+    public abstract class GraphNode
     {
         /// <summary>
         /// To inform the gui if an operation has changed its value.
@@ -42,20 +42,20 @@ namespace Keyrita.Operations.OperationUtil
         /// <summary>
         /// The Id for this operator.
         /// </summary>
-        public Enum Op { get; private set; }
+        public Enum NodeId { get; private set; }
 
         /// <summary>
         /// The list of operations which must be complete in order to compute this op.
         /// </summary>
-        public IList<Enum> InputOps { get; private set; } = new List<Enum>();
+        public IList<Enum> Inputs { get; private set; } = new List<Enum>();
 
         /// <summary>
         /// Standard constructor.
         /// Input operations should be added in the constructor.
         /// </summary>
-        public OperationBase(Enum id)
+        public GraphNode(Enum id)
         {
-            Op = id;
+            NodeId = id;
         }
 
         public void PerformOp()
@@ -71,20 +71,20 @@ namespace Keyrita.Operations.OperationUtil
 
         public virtual void ConnectInputs()
         {
-            foreach(Enum op in InputOps)
+            foreach(Enum op in Inputs)
             {
-                OperationSystem.InstallOp(op);
+                AnalysisGraphSystem.InstallNode(op);
             }
         }
 
         /// <summary>
         /// Adds an input operator to the network.
         /// </summary>
-        /// <param name="op"></param>
-        public void AddInputOp(Enum op)
+        /// <param name="inputNode"></param>
+        public void AddInputNode(Enum inputNode)
         {
-            LTrace.Assert(!InputOps.Contains(op), "Operation already depends on this op");
-            InputOps.Add(op);
+            LogUtils.Assert(!Inputs.Contains(inputNode), $"This node already depends on {inputNode}");
+            Inputs.Add(inputNode);
         }
 
         /// <summary>

@@ -54,7 +54,7 @@ namespace Keyrita.Settings
         {
             if(HasValue)
             {
-                LTrace.Assert(charIdx >= 0 && charIdx < UsedCharset.Length, "Sanity check failed.");
+                LogUtils.Assert(charIdx >= 0 && charIdx < UsedCharset.Length, "Sanity check failed.");
                 return CharFreq[charIdx] / (double)CharHitCount;
             }
 
@@ -71,8 +71,8 @@ namespace Keyrita.Settings
         {
             if(HasValue)
             {
-                LTrace.Assert(idx1 >= 0 && idx1 < UsedCharset.Length, "Sanity check failed.");
-                LTrace.Assert(idx2 >= 0 && idx2 < UsedCharset.Length, "Sanity check failed.");
+                LogUtils.Assert(idx1 >= 0 && idx1 < UsedCharset.Length, "Sanity check failed.");
+                LogUtils.Assert(idx2 >= 0 && idx2 < UsedCharset.Length, "Sanity check failed.");
 
                 if(BigramHitCount != 0)
                 {
@@ -142,7 +142,7 @@ namespace Keyrita.Settings
         /// <param name="fileName"></param>
         public void LoadDataset(string fileText)
         {
-            LTrace.Assert(LoadTask == null, "We shouldn't be able to get here if were currently loading.");
+            LogUtils.Assert(LoadTask == null, "We shouldn't be able to get here if were currently loading.");
 
             if (fileText == null) return;
             object mutex = new object();
@@ -179,13 +179,13 @@ namespace Keyrita.Settings
                     mValueHasChanged = true;
                     sw.Stop();
                     long time = sw.ElapsedMilliseconds;
-                    LTrace.LogInfo($"Analyzed dataset in {time} milliseconds");
+                    LogUtils.LogInfo($"Analyzed dataset in {time} milliseconds");
                 }, cancellationTokenSource.Token);
 
                 LoadTask.ConfigureAwait(true).GetAwaiter().OnCompleted(() =>
                 {
                     int newThread = System.Threading.Thread.CurrentThread.ManagedThreadId;
-                    LTrace.Assert(currentThread == newThread, "This needs to be on the same thread");
+                    LogUtils.Assert(currentThread == newThread, "This needs to be on the same thread");
 
                     mIsRunning = false;
                     cancellationTokenSource = new CancellationTokenSource();
@@ -277,23 +277,23 @@ namespace Keyrita.Settings
                 }
 
                 var exBigramHitCount = CharHitCount - 1;
-                LTrace.Assert(exBigramHitCount == BigramHitCount, "Sanity check failed");
+                LogUtils.Assert(exBigramHitCount == BigramHitCount, "Sanity check failed");
                 var exTrigramHitCount = BigramHitCount - 1;
-                LTrace.Assert(exTrigramHitCount == TrigramHitCount, "Sanity check failed");
+                LogUtils.Assert(exTrigramHitCount == TrigramHitCount, "Sanity check failed");
 
                 var exSkipgramHitCount = new long[SkipgramHitCount.Length];
                 exSkipgramHitCount[0] = TrigramHitCount - 1;
-                LTrace.Assert(exSkipgramHitCount[0] == SkipgramHitCount[0], "Sanity check failed");
+                LogUtils.Assert(exSkipgramHitCount[0] == SkipgramHitCount[0], "Sanity check failed");
 
                 for (int i = 1; i < SkipgramHitCount.Length; i++)
                 {
                     exSkipgramHitCount[i] = SkipgramHitCount[i - 1] - 1;
-                    LTrace.Assert(exSkipgramHitCount[i] == SkipgramHitCount[i], "Sanity check failed");
+                    LogUtils.Assert(exSkipgramHitCount[i] == SkipgramHitCount[i], "Sanity check failed");
                 }
             }
             else
             {
-                LTrace.Assert(false, "Shouldn't get here without a value.");
+                LogUtils.Assert(false, "Shouldn't get here without a value.");
             }
         }
 

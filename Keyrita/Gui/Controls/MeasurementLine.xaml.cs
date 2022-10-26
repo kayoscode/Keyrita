@@ -89,7 +89,7 @@ namespace Keyrita.Gui.Controls
             }
 
             mMeasurement = newValue;
-            mMeasurementOp = OperationSystem.GetInstalledOperation((Enum)mMeasurement) as MeasurementOp;
+            mMeasurementOp = AnalysisGraphSystem.GetInstalledOperation((Enum)mMeasurement) as MeasurementNode;
 
             if(mMeasurementOp != null)
             {
@@ -117,7 +117,7 @@ namespace Keyrita.Gui.Controls
         }
 
         protected Enum mMeasurement;
-        protected MeasurementOp mMeasurementOp;
+        protected MeasurementNode mMeasurementOp;
 
         #endregion
 

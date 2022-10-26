@@ -23,42 +23,42 @@ namespace Keyrita.Measurements
 
     public class FindSFBs : FingerHandMeasurement
     {
-        protected SFBResult result;
+        protected SFBResult mResult;
 
         public FindSFBs() : base(eMeasurements.SameFingerBigram)
         {
-            AddInputOp(eDependentOps.BigramClassification);
-            AddInputOp(eDependentOps.TransformedCharacterToFingerAsInt);
+            AddInputNode(eInputNodes.BigramClassification);
+            AddInputNode(eInputNodes.TransformedCharacterToFingerAsInt);
         }
 
         protected override void Compute()
         {
-            result = new SFBResult(this.Op);
+            mResult = new SFBResult(this.NodeId);
 
-            BigramClassificationResult bgc = (BigramClassificationResult)OperationSystem.ResolvedOps[eDependentOps.BigramClassification];
-            TransformedCharacterToFingerAsIntResult c2f = (TransformedCharacterToFingerAsIntResult)OperationSystem.ResolvedOps[eDependentOps.TransformedCharacterToFingerAsInt];
+            BigramClassificationResult bgc = (BigramClassificationResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.BigramClassification];
+            TransformedCharacterToFingerAsIntResult c2f = (TransformedCharacterToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransformedCharacterToFingerAsInt];
 
             uint[,] bigramFreq = SettingState.MeasurementSettings.CharFrequencyData.BigramFreq;
-            long[] perFingerResult = new long[result.PerFingerResult.Count()];
-            long[] perHandResult = new long[result.PerHandResult.Count()];
+            long[] perFingerResult = new long[mResult.PerFingerResult.Count()];
+            long[] perHandResult = new long[mResult.PerHandResult.Count()];
             long totalBigramCount = SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
 
             long sfbs = CalculateTotalSFBs(bgc.BigramClassifications, bigramFreq, perFingerResult, c2f.CharacterToFinger);
 
             double totalSfbs = (double)sfbs / totalBigramCount;
-            result.TotalBigrams = totalSfbs * 100;
+            mResult.TotalBigrams = totalSfbs * 100;
 
             int resultIdx = 0;
             foreach(eFinger finger in Utils.GetTokens<eFinger>())
             {
                 double fingerSfbs = ((double)perFingerResult[resultIdx] / totalBigramCount) * 100;
-                result.PerFingerResult[resultIdx] = fingerSfbs;
+                mResult.PerFingerResult[resultIdx] = fingerSfbs;
                 SetFingerResult(finger, fingerSfbs);
 
                 resultIdx++;
             }
 
-            SetTotalResult(result.TotalBigrams);
+            SetTotalResult(mResult.TotalBigrams);
         }
 
         protected long CalculateTotalSFBs(BigramClassificationResult.eBigramClassification[,] bigramClassifications, 
@@ -74,11 +74,11 @@ namespace Keyrita.Measurements
                 {
                     if (bigramClassifications[i, j] == BigramClassificationResult.eBigramClassification.SFB)
                     {
-                        LTrace.Assert(i != j, "An SFB should never be the same key");
+                        LogUtils.Assert(i != j, "An SFB should never be the same key");
 
                         totalSfbs += bigramFreq[i, j];
                         // i and j have the same finger.
-                        LTrace.Assert(characterToFinger[i] == characterToFinger[j], "An SFB should always use the same fingers for both keys");
+                        LogUtils.Assert(characterToFinger[i] == characterToFinger[j], "An SFB should always use the same fingers for both keys");
                         perFingerResults[characterToFinger[i]] += bigramFreq[i, j];
                     }
                 }
@@ -89,7 +89,7 @@ namespace Keyrita.Measurements
 
         public override AnalysisResult GetResult()
         {
-            return result;
+            return mResult;
         }
     }
 }

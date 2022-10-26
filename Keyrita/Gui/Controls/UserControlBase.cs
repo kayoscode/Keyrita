@@ -31,7 +31,7 @@ namespace Keyrita.Gui.Controls
             }
             else
             {
-                LTrace.Assert(false, "Unable to find window for control");
+                LogUtils.Assert(false, "Unable to find window for control");
             }
         }
 

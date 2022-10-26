@@ -183,13 +183,13 @@ namespace Keyrita.Serialization
             if (Serializers.TryGetValue(typeof(T), out TextSerializer serializer)) 
             {
                 ITextSerializer<T> tSerializer = serializer as ITextSerializer<T>;
-                LTrace.Assert(tSerializer != null, "Invalid serializer for given type.");
+                LogUtils.Assert(tSerializer != null, "Invalid serializer for given type.");
 
                 return tSerializer.ToText(value);
             }
             else
             {
-                LTrace.Assert(false, "Could not find serializer for given type.");
+                LogUtils.Assert(false, "Could not find serializer for given type.");
             }
 
             return "";
@@ -207,7 +207,7 @@ namespace Keyrita.Serialization
             if (Serializers.TryGetValue(typeof(T), out TextSerializer serializer)) 
             {
                 ITextSerializer<T> tSerializer = serializer as ITextSerializer<T>;
-                LTrace.Assert(tSerializer != null, "Invalid serializer for given type.");
+                LogUtils.Assert(tSerializer != null, "Invalid serializer for given type.");
 
                 if (tSerializer.TryParse(str, out value))
                 {
@@ -216,7 +216,7 @@ namespace Keyrita.Serialization
             }
             else
             {
-                LTrace.Assert(false, "Could not find serializer for given type.");
+                LogUtils.Assert(false, "Could not find serializer for given type.");
             }
 
             value = default(T);

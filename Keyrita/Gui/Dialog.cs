@@ -30,7 +30,7 @@ namespace Keyrita.Gui
                 case eDlgId.SetCharactersDlg:
                     return new AvailableChars();
                 default:
-                    LTrace.Assert(false, "Unsupported dialog");
+                    LogUtils.Assert(false, "Unsupported dialog");
                     return null;
             }
         }

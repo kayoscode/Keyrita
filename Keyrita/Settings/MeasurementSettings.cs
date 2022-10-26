@@ -51,7 +51,7 @@ namespace Keyrita.Settings
             }
             else
             {
-                LTrace.Assert(false);
+                LogUtils.Assert(false, "Unknown measurement type.");
             }
         }
     }
@@ -70,11 +70,11 @@ namespace Keyrita.Settings
         {
             if(this.IsOn)
             {
-                OperationSystem.InstallOp(this.SInstance);
+                AnalysisGraphSystem.InstallNode(this.SInstance);
             }
             else
             {
-                OperationSystem.UninstallOp(this.SInstance);
+                AnalysisGraphSystem.RemoveNode(this.SInstance);
             }
         }
 
