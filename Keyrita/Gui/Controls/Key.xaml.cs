@@ -175,15 +175,20 @@ namespace Keyrita.Gui.Controls
 
         protected void SyncWithHeatmap(object changedSetting)
         {
-            double heatmapValue = 0;  
-
-            if(KeyCharacter != null && mHeatmap != null && mHeatmap.HeatMapData.ContainsKey(KeyCharacter.Character))
+            if(KeyCharacter != null && mHeatmap != null)
             {
-                heatmapValue = mHeatmap.HeatMapData[KeyCharacter.Character];
+                if (mHeatmap.HeatMapData.ContainsKey(KeyCharacter.Character))
+                {
+                    double heatmapValue = mHeatmap.HeatMapData[KeyCharacter.Character];
 
-                Color keyHighlightColor = GetGradientColor((float)heatmapValue, 
-                    FingerToColor[KeyCharacter.Finger].Color);
-                mBorder.Background = new SolidColorBrush(keyHighlightColor);
+                    Color keyHighlightColor = GetGradientColor((float)heatmapValue, 
+                        FingerToColor[KeyCharacter.Finger].Color);
+                    mBorder.Background = new SolidColorBrush(keyHighlightColor);
+                }
+                else
+                {
+                    mBorder.Background = new SolidColorBrush(LowestFreq);
+                }
             }
         }
 

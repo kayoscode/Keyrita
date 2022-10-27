@@ -100,7 +100,12 @@ namespace Keyrita
             }
         }
 
-        protected void LoadDataset(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Returns true if the user decided to cancel the load operation.
+        /// Or true if there is no dataset currently being loaded.
+        /// </summary>
+        /// <returns></returns>
+        protected bool CancelRunningDatasetLoadOperation()
         {
             if (SettingState.MeasurementSettings.CharFrequencyData.IsRunning)
             {
@@ -110,27 +115,44 @@ namespace Keyrita
                 if(result == MessageBoxResult.Yes)
                 {
                     SettingState.MeasurementSettings.CharFrequencyData.Cancel();
+                    return true;
                 }
                 else
                 {
-                    return;
+                    return false;
                 }
             }
 
-            OpenFileDialog openFileDialog = new OpenFileDialog();
+            return true;
+        }
 
-            if (openFileDialog.ShowDialog() == true)
+        protected void ClearDataset(object sender, RoutedEventArgs e)
+        {
+            if (CancelRunningDatasetLoadOperation())
             {
-                LogUtils.LogInfo("Loading dataset");
+                SettingState.MeasurementSettings.CharFrequencyData.ClearData();
+            }
+        }
 
-                try
+        protected void LoadDataset(object sender, RoutedEventArgs e)
+        {
+            if (CancelRunningDatasetLoadOperation())
+            {
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+
+                if (openFileDialog.ShowDialog() == true)
                 {
-                    string dataset = File.ReadAllText(openFileDialog.FileName);
-                    SettingState.MeasurementSettings.CharFrequencyData.LoadDataset(dataset);
-                }
-                catch (Exception)
-                {
-                    LogUtils.Assert(false, "Unable to load dataset");
+                    LogUtils.LogInfo("Loading dataset");
+
+                    try
+                    {
+                        string dataset = File.ReadAllText(openFileDialog.FileName);
+                        SettingState.MeasurementSettings.CharFrequencyData.LoadDataset(dataset);
+                    }
+                    catch (Exception)
+                    {
+                        LogUtils.Assert(false, "Unable to load dataset");
+                    }
                 }
             }
         }

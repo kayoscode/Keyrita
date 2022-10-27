@@ -23,14 +23,14 @@ namespace Keyrita.Measurements
         Rolls,
         [UIData("Alts", "Shows the percent of trigrams which have a hand alternation")]
         Alternations,
-        [UIData("Finger Bal.", "Shows the hand balance and finger usage")]
+        [UIData("Finger Bal", "Shows the hand balance and finger usage")]
         FingerBalance,
         [UIData("Redirects", "Shows the redirection rate for trigrams")]
         Redirects,
         [UIData("One Hands", "Shows the percent of trigrams which are typed with one hand")]
         OneHands,
-        [UIData("Home Usage", "Shows how often each finger will leave the homerow")]
-        HomerowUsage,
+        [UIData("Home Usage", "Shows how often a finger leaves its starting row.")]
+        HomeRowUsage,
         [UIData("Finger speed", "Shows the speed you can expect from each finger")]
         FingerSpeed,
     }
@@ -43,7 +43,7 @@ namespace Keyrita.Measurements
             eMeasurements.SameFingerSkipgrams,
             eMeasurements.FingerBalance,
             eMeasurements.FingerSpeed,
-            eMeasurements.HomerowUsage
+            eMeasurements.HomeRowUsage
         };
 
         public static IEnumerable<eMeasurements> DynamicMeasurements = new List<eMeasurements>()

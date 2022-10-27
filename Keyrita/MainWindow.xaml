@@ -28,6 +28,8 @@
                       Click="SaveKLC"/>
                 <MenuItem Header="_Load Dataset"
                                       Click="LoadDataset"/>
+                <MenuItem Header="_Clear Dataset"
+                                      Click="ClearDataset"/>
             </MenuItem>
             <MenuItem Header="Edit">
                 <MenuItem Header="_Undo"

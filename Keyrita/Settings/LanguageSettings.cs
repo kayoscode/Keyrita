@@ -136,6 +136,14 @@ namespace Keyrita.Settings
             return available.ToString();
         }
 
+        public void ClearData()
+        {
+            // Setting the charset to null will invalidate the dataset. Must be reloaded to be used again.
+            mUsedCharset = null;
+            mValueHasChanged = true;
+            TrySetToPending();
+        }
+
         /// <summary>
         /// Load the dataset using the native code!
         /// </summary>

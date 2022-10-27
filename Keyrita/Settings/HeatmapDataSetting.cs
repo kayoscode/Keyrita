@@ -119,7 +119,7 @@ namespace Keyrita.Settings
             string allCharacters = SettingState.MeasurementSettings.CharFrequencyData.UsedCharset;
             char selectedKey = SettingState.KeyboardSettings.SelectedKey.Value;
 
-            if(allCharacters != null)
+            if(SettingState.MeasurementSettings.CharFrequencyData.HasValue && allCharacters != null)
             {
                 switch (SettingState.KeyboardSettings.HeatmapType.Value)
                 {
@@ -140,6 +140,10 @@ namespace Keyrita.Settings
                         LoadBigramFrequencyHeatMap(allCharacters, usedKeys, selectedKey);
                         break;
                 }
+            }
+            else
+            {
+                // Clear the heatmap.
             }
         }
 

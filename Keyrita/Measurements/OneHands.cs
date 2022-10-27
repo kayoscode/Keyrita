@@ -15,6 +15,8 @@ namespace Keyrita.Measurements
         }
 
         public double TotalOneHands { get; set; }
+        public double OneHandsLeft { get; set; }
+        public double OneHandsRight { get; set; }
     }
 
     public class OneHands : DynamicMeasurement
@@ -36,8 +38,12 @@ namespace Keyrita.Measurements
         {
             TrigramStatsResult tgs = (TrigramStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TrigramStats];
             mResult.TotalOneHands = tgs.TotalOneHands;
+            mResult.OneHandsLeft = tgs.OneHandsLeft;
+            mResult.OneHandsRight = tgs.OneHandsRight;
 
             SetResult(0, mResult.TotalOneHands);
+            SetResult(1, mResult.OneHandsLeft);
+            SetResult(2, mResult.OneHandsRight);
         }
     }
 }

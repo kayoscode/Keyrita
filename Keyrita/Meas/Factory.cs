@@ -35,6 +35,8 @@ namespace Keyrita.Operations
                     return new OneHands();
                 case eMeasurements.FingerBalance:
                     return new FingerBalance();
+                case eMeasurements.HomeRowUsage:
+                    return new HomeUsage();
                 default:
                     return null;
             }
@@ -69,6 +71,8 @@ namespace Keyrita.Operations
                     return new TransformedCharacterToKey();
                 case eInputNodes.TrigramStats:
                     return new TrigramStats();
+                case eInputNodes.FingerAsIntToHomePosition:
+                    return new FingerAsIntToHomePosition();
                 default:
                     return null;
             }

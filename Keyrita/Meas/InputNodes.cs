@@ -16,7 +16,51 @@ namespace Keyrita.Operations
         TransfomedKbState,
         SameFingerMappings,
         BigramClassification,
-        TrigramStats
+        TrigramStats,
+        FingerAsIntToHomePosition
+    }
+
+    public class FingerAsIntToHomePositionResult : AnalysisResult
+    {
+        public FingerAsIntToHomePositionResult(Enum resultId) : base(resultId)
+        {
+        }
+
+        public (int, int)[] FingerToHomePosition { get; set; } = new (int, int)[Utils.GetTokens<eFinger>().Count()];
+    }
+
+    public class FingerAsIntToHomePosition : GraphNode
+    {
+        private FingerAsIntToHomePositionResult mResult;
+
+        public FingerAsIntToHomePosition() : base(eInputNodes.FingerAsIntToHomePosition)
+        {
+            mResult = new FingerAsIntToHomePositionResult(this.NodeId);
+        }
+
+        public override AnalysisResult GetResult()
+        {
+            return mResult;
+        }
+
+        protected override void Compute()
+        {
+            // Go through the entire keyboard state, and get the starting finger. If it's not none, set that finger to have row,col for the home pos.
+            var hrMap = SettingState.FingerSettings.FingerHomePosition;
+
+            for (int i = 0; i < KeyboardStateSetting.ROWS; i++)
+            {
+                for (int j = 0; j < KeyboardStateSetting.COLS; j++)
+                {
+                    var homeFinger = hrMap.GetValueAt(i, j);
+
+                    if (homeFinger != eFinger.None)
+                    {
+                        mResult.FingerToHomePosition[(int)homeFinger] = (i, j);
+                    }
+                }
+            }
+        }
     }
 
     public class TransformedCharacterToFingerAsIntResult : AnalysisResult

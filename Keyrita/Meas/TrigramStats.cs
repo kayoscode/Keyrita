@@ -20,6 +20,8 @@ namespace Keyrita.Operations
 
         public double TotalRedirects { get; set; }
         public double TotalOneHands { get; set; }
+        public double OneHandsLeft { get; set; }
+        public double OneHandsRight { get; set; }
     }
 
     /// <summary>
@@ -63,6 +65,8 @@ namespace Keyrita.Operations
             long totalAlternations = 0;
             long totalRedirects = 0;
             long totalOneHands = 0;
+            long oneHandsLeft = 0;
+            long oneHandsRight = 0;
 
             // Go through each bigram, and if it's classified as a roll, see if the first or last character use the other hand. If so,
             // we have a roll in the direction of the bigram classification.
@@ -109,7 +113,17 @@ namespace Keyrita.Operations
                                         }
                                         else
                                         {
-                                            totalOneHands += trigramFreq[i, j, character];
+                                            var oneHands = trigramFreq[i, j, character];
+                                            totalOneHands += oneHands;
+
+                                            if (kh == eHand.Left)
+                                            {
+                                                oneHandsLeft += oneHands;
+                                            }
+                                            else
+                                            {
+                                                oneHandsRight += oneHands;
+                                            }
                                         }
                                     }
                                     else
@@ -162,6 +176,8 @@ namespace Keyrita.Operations
             mResult.TotalAlternations = totalAlternations / (double)totalTrigrams * 100;
             mResult.TotalRedirects = totalRedirects / (double)totalTrigrams * 100;
             mResult.TotalOneHands = totalOneHands / (double)totalTrigrams * 100;
+            mResult.OneHandsLeft = oneHandsLeft / (double)totalTrigrams * 100;
+            mResult.OneHandsRight = oneHandsRight / (double)totalTrigrams * 100;
         }
     }
 }
