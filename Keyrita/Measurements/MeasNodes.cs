@@ -29,10 +29,12 @@ namespace Keyrita.Measurements
         Redirects,
         [UIData("One Hands", "Shows the percent of trigrams which are typed with one hand")]
         OneHands,
-        [UIData("Home Usage", "Shows how often a finger leaves its starting row.")]
+        [UIData("Home Usage", "Shows how often a finger leaves its starting row")]
         HomeRowUsage,
         [UIData("Finger speed", "Shows the speed you can expect from each finger")]
         FingerSpeed,
+        [UIData("Score", "Based on custom weights, shows the score of the keyboard")]
+        LayoutScore,
     }
 
     public static class MeasUtil
@@ -51,7 +53,8 @@ namespace Keyrita.Measurements
             eMeasurements.Rolls,
             eMeasurements.Alternations,
             eMeasurements.Redirects,
-            eMeasurements.OneHands
+            eMeasurements.OneHands,
+            eMeasurements.LayoutScore
         };
     }
 

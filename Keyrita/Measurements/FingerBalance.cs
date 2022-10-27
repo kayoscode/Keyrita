@@ -48,7 +48,7 @@ namespace Keyrita.Meas
             long leftHandUsage = 0;
             long rightHandUsage = 0;
             long[] fingerUsage = new long[Utils.GetTokens<eFinger>().Count()];
-            long totalChars = 0;
+            long totalChars = SettingState.MeasurementSettings.CharFrequencyData.CharHitCount;
 
             // NOTE: were intentionally ignoring space here.
             for(int i = 0; i < KeyboardStateSetting.ROWS; i++)
@@ -72,7 +72,6 @@ namespace Keyrita.Meas
                         LogUtils.Assert(false, "Key was not assigned a hand.");
                     }
 
-                    totalChars += charFreq[character];
                     fingerUsage[finger] += charFreq[character];
                 }
             }

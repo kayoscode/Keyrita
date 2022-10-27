@@ -60,6 +60,9 @@ namespace Keyrita.Operations
                     }
                 }
             }
+
+            // Set the thumb.
+            mResult.FingerToHomePosition[(int)eFinger.RightThumb] = (3, 0);
         }
     }
 
