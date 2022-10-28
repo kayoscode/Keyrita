@@ -24,7 +24,9 @@ namespace Keyrita.Operations
             switch (meas)
             {
                 case eMeasurements.SameFingerBigram:
-                    return new FindSFBs();
+                    return new Sfbs();
+                case eMeasurements.SameFingerSkipgrams:
+                    return new Sfss();
                 case eMeasurements.Rolls:
                     return new Rolls();
                 case eMeasurements.Alternations:
@@ -37,6 +39,8 @@ namespace Keyrita.Operations
                     return new FingerBalance();
                 case eMeasurements.HomeRowUsage:
                     return new HomeUsage();
+                case eMeasurements.FingerSpeed:
+                    return new FingerSpeed();
                 default:
                     return null;
             }
@@ -73,6 +77,8 @@ namespace Keyrita.Operations
                     return new TrigramStats();
                 case eInputNodes.FingerAsIntToHomePosition:
                     return new FingerAsIntToHomePosition();
+                case eInputNodes.SameFingerStats:
+                    return new FindSameFingerStats();
                 default:
                     return null;
             }

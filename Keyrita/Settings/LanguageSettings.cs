@@ -35,14 +35,20 @@ namespace Keyrita.Settings
         protected uint[,,] mTrigramFreq;
         public long TrigramHitCount { get; protected set; }
 
-        protected uint[,,] SkipgramFreq => mSkipgramFreq;
+        // The commonality of trigrams that start with the first index and end with the second.
+        public uint[,] Skipgram2Freq => mSkipgram2Freq;
+        protected uint[,] mSkipgram2Freq;
+        public long Skipgram2HitCount => TrigramHitCount;
+
+        public uint[,,] SkipgramFreq => mSkipgramFreq;
         protected uint[,,] mSkipgramFreq;
         public long[] SkipgramHitCount { get; protected set; } = new long[NativeAnalysis.SKIPGRAM_DEPTH];
 
         public string UsedCharset => mUsedCharset;
         protected string mUsedCharset;
 
-        public override bool HasValue => !(CharFreq == null || BigramFreq == null || TrigramFreq == null || SkipgramFreq == null || mUsedCharset == null);
+        public override bool HasValue => !(CharFreq == null || BigramFreq == null || TrigramFreq == null 
+            || SkipgramFreq == null || mUsedCharset == null);
         protected override bool ValueHasChanged => mValueHasChanged;
 
         /// <summary>
@@ -262,14 +268,20 @@ namespace Keyrita.Settings
                     }
                 }
 
+                mSkipgram2Freq = new uint[mTrigramFreq.GetLength(0), mTrigramFreq.GetLength(2)];
                 for (int i = 0; i < mTrigramFreq.GetLength(0); i++)
                 {
-                    for (int j = 0; j < mTrigramFreq.GetLength(1); j++)
+                    for (int j = 0; j < mTrigramFreq.GetLength(2); j++)
                     {
-                        for (int k = 0; k < mTrigramFreq.GetLength(2); k++)
+                        uint hitCount = 0;
+
+                        for (int k = 0; k < mTrigramFreq.GetLength(1); k++)
                         {
-                            TrigramHitCount += mTrigramFreq[i, j, k];
+                            hitCount += mTrigramFreq[i, k, j];
                         }
+
+                        mSkipgram2Freq[i, j] = hitCount;
+                        TrigramHitCount += hitCount;
                     }
                 }
 

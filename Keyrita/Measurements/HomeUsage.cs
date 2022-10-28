@@ -84,8 +84,6 @@ namespace Keyrita.Meas
 
                         fingerHomeUsage[finger] += charFreq[character];
                     }
-
-                    ////totalChars += charFreq[character];
                 }
             }
 

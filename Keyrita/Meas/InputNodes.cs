@@ -14,10 +14,101 @@ namespace Keyrita.Operations
         KeyToFingerAsInt,
         TransformedCharacterToFingerAsInt,
         TransfomedKbState,
-        SameFingerMappings,
         BigramClassification,
         TrigramStats,
-        FingerAsIntToHomePosition
+        SameFingerStats,
+        FingerAsIntToHomePosition,
+    }
+
+    public class SameFingerStatsResult : AnalysisResult
+    {
+        public SameFingerStatsResult(Enum resultId) 
+            : base(resultId)
+        {
+        }
+
+        public double TotalSfbs { get; set; }
+        public double[] SfbsPerHand { get; private set; } = new double[Utils.GetTokens<eHand>().Count()];
+        public double[] SfbsPerFinger { get; private set; } = new double[Utils.GetTokens<eFinger>().Count()];
+
+        public double TotalSfs { get; set; }
+        public double[] SfsPerHand { get; private set; } = new double[Utils.GetTokens<eHand>().Count()];
+        public double[] SfsPerFinger { get; private set; } = new double[Utils.GetTokens<eFinger>().Count()];
+    }
+
+    /// <summary>
+    /// Computes frequencies related to which keys are on which same fingers.
+    /// These results will be used downstream for various measurements. The results may be directly output in some measurements.
+    /// </summary>
+    public class FindSameFingerStats : GraphNode
+    {
+        protected SameFingerStatsResult mResult;
+
+        public FindSameFingerStats() : base(eInputNodes.SameFingerStats)
+        {
+            AddInputNode(eInputNodes.BigramClassification);
+            AddInputNode(eInputNodes.TransformedCharacterToFingerAsInt);
+        }
+
+        protected override void Compute()
+        {
+            mResult = new SameFingerStatsResult(NodeId);
+
+            BigramClassificationResult bgc = (BigramClassificationResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.BigramClassification];
+            TransformedCharacterToFingerAsIntResult c2f = (TransformedCharacterToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransformedCharacterToFingerAsInt];
+
+            uint[,] bigramFreq = SettingState.MeasurementSettings.CharFrequencyData.BigramFreq;
+            uint[,] skipgram2Freq = SettingState.MeasurementSettings.CharFrequencyData.Skipgram2Freq;
+
+            var bigramClassifications = bgc.BigramClassifications;
+            var characterToFinger = c2f.CharacterToFinger;
+
+            for(int i = 0; i < bigramClassifications.GetLength(0); i++)
+            {
+                for(int j = 0; j < bigramClassifications.GetLength(1); j++)
+                {
+                    if (bigramClassifications[i, j] == BigramClassificationResult.eBigramClassification.SFB)
+                    {
+                        LogUtils.Assert(i != j, "An SFB should never be the same key");
+
+                        // Add same finger stats for the bigram. Because we know that each bigram which is classified as an sfb will be hit with the same finger, it doesn't
+                        // matter if we are searching for sfbs, sfs, or skipgrams(n). Just make sure to use the correct frequency data.
+                        mResult.TotalSfbs += bigramFreq[i, j];
+                        mResult.TotalSfs += skipgram2Freq[i, j];
+
+                        // i and j have the same finger.
+                        LogUtils.Assert(characterToFinger[i] == characterToFinger[j], "An SFB should always use the same fingers for both keys");
+
+                        mResult.SfbsPerFinger[characterToFinger[i]] += bigramFreq[i, j];
+                        mResult.SfsPerFinger[characterToFinger[i]] += skipgram2Freq[i, j];
+
+                        mResult.SfbsPerHand[(int)FingerUtil.GetHandForFingerAsInt(characterToFinger[i])] += bigramFreq[i, j];
+                        mResult.SfsPerHand[(int)FingerUtil.GetHandForFingerAsInt(characterToFinger[i])] += skipgram2Freq[i, j];
+                    }
+                }
+            }
+
+            /**
+            double totalSfbs = (double)mResult.TotalSfbs / totalBigramCount;
+            mResult.TotalSfbs = totalSfbs * 100;
+
+            int resultIdx = 0;
+            foreach(eFinger finger in Utils.GetTokens<eFinger>())
+            {
+                double fingerSfbs = ((double)mResult.SfbsPerFinger[resultIdx] / totalBigramCount) * 100;
+                SetFingerResult(finger, fingerSfbs);
+
+                resultIdx++;
+            }
+
+            SetTotalResult(mResult.TotalSfbs);
+            */
+        }
+
+        public override AnalysisResult GetResult()
+        {
+            return mResult;
+        }
     }
 
     public class FingerAsIntToHomePositionResult : AnalysisResult
