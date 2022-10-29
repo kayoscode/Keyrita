@@ -59,6 +59,8 @@ namespace Keyrita
             mKeyboardControl.KeyboardState = SettingState.KeyboardSettings.KeyboardState;
             mKeyboardControl.KeyMappings = SettingState.FingerSettings.KeyMappings;
             mKeyboardControl.ShowFingerUsage = SettingState.KeyboardSettings.ShowFingerUsage;
+            mKeyboardControl.EditMode = SettingState.KeyboardSettings.KeyboardEditMode;
+            mKeyboardControl.ScissorMap = SettingState.KeyboardSettings.ScissorMap;
             mHeatMapSetting.Setting = SettingState.KeyboardSettings.HeatmapType;
 
             mLoadDatasetProgressBar.Setting = SettingState.MeasurementSettings.CharFrequencyData;
@@ -124,6 +126,20 @@ namespace Keyrita
             }
 
             return true;
+        }
+
+        protected void SetConfScissorMap(object sender, RoutedEventArgs e)
+        {
+            if(SettingState.KeyboardSettings.KeyboardEditMode.Value.Equals(eKeyboardEditMode.ScissorMap))
+            {
+                // Switch to normal mode.
+                SettingState.KeyboardSettings.KeyboardEditMode.Set(eKeyboardEditMode.Normal);
+            }
+            else
+            {
+                // Switch to scissor edit mode.
+                SettingState.KeyboardSettings.KeyboardEditMode.Set(eKeyboardEditMode.ScissorMap);
+            }
         }
 
         protected void ClearDataset(object sender, RoutedEventArgs e)

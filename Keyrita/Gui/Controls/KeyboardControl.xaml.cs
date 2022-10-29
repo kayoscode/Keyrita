@@ -2,6 +2,8 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Shapes;
 using Keyrita.Settings;
 using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
@@ -114,12 +116,12 @@ namespace Keyrita.Gui.Controls
         protected void DropKey(object sender, DragEventArgs e)
         {
             StartDragDropData data = (StartDragDropData)e.Data.GetData(DataFormats.Serializable);
-            Point offset = data.ClickedOffset;
             Key key = data.ClickedKey;
             Panel.SetZIndex(key, 0);
             key.IsHitTestVisible = true;
 
             // Reset key to original position.
+            Point offset = data.ClickedOffset;
             Canvas.SetLeft(key, data.StartPosition.X - offset.X);
             Canvas.SetTop(key, data.StartPosition.Y - offset.Y);
         }
@@ -135,14 +137,18 @@ namespace Keyrita.Gui.Controls
             keySize = (int)(mKeyCanvas.ActualWidth / 10.75);
             double fontSize = (((mKeyCanvas.ActualWidth / 12) / 3 * 2) / 5) * 5.5;
 
-            foreach (Key key in mKeyCanvas.Children)
+            foreach (var k in mKeyCanvas.Children)
             {
-                key.Width = keySize;
-                key.Height = keySize;
-                key.mChar.FontSize = fontSize;
+                var key = k as Key;
+                if(key != null)
+                {
+                    key.Width = keySize;
+                    key.Height = keySize;
+                    key.mChar.FontSize = fontSize;
+                }
             }
 
-            SyncWithShape();
+            SyncWithKeyboard();
         }
 
         protected void SyncWithKeyboard(object settingChanged)
@@ -154,30 +160,96 @@ namespace Keyrita.Gui.Controls
         protected void SyncWithKeyboard()
         {
             // Go through each of the children and update with the correct key from the kb setting.
-            int index = 0;
-            foreach (var key in mKeyCanvas.Children)
+            for(int i = 0; i < KeyboardStateSetting.ROWS; i++)
             {
-                int row = index / KeyboardStateSetting.COLS;
-                int col = index % KeyboardStateSetting.COLS;
-                var k = (Key)key;
-                var character = '*';
-                var finger = eFinger.None;
-
-                if(mKeyboardState != null)
+                for(int j = 0; j < KeyboardStateSetting.COLS; j++)
                 {
-                    character = mKeyboardState.GetValueAt(row, col);
-                }
+                    var k = (Key)mKeyCanvas.Children[i * KeyboardStateSetting.COLS + j];
+                    var character = '*';
+                    var finger = eFinger.None;
 
-                if(mKeyMappings != null && ShowFingerUsage != null && ShowFingerUsage.Value.Equals(eOnOff.On))
-                {
-                    finger = mKeyMappings.GetValueAt(row, col);
-                }
+                    if (mKeyboardState != null)
+                    {
+                        character = mKeyboardState.GetValueAt(i, j);
+                    }
 
-                k.KeyCharacter = new KeyCharacterWrapper(character, finger);
-                index++;
+                    if (mKeyMappings != null && ShowFingerUsage != null && ShowFingerUsage.Value.Equals(eOnOff.On))
+                    {
+                        finger = mKeyMappings.GetValueAt(i, j);
+                    }
+
+                    k.KeyCharacter = new KeyCharacterWrapper(character, finger);
+                }
             }
 
             SyncWithShape();
+        }
+
+        protected void SyncWithEditMode(object sender)
+        {
+            SyncWithScissorMap();
+        }
+
+        protected void SyncWithScissorMap()
+        {
+            int lineStartIndex = 0;
+            foreach(UIElement l in mKeyCanvas.Children)
+            {
+                if(l as Line != null)
+                {
+                    break;
+                }
+
+                lineStartIndex++;
+            }
+
+            mKeyCanvas.Children.RemoveRange(lineStartIndex, mKeyCanvas.Children.Count - lineStartIndex);
+
+            // Start by clearing it. And if we are in scissor edit mode, add the components back as expected.
+            if (mEditMode != null && mEditMode.Value.Equals(eKeyboardEditMode.ScissorMap) && mScissorMap != null)
+            {
+                for(int i = 0; i < KeyboardStateSetting.ROWS; i++)
+                {
+                    for(int j = 0; j < KeyboardStateSetting.COLS; j++)
+                    {
+                        var indices = mScissorMap.GetScissorsAt(i, j);
+
+                        for(int k = 0; k < indices.Count; k++)
+                        {
+                            int startChild = i * KeyboardStateSetting.COLS + j;
+                            int endChild = indices[k].Item1 * KeyboardStateSetting.COLS + indices[k].Item2;
+
+                            CreateArrowBetween((Key)mKeyCanvas.Children[startChild], (Key)mKeyCanvas.Children[endChild], mKeyCanvas);
+                        }
+                    }
+                }
+            }
+        }
+
+        // The arrow will point from start to end
+        private void CreateArrowBetween(Key startElement, Key endElemend, Panel parentContainer)
+        {
+            // Center the line horizontally and vertically.
+            // Get the positions of the controls that should be connected by a line.
+            Point centeredArrowStartPosition = startElement.TransformToAncestor(parentContainer)
+              .Transform(new Point(startElement.ActualWidth / 2, startElement.ActualHeight / 2));
+
+            Point centeredArrowEndPosition = endElemend.TransformToAncestor(parentContainer)
+              .Transform(new Point(endElemend.ActualWidth / 2, endElemend.ActualHeight / 2));
+
+            // Draw the line between two controls
+            var arrowLine = new Line()
+            {
+                Stroke = Brushes.Red,
+                StrokeThickness = 3,
+                X1 = centeredArrowStartPosition.X,
+                Y2 = centeredArrowEndPosition.Y,
+                X2 = centeredArrowEndPosition.X,
+                Y1 = centeredArrowStartPosition.Y
+            };
+
+            parentContainer.Children.Add(
+              arrowLine);
         }
 
         private static readonly DependencyProperty KeyboardProperty =
@@ -204,7 +276,7 @@ namespace Keyrita.Gui.Controls
 
             mKeyboardState = newValue;
 
-            if(mKeyboardState != null)
+            if (mKeyboardState != null)
             {
                 mKeyboardState.ValueChangedNotifications.AddGui(SyncWithKeyboard);
                 mKeyboardState.LimitsChangedNotifications.AddGui(SyncWithKeyboard);
@@ -242,13 +314,13 @@ namespace Keyrita.Gui.Controls
             var minOffset = 1.0;
             var maxOffset = -1.0;
 
-            foreach(var offset in RowOffsets)
+            foreach (var offset in RowOffsets)
             {
-                if((double)offset.Value < minOffset)
+                if ((double)offset.Value < minOffset)
                 {
                     minOffset = (double)offset.Value;
                 }
-                else if((double)offset.Value > maxOffset)
+                else if ((double)offset.Value > maxOffset)
                 {
                     maxOffset = (double)offset.Value;
                 }
@@ -258,9 +330,9 @@ namespace Keyrita.Gui.Controls
 
             var offsetDifference = maxOffset - minOffset;
 
-            for(int i = 0; i < KeyboardStateSetting.ROWS; i++)
+            for (int i = 0; i < KeyboardStateSetting.ROWS; i++)
             {
-                for(int j = 0; j < KeyboardStateSetting.COLS; j++)
+                for (int j = 0; j < KeyboardStateSetting.COLS; j++)
                 {
                     var nextKey = mKeyCanvas.Children[keyIndex++];
 
@@ -273,7 +345,7 @@ namespace Keyrita.Gui.Controls
         /// <summary>
         /// Stores the offsets per row.
         /// </summary>
-        protected ConcreteValueSetting<double>[] RowOffsets { get; } = 
+        protected ConcreteValueSetting<double>[] RowOffsets { get; } =
             new ConcreteValueSetting<double>[KeyboardStateSetting.ROWS];
 
         #endregion
@@ -304,7 +376,7 @@ namespace Keyrita.Gui.Controls
 
             mKeyMappings = newValue;
 
-            if(mKeyMappings != null)
+            if (mKeyMappings != null)
             {
                 mKeyMappings.ValueChangedNotifications.AddGui(SyncWithKeyboard);
                 mKeyMappings.LimitsChangedNotifications.AddGui(SyncWithKeyboard);
@@ -327,7 +399,6 @@ namespace Keyrita.Gui.Controls
         protected KeyMappingSetting mKeyMappings;
 
         #endregion
-
 
         #region Show Finger Usage
 
@@ -355,7 +426,7 @@ namespace Keyrita.Gui.Controls
 
             mShowFingerUsage = newValue;
 
-            if(mShowFingerUsage != null)
+            if (mShowFingerUsage != null)
             {
                 mShowFingerUsage.ValueChangedNotifications.AddGui(SyncWithKeyboard);
                 mShowFingerUsage.LimitsChangedNotifications.AddGui(SyncWithKeyboard);
@@ -379,10 +450,110 @@ namespace Keyrita.Gui.Controls
 
         #endregion
 
+        #region Edit Mode
+
+        private static readonly DependencyProperty EditModeProperty =
+            DependencyProperty.Register(nameof(EditMode),
+                                        typeof(EnumValueSetting<eKeyboardEditMode>),
+                                        typeof(KeyboardControl),
+                                        new PropertyMetadata(OnKeyboardEditModeChanged));
+
+        private static void OnKeyboardEditModeChanged(DependencyObject source,
+                                             DependencyPropertyChangedEventArgs e)
+        {
+            var control = source as KeyboardControl;
+            control.UpdateEditMode(e.NewValue as EnumValueSetting<eKeyboardEditMode>);
+        }
+
+        private void UpdateEditMode(EnumValueSetting<eKeyboardEditMode> newValue)
+        {
+            // Unregister setting change listeners.
+            if (mEditMode != null)
+            {
+                mEditMode.ValueChangedNotifications.Remove(SyncWithEditMode);
+                mEditMode.LimitsChangedNotifications.Remove(SyncWithEditMode);
+            }
+
+            mEditMode = newValue;
+
+            if (mEditMode != null)
+            {
+                mEditMode.ValueChangedNotifications.AddGui(SyncWithEditMode);
+                mEditMode.LimitsChangedNotifications.AddGui(SyncWithEditMode);
+                SyncWithKeyboard();
+            }
+        }
+
+        public EnumValueSetting<eKeyboardEditMode> EditMode
+        {
+            get
+            {
+                return mEditMode;
+            }
+            set
+            {
+                SetValue(EditModeProperty, value);
+            }
+        }
+
+        protected EnumValueSetting<eKeyboardEditMode> mEditMode;
+
+        #endregion
+
+        #region Scissor map
+
+        private static readonly DependencyProperty ScissorMapProperty =
+            DependencyProperty.Register(nameof(ScissorMap),
+                                        typeof(ScissorMapSetting),
+                                        typeof(KeyboardControl),
+                                        new PropertyMetadata(OnScissorMapSettingChanged));
+
+        private static void OnScissorMapSettingChanged(DependencyObject source,
+                                             DependencyPropertyChangedEventArgs e)
+        {
+            var control = source as KeyboardControl;
+            control.UpdateScissorMap(e.NewValue as ScissorMapSetting);
+        }
+
+        private void UpdateScissorMap(ScissorMapSetting newValue)
+        {
+            // Unregister setting change listeners.
+            if (mScissorMap != null)
+            {
+                mScissorMap.ValueChangedNotifications.Remove(SyncWithEditMode);
+                mScissorMap.LimitsChangedNotifications.Remove(SyncWithEditMode);
+            }
+
+            mScissorMap = newValue;
+
+            if (mScissorMap != null)
+            {
+                mScissorMap.ValueChangedNotifications.AddGui(SyncWithEditMode);
+                mScissorMap.LimitsChangedNotifications.AddGui(SyncWithEditMode);
+                SyncWithKeyboard();
+            }
+        }
+
+        public ScissorMapSetting ScissorMap
+        {
+            get
+            {
+                return mScissorMap;
+            }
+            set
+            {
+                SetValue(ScissorMapProperty, value);
+            }
+        }
+
+        protected ScissorMapSetting mScissorMap;
+
+        #endregion
+
         protected override void OnClose()
         {
-            // Remove row listeners
-            for(int i = 0; i < KeyboardStateSetting.ROWS; i++)
+            // Remove row listeners.
+            for (int i = 0; i < KeyboardStateSetting.ROWS; i++)
             {
                 RowOffsets[i] = SettingState.MeasurementSettings.RowOffsets[i];
                 RowOffsets[i].LimitsChangedNotifications.Remove(SyncWithShape);
@@ -392,6 +563,8 @@ namespace Keyrita.Gui.Controls
             KeyboardState = null;
             KeyMappings = null;
             ShowFingerUsage = null;
+            EditMode = null;
+            ScissorMap = null;
         }
     }
 }

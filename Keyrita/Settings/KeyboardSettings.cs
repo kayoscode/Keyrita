@@ -42,6 +42,33 @@ namespace Keyrita.Settings
         StandardView,
     }
 
+    public enum eKeyboardEditMode
+    {
+        /// <summary>
+        /// Editing by moving keys around.
+        /// </summary>
+        Normal,
+        /// <summary>
+        /// Editing by changing the effort value for pressing each key.
+        /// </summary>
+        EffortMap,
+        /// <summary>
+        /// Editing by changing the scissor map.
+        /// </summary>
+        ScissorMap
+    }
+
+    /// <summary>
+    /// All options are valid at all times.
+    /// </summary>
+    public class KeyboardEditMode : EnumValueSetting<eKeyboardEditMode>
+    {
+        public KeyboardEditMode() 
+            : base("Edit Mode", eKeyboardEditMode.Normal, eSettingAttributes.Recall)
+        {
+        }
+    }
+
     /// <summary>
     /// Whether or not to show which fingers are being used.
     /// </summary>

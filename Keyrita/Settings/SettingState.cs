@@ -47,6 +47,12 @@ namespace Keyrita.Settings
 
         public SelectedKeySetting SelectedKey { get; } =
             new SelectedKeySetting();
+
+        public ScissorMapSetting ScissorMap { get; } =
+            new ScissorMapSetting();
+
+        public EnumValueSetting<eKeyboardEditMode> KeyboardEditMode { get; } =
+            new KeyboardEditMode();
     }
 
     /// <summary>

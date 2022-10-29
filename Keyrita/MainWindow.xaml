@@ -30,6 +30,13 @@
                                       Click="LoadDataset"/>
                 <MenuItem Header="_Clear Dataset"
                                       Click="ClearDataset"/>
+                <MenuItem Header="Load Components"
+                          ToolTip="Loads only specific components from the selected file">
+                    <MenuItem Header="Load Layout"></MenuItem>
+                    <MenuItem Header="Load Dataset"></MenuItem>
+                    <MenuItem Header="Load Effort Map"></MenuItem>
+                    <MenuItem Header="Load Scissor Map"></MenuItem>
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="Edit">
                 <MenuItem Header="_Undo"
@@ -51,8 +58,11 @@
                                    x:Name="mHeatMapSetting"/>
             </MenuItem>
             <MenuItem Header="Analyze">
-                <MenuItem Header="_Configure"/>
-                <MenuItem Header="_Measurements"/>
+                <MenuItem Header="_Configure">
+                    <MenuItem Header="Effort Map"></MenuItem>
+                    <MenuItem Header="Scissor Map"
+                              Click="SetConfScissorMap"></MenuItem>
+                </MenuItem>
                 <MenuItem Header="Generate"></MenuItem>
             </MenuItem>
         </Menu>

@@ -193,6 +193,46 @@ namespace Keyrita.Serialization
     }
 
     /// <summary>
+    /// Converts an int tuple to text and vice versa
+    /// </summary>
+    public class IntTuple2Serializer : TextSerializer, ITextSerializer<(int, int)>
+    {
+        public override string ToText(object obj)
+        {
+            return ToText(obj);
+        }
+
+        public string ToText((int, int) obj)
+        {
+            return $"({obj.Item1},{obj.Item2})";
+        }
+
+        public override bool TryParse(string text, out object obj)
+        {
+            return TryParse(text, out obj);
+        }
+
+        public bool TryParse(string text, out (int, int) obj)
+        {
+            if(text.Length >= 1)
+            {
+                string[] values = text.Substring(1, text.Length - 2).Split(",");
+
+                if(values.Length == 2)
+                {
+                    var item1 = int.Parse(values[0]);
+                    var item2 = int.Parse(values[1]);
+                    obj = (item1, item2);
+                    return true;
+                }
+            }
+
+            obj = default((int, int));
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Class storing a dictionary mapping a type to a serializer.
     /// </summary>
     public static class TextSerializers
@@ -203,7 +243,8 @@ namespace Keyrita.Serialization
             { typeof(eFinger), new FingerSerializer() },
             { typeof(char), new CharSerializer() },
             { typeof(uint), new UIntSerializer() },
-            { typeof(double), new DoubleSerializer() }
+            { typeof(double), new DoubleSerializer() },
+            { typeof((int, int)), new IntTuple2Serializer() }
         };
 
         /// <summary>
