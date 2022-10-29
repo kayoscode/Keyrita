@@ -160,6 +160,39 @@ namespace Keyrita.Serialization
     }
 
     /// <summary>
+    /// Converts a char to text and vice versa.
+    /// </summary>
+    public class DoubleSerializer : TextSerializer, ITextSerializer<double>
+    {
+        public override string ToText(object obj)
+        {
+            return ToText(obj);
+        }
+
+        public string ToText(double obj)
+        {
+            return $"{obj}";
+        }
+
+        public override bool TryParse(string text, out object obj)
+        {
+            return TryParse(text, out obj);
+        }
+
+        public bool TryParse(string text, out double obj)
+        {
+            if(text.Length >= 1)
+            {
+                obj = double.Parse(text);
+                return true;
+            }
+
+            obj = default(double);
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Class storing a dictionary mapping a type to a serializer.
     /// </summary>
     public static class TextSerializers
@@ -169,7 +202,8 @@ namespace Keyrita.Serialization
             { typeof(Enum), new EnumSerializer() },
             { typeof(eFinger), new FingerSerializer() },
             { typeof(char), new CharSerializer() },
-            { typeof(uint), new UIntSerializer() }
+            { typeof(uint), new UIntSerializer() },
+            { typeof(double), new DoubleSerializer() }
         };
 
         /// <summary>

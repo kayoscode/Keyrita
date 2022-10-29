@@ -39,8 +39,10 @@ namespace Keyrita.Operations
                     return new FingerBalance();
                 case eMeasurements.HomeRowUsage:
                     return new HomeUsage();
-                case eMeasurements.FingerSpeed:
-                    return new FingerSpeed();
+                case eMeasurements.FingerLag:
+                    return new FingerLag();
+                case eMeasurements.Scissors:
+                    return new Scissors();
                 default:
                     return null;
             }
@@ -77,8 +79,10 @@ namespace Keyrita.Operations
                     return new TrigramStats();
                 case eInputNodes.FingerAsIntToHomePosition:
                     return new FingerAsIntToHomePosition();
-                case eInputNodes.SameFingerStats:
-                    return new FindSameFingerStats();
+                case eInputNodes.TwoFingerStats:
+                    return new TwoFingerStats();
+                case eInputNodes.KeySpeed:
+                    return new KeySpeed();
                 default:
                     return null;
             }

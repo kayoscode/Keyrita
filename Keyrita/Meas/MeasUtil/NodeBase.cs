@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Keyrita.Settings;
 using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
 
@@ -22,6 +23,31 @@ namespace Keyrita.Operations.OperationUtil
         {
             this.ResultId = resultId;
         }
+    }
+
+    /// <summary>
+    /// Class used by measurements. Each key needs to report how much it contributes to the total 
+    /// score in order for generate to function properly.
+    /// </summary>
+    public abstract class PerKeyAnalysisResult : AnalysisResult
+    {
+        protected PerKeyAnalysisResult(Enum resultId) : base(resultId)
+        {
+        }
+
+        public void Clear()
+        {
+            for(int i = 0; i < KeyboardStateSetting.ROWS; i++)
+            {
+                for(int j = 0; j < KeyboardStateSetting.COLS; j++)
+                {
+                    PerKeyResult[i, j] = 0;
+                }
+            }
+        }
+
+        // Each key is given a total sfb score. Needed for finding the worst keys on the keyboard.
+        public double[,] PerKeyResult { get; private set; } = new double[KeyboardStateSetting.ROWS, KeyboardStateSetting.COLS];
     }
 
     /// <summary>
@@ -58,7 +84,7 @@ namespace Keyrita.Operations.OperationUtil
             NodeId = id;
         }
 
-        public void PerformOp()
+        public void PerformComputation()
         {
             Compute();
             ValueChangedNotifications.NotifyGui(this);

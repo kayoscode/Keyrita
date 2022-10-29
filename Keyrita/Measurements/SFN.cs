@@ -27,29 +27,29 @@ namespace Keyrita.Measurements
 
         public Sfbs() : base(eMeasurements.SameFingerBigram)
         {
-            AddInputNode(eInputNodes.SameFingerStats);
+            AddInputNode(eInputNodes.TwoFingerStats);
             mResult = new SFBResult(this.NodeId);
         }
 
         protected override void Compute()
         {
-            var sfs = (SameFingerStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.SameFingerStats];
+            var tfs = (TwoFingerStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TwoFingerStats];
             double totalBigramCount = (double)SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
 
-            mResult.TotalResult = sfs.TotalSfbs / totalBigramCount * 100;
+            mResult.TotalResult = tfs.TotalSfbs / totalBigramCount * 100;
 
             int resultIdx = 0;
             foreach(eFinger finger in Utils.GetTokens<eFinger>())
             {
-                double fingerSfbs = ((double)sfs.SfbsPerFinger[resultIdx] / totalBigramCount) * 100;
+                double fingerSfbs = ((double)tfs.SfbsPerFinger[resultIdx] / totalBigramCount) * 100;
                 mResult.PerFingerResult[resultIdx] = fingerSfbs;
                 SetFingerResult(finger, fingerSfbs);
 
                 resultIdx++;
             }
 
-            mResult.PerHandResult[(int)eHand.Left] = sfs.SfbsPerHand[(int)eHand.Left] / totalBigramCount * 100;
-            mResult.PerHandResult[(int)eHand.Right] = sfs.SfbsPerHand[(int)eHand.Right] / totalBigramCount * 100;
+            mResult.PerHandResult[(int)eHand.Left] = tfs.SfbsPerHand[(int)eHand.Left] / totalBigramCount * 100;
+            mResult.PerHandResult[(int)eHand.Right] = tfs.SfbsPerHand[(int)eHand.Right] / totalBigramCount * 100;
 
             SetLeftHandResult(mResult.PerHandResult[(int)eHand.Left]);
             SetRightHandResult(mResult.PerHandResult[(int)eHand.Right]);
@@ -77,13 +77,13 @@ namespace Keyrita.Measurements
 
         public Sfss() : base(eMeasurements.SameFingerSkipgrams)
         {
-            AddInputNode(eInputNodes.SameFingerStats);
+            AddInputNode(eInputNodes.TwoFingerStats);
             mResult = new SFSResult(NodeId);
         }
 
         protected override void Compute()
         {
-            var sameFingerStats = (SameFingerStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.SameFingerStats];
+            var sameFingerStats = (TwoFingerStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TwoFingerStats];
             double totalSg2Hits = (double)SettingState.MeasurementSettings.CharFrequencyData.Skipgram2HitCount;
 
             mResult.TotalResult = sameFingerStats.TotalSfs / totalSg2Hits * 100;

@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Xml;
 using Keyrita.Gui;
+using Keyrita.Serialization;
 using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
 
@@ -65,6 +68,29 @@ namespace Keyrita.Settings
             eHand.Right,
         };
 
+        public static double[,,,] MovementDistance =
+            new double[KeyboardStateSetting.ROWS, KeyboardStateSetting.COLS, KeyboardStateSetting.ROWS, KeyboardStateSetting.COLS];
+
+        static FingerUtil()
+        {
+            for (int startx = 0; startx < 3; startx++)
+            {
+                for (int starty = 0; starty < 10; starty++)
+                {
+                    for (int endx = 0; endx < 3; endx++)
+                    {
+                        for (int endy = 0; endy < 10; endy++)
+                        {
+                            double x_dist = (endx - startx);
+                            double y_dist = (endy - starty);
+                            double distance = Math.Pow(x_dist * x_dist + y_dist * y_dist, .65);
+                            MovementDistance[startx, starty, endx, endy] = distance;
+                        }
+                    }
+                }
+            }
+        }
+
         public static eHand GetHandForFingerAsInt(int finger)
         {
             return mFingerToHand[finger];
@@ -84,7 +110,7 @@ namespace Keyrita.Settings
     /// </summary>
     public class FingerHomePositionSetting : PerkeySetting<eFinger>
     {
-        public FingerHomePositionSetting() 
+        public FingerHomePositionSetting()
             : base("Finger Home Position", eSettingAttributes.Recall)
         {
         }
@@ -92,9 +118,9 @@ namespace Keyrita.Settings
         public override void SetToDefault()
         {
             // Just standard homerow qwerty.
-            for(int i = 0; i < ROWS; i++)
+            for (int i = 0; i < ROWS; i++)
             {
-                for(int j = 0; j < COLS; j++)
+                for (int j = 0; j < COLS; j++)
                 {
                     mDesiredKeyState[i, j] = eFinger.None;
                 }
@@ -106,7 +132,7 @@ namespace Keyrita.Settings
             mDesiredKeyState[1, 3] = eFinger.LeftIndex;
 
             // Thumbs are always on the space bar, and we will always make that assumption.
-            
+
             mDesiredKeyState[1, 6] = eFinger.RightIndex;
             mDesiredKeyState[1, 7] = eFinger.RightMiddle;
             mDesiredKeyState[1, 8] = eFinger.RightRing;
@@ -122,7 +148,7 @@ namespace Keyrita.Settings
     /// </summary>
     public class KeyMappingSetting : PerkeySetting<eFinger>
     {
-        public KeyMappingSetting() 
+        public KeyMappingSetting()
             : base("Key to Finger Mappings", eSettingAttributes.None)
         {
         }
@@ -138,12 +164,12 @@ namespace Keyrita.Settings
             var fhs = SettingState.FingerSettings.FingerHomePosition;
 
             Dictionary<eFinger, (int row, int col)> fingerPositions = new Dictionary<eFinger, (int row, int col)>();
-            for(int i = 0; i < ROWS; i++)
+            for (int i = 0; i < ROWS; i++)
             {
-                for(int j = 0; j < COLS; j++)
+                for (int j = 0; j < COLS; j++)
                 {
                     eFinger finger = fhs.GetValueAt(i, j);
-                    if(finger != eFinger.None)
+                    if (finger != eFinger.None)
                     {
                         fingerPositions[finger] = (i, j);
                     }
@@ -165,13 +191,13 @@ namespace Keyrita.Settings
                         eFinger minFinger = eFinger.None;
                         double minFingerDistance = 1000;
 
-                        foreach(var kvp in fingerPositions)
+                        foreach (var kvp in fingerPositions)
                         {
                             double dr = (i - kvp.Value.row);
                             double dc = (j - kvp.Value.col);
                             double distance = Math.Sqrt(dr * dr + dc * dc);
 
-                            if(distance < minFingerDistance)
+                            if (distance < minFingerDistance)
                             {
                                 minFingerDistance = distance;
                                 minFinger = kvp.Key;
@@ -189,6 +215,179 @@ namespace Keyrita.Settings
         public override void SetToDefault()
         {
             // No default value.
+        }
+    }
+
+    /// <summary>
+    /// Weights describing the penalty for having an same finger grams on each finger.
+    /// </summary>
+    public class FingerWeights : PerFingerSetting<double>
+    {
+        public FingerWeights()
+            : base("Finger Speed Weights", eSettingAttributes.Recall)
+        {
+        }
+
+        public override void SetToDefault()
+        {
+            mDesiredState[(int)eFinger.None] = 0;
+            mDesiredState[(int)eFinger.LeftPinkie] = 2.0;
+            mDesiredState[(int)eFinger.LeftRing] = 1.35;
+            mDesiredState[(int)eFinger.LeftMiddle] = 1.1;
+            mDesiredState[(int)eFinger.LeftIndex] = 1;
+
+            mDesiredState[(int)eFinger.RightRing] = 1;
+            mDesiredState[(int)eFinger.RightMiddle] = 1.1;
+            mDesiredState[(int)eFinger.RightIndex] = 1.35;
+            mDesiredState[(int)eFinger.RightPinkie] = 2.0;
+
+            SetToDesiredValue();
+        }
+    }
+
+    /// <summary>
+    /// A class to define values of a specific type per finger.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public abstract class PerFingerSetting<T> : SettingBase
+    {
+        public static int FINGER_COUNT { get; } = Utils.GetTokens<eFinger>().Count();
+
+        public PerFingerSetting(string settingName, eSettingAttributes attributes) :
+            base(settingName, attributes)
+        {
+        }
+
+        protected T[] mState = new T[FINGER_COUNT];
+        protected T[] mNewState = new T[FINGER_COUNT];
+        protected T[] mPendingState = new T[FINGER_COUNT];
+        protected T[] mDesiredState = new T[FINGER_COUNT];
+
+        public override bool HasValue => mState != null;
+        protected override bool ValueHasChanged => StateMatches(mPendingState, mState) > 0;
+
+        protected override void Load(string text)
+        {
+            string[] state = text.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+
+            int index = 0;
+
+            foreach (string s in state)
+            {
+                if (TextSerializers.TryParse(s, out T nextCharacter))
+                {
+                    mDesiredState[index] = nextCharacter;
+                }
+
+                index++;
+            }
+        }
+
+        protected override void Save(XmlWriter writer)
+        {
+            // Convert the enum value to a string and write it to the stream writer.
+            for (int i = 0; i < FINGER_COUNT; i++)
+            {
+                writer.WriteString(TextSerializers.ToText(mState[i]));
+                writer.WriteString(" ");
+            }
+        }
+
+        protected override void Action()
+        {
+        }
+
+        /// <summary>
+        /// Returns the character at a specified index.
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="col"></param>
+        /// <returns></returns>
+        public T GetValueAt(eFinger finger)
+        {
+            return mState[(int)finger];
+        }
+
+        public T GetValueAt(int finger)
+        {
+            return mState[finger];
+        }
+
+        protected override sealed void ChangeLimits()
+        {
+            ChangeLimits(mNewState);
+        }
+
+        protected virtual void ChangeLimits(T[] values)
+        {
+        }
+
+        /// <summary>
+        /// Sets the keyboard layout to desired.
+        /// </summary>
+        public override sealed void SetToDesiredValue()
+        {
+            CopyState(mPendingState, mDesiredState);
+            TrySetToPending();
+        }
+
+
+        protected override sealed void SetToNewLimits()
+        {
+            // Copy the pending board to the new layout.
+            CopyState(mPendingState, mNewState);
+            TrySetToPending();
+        }
+
+        protected override void TrySetToPending(bool userInitiated = false)
+        {
+            // If the pending keyboard state does not match the current keyboard state, start a setting transaction.
+            var count = StateMatches(mPendingState, mState);
+
+            if (count != 0)
+            {
+                var description = $"Changing {count} keys";
+
+                SettingTransaction(description, userInitiated, () =>
+                {
+                    CopyState(mState, mPendingState);
+                });
+            }
+        }
+
+        /// <summary>
+        /// Copies state 2 to state 1
+        /// </summary>
+        /// <param name="kb1"></param>
+        /// <param name="kb2"></param>
+        protected static void CopyState(T[] s1, T[] s2)
+        {
+            for (int i = 0; i < FINGER_COUNT; i++)
+            {
+                s1[i] = s2[i];
+            }
+        }
+
+        /// <summary>
+        /// Returns whether two states are the same
+        /// Specifically returns the number of items that don't match.
+        /// </summary>
+        /// <param name="kb1"></param>
+        /// <param name="kb2"></param>
+        /// <returns></returns>
+        public static int StateMatches(T[] s1, T[] s2)
+        {
+            var count = 0;
+
+            for (int i = 0; i < FINGER_COUNT; i++)
+            {
+                if (!EqualityComparer<T>.Default.Equals(s1[i], s2[i]))
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
     }
 }

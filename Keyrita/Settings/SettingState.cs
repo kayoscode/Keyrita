@@ -134,6 +134,9 @@ namespace Keyrita.Settings
 
         public KeyMappingSetting KeyMappings { get; } =
             new KeyMappingSetting();
+
+        public FingerWeights FingerWeights { get; } =
+            new FingerWeights();
     }
 
     /// <summary>

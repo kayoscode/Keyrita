@@ -81,13 +81,13 @@ namespace Keyrita.Settings
         public void TurnMeasOn()
         {
             this.PendingValue = eOnOff.On;
-            this.TrySetToPending();
+            this.TrySetToPending(true);
         }
 
         public void TurnMeasOff()
         {
             this.PendingValue = eOnOff.Off;
-            this.TrySetToPending();
+            this.TrySetToPending(true);
         }
     }
 }

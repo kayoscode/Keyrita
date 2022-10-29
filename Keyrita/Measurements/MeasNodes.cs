@@ -31,8 +31,10 @@ namespace Keyrita.Measurements
         OneHands,
         [UIData("Home Usage", "Shows how often a finger leaves its starting row")]
         HomeRowUsage,
-        [UIData("Finger speed", "Shows the speed you can expect from each finger")]
-        FingerSpeed,
+        [UIData("Finger lag", "Shows how slow each finger will feel while typing")]
+        FingerLag,
+        [UIData("Scissors", "When an adjacent finger jumps up or down 2 rows from the previous key")]
+        Scissors,
         [UIData("Score", "Based on custom weights, shows the score of the keyboard")]
         LayoutScore,
     }
@@ -44,8 +46,9 @@ namespace Keyrita.Measurements
             eMeasurements.SameFingerBigram,
             eMeasurements.SameFingerSkipgrams,
             eMeasurements.FingerBalance,
-            eMeasurements.FingerSpeed,
-            eMeasurements.HomeRowUsage
+            eMeasurements.FingerLag,
+            eMeasurements.HomeRowUsage,
+            eMeasurements.Scissors,
         };
 
         public static IEnumerable<eMeasurements> DynamicMeasurements = new List<eMeasurements>()

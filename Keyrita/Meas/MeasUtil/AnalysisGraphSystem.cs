@@ -96,7 +96,7 @@ namespace Keyrita.Operations.OperationUtil
                 ResolveNode(ActiveNodes[depNode]);
             }
 
-            op.PerformOp();
+            op.PerformComputation();
             var result = op.GetResult();
 
             LogUtils.Assert(result != null);
