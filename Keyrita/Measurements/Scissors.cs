@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Keyrita.Operations;
 using Keyrita.Operations.OperationUtil;
@@ -33,60 +34,92 @@ namespace Keyrita.Measurements
             AddInputNode(eInputNodes.KeyToFingerAsInt);
         }
 
+        protected void HandleCharSwap(byte ch1, byte ch2, List<(int, int)> si,
+            int k1i, int k1j, int k2i, int k2j)
+        {
+            var kb = mKbState.TransformedKbState;
+            var bgFreq = SettingState.MeasurementSettings.CharFrequencyData.BigramFreq;
+            double totalBg = SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
+
+            for(int k = 0; k < si.Count; k++)
+            {
+                var otherKeyPos = si[k];
+                var otherKey = kb[otherKeyPos.Item1][otherKeyPos.Item2];
+                mResult.PerKeyResult[k1i, k1j] -= (bgFreq[otherKey, ch1] / totalBg);
+                mResult.PerKeyResult[k1i, k1j] += (bgFreq[otherKey, ch2] / totalBg);
+
+                // Handle the inverse.
+                mResult.PerKeyResult[otherKeyPos.Item1, otherKeyPos.Item2] -= (bgFreq[ch1, otherKey] / totalBg);
+                mResult.PerKeyResult[otherKeyPos.Item1, otherKeyPos.Item2] += (bgFreq[ch2, otherKey] / totalBg);
+            }
+        }
+
+        public override bool RespondsToGenerateSwapKeysEvent => true;
+        public override void SwapKeys(int k1i, int k1j, int k2i, int k2j)
+        {
+            // Only need to update the scissors total. Which means subtract the previous scissors from the new one.
+            // NOTE: the keyboard state has already changed, so subtract the indices from the previous position instead of the new position.
+            var kb = mKbState.TransformedKbState;
+
+            var bgFreq = SettingState.MeasurementSettings.CharFrequencyData.BigramFreq;
+            double totalBg = SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
+            var scissorIndices = SettingState.KeyboardSettings.ScissorMap;
+
+            var ch1 = kb[k2i][k2j];
+            var ch2 = kb[k1i][k1j];
+
+            // The scissor map includes the scissor indices going into that key.
+            // The scissor map is its own inverse, so update the inverse positions as well.
+            var si1 = scissorIndices.GetScissorsAt(k1i, k1j);
+            var si2 = scissorIndices.GetScissorsAt(k2i, k2j);
+
+            HandleCharSwap(ch1, ch2, si1, k1i, k1j, k2i, k2j);
+            HandleCharSwap(ch2, ch1, si2, k2i, k2j, k1i, k1j);
+        }
+
         public override AnalysisResult GetResult()
         {
             return mResult;
         }
 
+        private TransformedKbStateResult mKbState;
+        private KeyToFingerAsIntResult mK2f;
+
         protected override void Compute()
         {
             mResult = new ScissorsResult(NodeId);
-            var kbState = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
-            var kb = kbState.TransformedKbState;
+            mKbState = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
+            var kb = mKbState.TransformedKbState;
 
-            var k2f = (KeyToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyToFingerAsInt];
-            var keyToFinger = k2f.KeyToFinger;
+            mK2f = (KeyToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyToFingerAsInt];
+            var keyToFinger = mK2f.KeyToFinger;
 
             var bgFreq = SettingState.MeasurementSettings.CharFrequencyData.BigramFreq;
             var totalBg = SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
+            var scissorIndices = SettingState.KeyboardSettings.ScissorMap;
 
             // We only care about the top and bottoms rows. Scissors will obviously be much lower for the pinkies. But
             // that does mean more common keys might go in those slots
-            for(int i = 0; i < KeyboardStateSetting.ROWS; i += 2)
+            for (int i = 0; i < KeyboardStateSetting.ROWS; i++) 
             {
                 for(int j = 0; j < KeyboardStateSetting.COLS; j++)
                 {
                     long scissorTotal = 0;
-
-                    // Generate scissor positions.
-                    int scissory = 0;
-                    if(i == 0)
-                    {
-                        scissory = 2;
-                    }
-
-                    int scissorx1 = j - 1;
-                    int scissorx2 = j + 1;
-
-                    // Handle left scissor. Note: This is intentionally the amount of scissors COMING to that key, not from it.
-                    if(scissorx1 >= 0)
-                    {
-                        scissorTotal += bgFreq[kb[scissory][scissorx1], kb[i][j]];
-                    }
-                    // Handle the right scissor.
-                    if (scissorx2 < KeyboardStateSetting.COLS)
-                    {
-                        scissorTotal += bgFreq[kb[scissory][scissorx2], kb[i][j]];
-                    }
-
+                    var si = scissorIndices.GetScissorsAt(i, j);
                     var finger = keyToFinger[i][j];
                     var hand = FingerUtil.GetHandForFingerAsInt(finger);
+
+                    for(int k = 0; k < si.Count; k++)
+                    {
+                        scissorTotal += bgFreq[kb[si[k].Item1][si[k].Item2], kb[i][j]];
+                    }
+
                     mResult.TotalResult += scissorTotal;
                     mResult.PerFingerResult[finger] += scissorTotal;
                     mResult.PerHandResult[(int)hand] += scissorTotal;
 
                     // Set the value for this key and normalize.
-                    mResult.PerKeyResult[i, j] = scissorTotal / (double)totalBg;
+                    mResult.PerKeyResult[i, j] = scissorTotal;
                 }
             }
 

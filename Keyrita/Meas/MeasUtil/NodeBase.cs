@@ -76,6 +76,14 @@ namespace Keyrita.Operations.OperationUtil
         public IList<Enum> Inputs { get; private set; } = new List<Enum>();
 
         /// <summary>
+        /// Indicates whether this operator will respond to the simple swap keys analysis event.
+        /// </summary>
+        public abstract bool RespondsToGenerateSwapKeysEvent { get; }
+        public virtual void SwapKeys(int k1i, int k1j, int k2i, int k2j)
+        {
+        }
+
+        /// <summary>
         /// Standard constructor.
         /// Input operations should be added in the constructor.
         /// </summary>

@@ -53,11 +53,7 @@ namespace Keyrita.Settings
                 }
             }
 
-            // NOTE: These scissors are notated as, the key being pressed after i, j is 
-            // a scissor if scissors[i, j] == ki, kj
-            // Top row.
-            // Example: 1, 1 is a scissor if it comes from 0, 0
-            // and 1, 2 is a scissor if it comes from 0, 0
+            // The indices listed for each key indicate that the scissors for that key should accumulate all of them. Key 0, 0 gets scissors from 1, 1 and 2, 1 
             AddScissorIndices((0, 0), (1, 1));
             AddScissorIndices((0, 0), (2, 1));
 

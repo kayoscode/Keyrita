@@ -78,6 +78,8 @@ namespace Keyrita.Measurements
         {
         }
 
+        public override bool RespondsToGenerateSwapKeysEvent => false;
+
         #region Measurement Display Contract
 
         public abstract uint NumUICols { get; }

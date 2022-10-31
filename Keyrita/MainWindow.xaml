@@ -63,7 +63,8 @@
                     <MenuItem Header="Scissor Map"
                               Click="SetConfScissorMap"></MenuItem>
                 </MenuItem>
-                <MenuItem Header="Generate"></MenuItem>
+                <MenuItem Header="Generate"
+                          Click="StartGenerate"></MenuItem>
             </MenuItem>
         </Menu>
         <local:SetProgressBar   x:Name="mLoadDatasetProgressBar"
