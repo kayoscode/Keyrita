@@ -40,24 +40,34 @@ namespace Keyrita.Operations
             AddInputNode(eInputNodes.TransformedCharacterToFingerAsInt);
         }
 
+        public override bool RespondsToGenerateSwapKeysEvent => true;
+        public override void SwapKeys(int k1i, int k1j, int k2i, int k2j)
+        {
+            // Trying to do something to make alternations work, lets see what happens.
+
+        }
+
         public override AnalysisResult GetResult()
         {
             return mResult;
         }
 
+        private TransformedCharacterToFingerAsIntResult mC2f;
+        private TransformedKbStateResult mKb;
+        private BigramClassificationResult mBgc;
+
         protected override void Compute()
         {
-            TransformedCharacterToFingerAsIntResult c2f = (TransformedCharacterToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransformedCharacterToFingerAsInt];
-            var charToFinger = c2f.CharacterToFinger;
+            mC2f = (TransformedCharacterToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransformedCharacterToFingerAsInt];
+            var charToFinger = mC2f.CharacterToFinger;
 
-            TransformedKbStateResult transformedKbState = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
-            var transformedKb = transformedKbState.TransformedKbState;
+            mKb = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
+            var transformedKb = mKb.TransformedKbState;
 
-            BigramClassificationResult bgc = (BigramClassificationResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.BigramClassification];
-            var bigramClassif = bgc.BigramClassifications;
+            mBgc = (BigramClassificationResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.BigramClassification];
+            var bigramClassif = mBgc.BigramClassifications;
 
             uint[,,] trigramFreq = SettingState.MeasurementSettings.CharFrequencyData.TrigramFreq;
-            long totalTrigrams = SettingState.MeasurementSettings.CharFrequencyData.TrigramHitCount;
 
             // Index 0 is for the total, index 1 is for in rolls and index 2 is for out rolls.
             long totalInRolls = 0;
@@ -170,14 +180,14 @@ namespace Keyrita.Operations
                 }
             }
 
-            mResult.TotalRolls = ((totalInRolls + totalOutRolls) / (double)totalTrigrams) * 100;
-            mResult.InRolls = totalInRolls / (double)totalTrigrams * 100;
-            mResult.OutRolls = totalOutRolls / (double)totalTrigrams * 100;
-            mResult.TotalAlternations = totalAlternations / (double)totalTrigrams * 100;
-            mResult.TotalRedirects = totalRedirects / (double)totalTrigrams * 100;
-            mResult.TotalOneHands = totalOneHands / (double)totalTrigrams * 100;
-            mResult.OneHandsLeft = oneHandsLeft / (double)totalTrigrams * 100;
-            mResult.OneHandsRight = oneHandsRight / (double)totalTrigrams * 100;
+            mResult.TotalRolls = totalInRolls + totalOutRolls;
+            mResult.InRolls = totalInRolls;
+            mResult.OutRolls = totalOutRolls;
+            mResult.TotalAlternations = totalAlternations;
+            mResult.TotalRedirects = totalRedirects;
+            mResult.TotalOneHands = totalOneHands;
+            mResult.OneHandsLeft = oneHandsLeft;
+            mResult.OneHandsRight = oneHandsRight;
         }
     }
 }

@@ -81,8 +81,10 @@ namespace Keyrita.Operations
                     return new FingerAsIntToHomePosition();
                 case eInputNodes.TwoFingerStats:
                     return new TwoFingerStats();
-                case eInputNodes.KeySpeed:
+                case eInputNodes.KeyLag:
                     return new KeySpeed();
+                case eInputNodes.SameFingerMap:
+                    return new SameFingerMap();
                 default:
                     return null;
             }

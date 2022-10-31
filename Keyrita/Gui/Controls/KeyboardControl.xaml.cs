@@ -149,6 +149,7 @@ namespace Keyrita.Gui.Controls
             }
 
             SyncWithKeyboard();
+            SyncWithEditMode(null);
         }
 
         protected void SyncWithKeyboard(object settingChanged)
@@ -248,6 +249,7 @@ namespace Keyrita.Gui.Controls
                 Y1 = centeredArrowStartPosition.Y
             };
 
+            arrowLine.IsHitTestVisible = false;
             parentContainer.Children.Add(
               arrowLine);
         }

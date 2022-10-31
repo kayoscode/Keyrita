@@ -1,4 +1,5 @@
-﻿using Keyrita.Gui.Dialogs;
+﻿using Keyrita.Generate;
+using Keyrita.Gui.Dialogs;
 using Keyrita.Settings;
 using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
@@ -140,6 +141,14 @@ namespace Keyrita
                 // Switch to scissor edit mode.
                 SettingState.KeyboardSettings.KeyboardEditMode.Set(eKeyboardEditMode.ScissorMap);
             }
+        }
+
+        protected void StartGenerate(object sender, RoutedEventArgs e)
+        {
+            // Lock out app control by switching to a new mode.
+            // Start generate on thread.
+            GenerateLayout gl = new GenerateLayout();
+            gl.GenerateBetterLayout();
         }
 
         protected void ClearDataset(object sender, RoutedEventArgs e)

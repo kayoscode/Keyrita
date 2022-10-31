@@ -23,7 +23,7 @@ namespace Keyrita.Measurements
 
         public FingerLag() : base(eMeasurements.FingerLag)
         {
-            AddInputNode(eInputNodes.KeySpeed);
+            AddInputNode(eInputNodes.KeyLag);
             AddInputNode(eInputNodes.KeyToFingerAsInt);
         }
 
@@ -31,7 +31,7 @@ namespace Keyrita.Measurements
         {
             mResult = new FingerLagResult(NodeId);
 
-            var ks = (KeySpeedResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeySpeed];
+            var ks = (KeySpeedResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyLag];
             var keySpeed = ks.PerKeyResult;
 
             var k2f = (KeyToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyToFingerAsInt];

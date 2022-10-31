@@ -2,10 +2,45 @@
 <Settings>
   <KeyboardShape>Keyrita.Settings.eKeyboardShape ANSI</KeyboardShape>
   <Language>Keyrita.Settings.eLang English</Language>
-  <KeyboardState>x l c w k z f u y ; o r s t m b n e i a q j v d g p h ' , . </KeyboardState>
+  <KeyboardState>z d l c v q f u o . s t r m y b n e a i x k j g w p h ; ' , </KeyboardState>
   <KeyboardView>Keyrita.Settings.eKeyboardDisplay StandardView</KeyboardView>
   <ShowFingerUsage>Keyrita.Settings.SettingUtil.eOnOff On</ShowFingerUsage>
   <HeatmapType>Keyrita.Settings.eHeatMap CharacterFrequency</HeatmapType>
+  <ScissorMap>
+    <Keys>
+      <key0_0>(1,1) (2,1) </key0_0>
+      <key0_1>(2,0) (2,2) </key0_1>
+      <key0_2>(2,1) (2,4) </key0_2>
+      <key0_3>(2,2) </key0_3>
+      <key0_4>(2,2) </key0_4>
+      <key0_5>(2,7) </key0_5>
+      <key0_6>(2,7) </key0_6>
+      <key0_7>(2,8) </key0_7>
+      <key0_8>(2,7) (2,9) </key0_8>
+      <key0_9>(1,8) (2,8) </key0_9>
+      <key1_0>(2,1) </key1_0>
+      <key1_1>(0,0) </key1_1>
+      <key1_2 />
+      <key1_3 />
+      <key1_4 />
+      <key1_5 />
+      <key1_6 />
+      <key1_7 />
+      <key1_8>(0,9) </key1_8>
+      <key1_9>(2,8) </key1_9>
+      <key2_0>(0,1) </key2_0>
+      <key2_1>(0,0) (0,2) (1,0) </key2_1>
+      <key2_2>(0,1) (0,3) (0,4) </key2_2>
+      <key2_3 />
+      <key2_4>(0,2) </key2_4>
+      <key2_5 />
+      <key2_6 />
+      <key2_7>(0,5) (0,6) (0,8) </key2_7>
+      <key2_8>(0,7) (0,9) (1,9) </key2_8>
+      <key2_9>(0,8) </key2_9>
+    </Keys>
+  </ScissorMap>
+  <EditMode>Keyrita.Settings.eKeyboardEditMode Normal</EditMode>
   <LanguageData>
     <SettingData>
       <CharSet> ',-./;=\abcdefghijklmnopqrstuvwxyz</CharSet>
@@ -19,15 +54,17 @@
   </LanguageData>
   <ShowAnnotations>Keyrita.Settings.SettingUtil.eOnOff Off</ShowAnnotations>
   <AnalysisEnabled>Keyrita.Settings.SettingUtil.eOnOff On</AnalysisEnabled>
-  <MeasurementOnOffState.SameFingerBigram>Keyrita.Settings.SettingUtil.eOnOff Off</MeasurementOnOffState.SameFingerBigram>
-  <MeasurementOnOffState.SameFingerSkipgrams>Keyrita.Settings.SettingUtil.eOnOff Off</MeasurementOnOffState.SameFingerSkipgrams>
-  <MeasurementOnOffState.FingerBalance>Keyrita.Settings.SettingUtil.eOnOff Off</MeasurementOnOffState.FingerBalance>
-  <MeasurementOnOffState.FingerSpeed>Keyrita.Settings.SettingUtil.eOnOff Off</MeasurementOnOffState.FingerSpeed>
-  <MeasurementOnOffState.HomeRowUsage>Keyrita.Settings.SettingUtil.eOnOff Off</MeasurementOnOffState.HomeRowUsage>
-  <MeasurementOnOffState.Rolls>Keyrita.Settings.SettingUtil.eOnOff Off</MeasurementOnOffState.Rolls>
+  <MeasurementOnOffState.SameFingerBigram>Keyrita.Settings.SettingUtil.eOnOff On</MeasurementOnOffState.SameFingerBigram>
+  <MeasurementOnOffState.SameFingerSkipgrams>Keyrita.Settings.SettingUtil.eOnOff On</MeasurementOnOffState.SameFingerSkipgrams>
+  <MeasurementOnOffState.FingerBalance>Keyrita.Settings.SettingUtil.eOnOff On</MeasurementOnOffState.FingerBalance>
+  <MeasurementOnOffState.FingerLag>Keyrita.Settings.SettingUtil.eOnOff On</MeasurementOnOffState.FingerLag>
+  <MeasurementOnOffState.HomeRowUsage>Keyrita.Settings.SettingUtil.eOnOff On</MeasurementOnOffState.HomeRowUsage>
+  <MeasurementOnOffState.Scissors>Keyrita.Settings.SettingUtil.eOnOff On</MeasurementOnOffState.Scissors>
+  <MeasurementOnOffState.Rolls>Keyrita.Settings.SettingUtil.eOnOff On</MeasurementOnOffState.Rolls>
   <MeasurementOnOffState.Alternations>Keyrita.Settings.SettingUtil.eOnOff Off</MeasurementOnOffState.Alternations>
-  <MeasurementOnOffState.Redirects>Keyrita.Settings.SettingUtil.eOnOff Off</MeasurementOnOffState.Redirects>
-  <MeasurementOnOffState.OneHands>Keyrita.Settings.SettingUtil.eOnOff Off</MeasurementOnOffState.OneHands>
+  <MeasurementOnOffState.Redirects>Keyrita.Settings.SettingUtil.eOnOff On</MeasurementOnOffState.Redirects>
+  <MeasurementOnOffState.OneHands>Keyrita.Settings.SettingUtil.eOnOff On</MeasurementOnOffState.OneHands>
   <MeasurementOnOffState.LayoutScore>Keyrita.Settings.SettingUtil.eOnOff Off</MeasurementOnOffState.LayoutScore>
   <FingerHomePosition>None None None None None None None None None None LeftPinkie LeftRing LeftMiddle LeftIndex None None RightIndex RightMiddle RightRing RightPinkie None None None None None None None None None None </FingerHomePosition>
+  <FingerSpeedWeights>0 2 1.35 1.1 1 0 0 1.35 1.1 1 2 </FingerSpeedWeights>
 </Settings>
