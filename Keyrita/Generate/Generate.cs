@@ -120,10 +120,11 @@ namespace Keyrita.Generate
             var expectedTotalScissors = scissorsResult.TotalResult;
 
             Random rand = new Random();
-            int swapCount = 5000;
+            int swapCount = 2;
 
             LogUtils.LogInfo("Starting cached swapped tests.");
             Stopwatch sw = new Stopwatch();
+            sw.Start();
 
             // For each key, swap it with every other key, then swap back, and make sure we have the same results.
             for (int i = 0; i < swapCount; i++)
@@ -136,8 +137,8 @@ namespace Keyrita.Generate
                 // It never makes sense to swap a key with itself, wont even bother to make sure that behaves properly.
                 if (k1i == k2i && k1j == k2j) continue;
 
-                AnalysisGraphSystem.GenerateSignalSwapKeys(k1i, k1j, k2i, k2j);
-                AnalysisGraphSystem.GenerateSignalSwapKeys(k1i, k1j, k2i, k2j);
+                //AnalysisGraphSystem.GenerateSignalSwapKeys(k1i, k1j, k2i, k2j);
+                //AnalysisGraphSystem.GenerateSignalSwapKeys(k1i, k1j, k2i, k2j);
 
                 if (!CheckStats(expectedKbState, kbStateResult.TransformedKbState, expectedC2k, c2kResult.CharacterToKey,
                     expectedC2f, c2fResult.CharacterToFinger, expectedTotalSfbs, tfs.TotalSfbs, expectedTotalSfs, tfs.TotalSfs,
@@ -147,7 +148,6 @@ namespace Keyrita.Generate
                 }
             }
 
-            sw.Start();
             // Now perform completely random swaps, but this time don't swap back!
             // At the end we will swap the keyboard back to its initial position and compare to the expected results.
             for (int i = 0; i < swapCount; i++)

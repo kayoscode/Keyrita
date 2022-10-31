@@ -218,6 +218,7 @@ namespace Keyrita.Operations
             double totalBg = SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
             uint[,] skipgram2Freq = SettingState.MeasurementSettings.CharFrequencyData.Skipgram2Freq;
             double totalSkipgram2 = SettingState.MeasurementSettings.CharFrequencyData.Skipgram2HitCount;
+            string usedChars = SettingState.MeasurementSettings.CharFrequencyData.UsedCharset;
 
             for (int i = 0; i < ch1SameFingerMap.Count; i++)
             {
@@ -239,6 +240,9 @@ namespace Keyrita.Operations
                     //mResult.SfbDistancePerKey[k1i, k1j] += (subCh3 / totalBg) * distance;
                     //mResult.SfbDistancePerKey[k1i, k1j] += (subCh4 / totalBg) * distance;
 
+                    LogUtils.LogInfo($"{usedChars[otherCh]}->{usedChars[ch1]}; {usedChars[ch1]}->{usedChars[otherCh]}");
+                    LogUtils.LogInfo($"{usedChars[otherCh]}->{usedChars[ch2]}; {usedChars[ch2]}->{usedChars[otherCh]}");
+
                     mResult.TotalSfbs -= subCh1;
                     mResult.TotalSfbs -= subCh2;
                     mResult.TotalSfbs += subCh3;
@@ -259,6 +263,10 @@ namespace Keyrita.Operations
                     //mResult.TotalSfs -= subCh2;
                     //mResult.TotalSfs += subCh3;
                     //mResult.TotalSfs += subCh4;
+                }
+                else
+                {
+                    LogUtils.LogInfo("here");
                 }
             }
         }
