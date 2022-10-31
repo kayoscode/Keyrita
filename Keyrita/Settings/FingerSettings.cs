@@ -224,7 +224,7 @@ namespace Keyrita.Settings
     public class FingerWeights : PerFingerSetting<double>
     {
         public FingerWeights()
-            : base("Finger Speed Weights", eSettingAttributes.Recall)
+            : base("Finger Speed Weights", eSettingAttributes.None)
         {
         }
 

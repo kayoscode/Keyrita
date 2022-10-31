@@ -66,5 +66,4 @@
   <MeasurementOnOffState.OneHands>Keyrita.Settings.SettingUtil.eOnOff Off</MeasurementOnOffState.OneHands>
   <MeasurementOnOffState.LayoutScore>Keyrita.Settings.SettingUtil.eOnOff Off</MeasurementOnOffState.LayoutScore>
   <FingerHomePosition>None None None None None None None None None None LeftPinkie LeftRing LeftMiddle LeftIndex None None RightIndex RightMiddle RightRing RightPinkie None None None None None None None None None None </FingerHomePosition>
-  <FingerSpeedWeights>0 2 1.35 1.1 1 0 0 1.35 1.1 1 2 </FingerSpeedWeights>
 </Settings>

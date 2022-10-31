@@ -56,7 +56,6 @@ namespace Keyrita.Operations
         public KeySpeed() :
             base(eInputNodes.KeyLag)
         {
-            mResult = new KeySpeedResult(NodeId);
             AddInputNode(eInputNodes.TwoFingerStats);
             AddInputNode(eInputNodes.KeyToFingerAsInt);
             AddInputNode(eMeasurements.Scissors);
@@ -73,13 +72,13 @@ namespace Keyrita.Operations
 
         protected override void Compute()
         {
+            mResult = new KeySpeedResult(NodeId);
             mK2f = (KeyToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyToFingerAsInt];
             mTfs = (TwoFingerStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TwoFingerStats];
             mSr = (ScissorsResult)AnalysisGraphSystem.ResolvedNodes[eMeasurements.Scissors];
             ComputeResult();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private void ComputeResult()
         {
             var scissorValues = mSr.PerKeyResult;
@@ -235,10 +234,10 @@ namespace Keyrita.Operations
                     var subCh3 = bigramFreq[otherCh, ch2];
                     var subCh4 = bigramFreq[ch2, otherCh];
 
-                    mResult.SfbDistancePerKey[k1i, k1j] -= (subCh1 / totalBg) * distance;
-                    mResult.SfbDistancePerKey[k1i, k1j] -= (subCh2 / totalBg) * distance;
-                    mResult.SfbDistancePerKey[k1i, k1j] += (subCh3 / totalBg) * distance;
-                    mResult.SfbDistancePerKey[k1i, k1j] += (subCh4 / totalBg) * distance;
+                    //mResult.SfbDistancePerKey[k1i, k1j] -= (subCh1 / totalBg) * distance;
+                    //mResult.SfbDistancePerKey[k1i, k1j] -= (subCh2 / totalBg) * distance;
+                    //mResult.SfbDistancePerKey[k1i, k1j] += (subCh3 / totalBg) * distance;
+                    //mResult.SfbDistancePerKey[k1i, k1j] += (subCh4 / totalBg) * distance;
 
                     mResult.TotalSfbs -= subCh1;
                     mResult.TotalSfbs -= subCh2;
@@ -246,20 +245,20 @@ namespace Keyrita.Operations
                     mResult.TotalSfbs += subCh4;
 
                     // Now do sfs.
-                    subCh1 = skipgram2Freq[otherCh, ch1];
-                    subCh2 = skipgram2Freq[ch1, otherCh];
-                    subCh3 = skipgram2Freq[otherCh, ch2];
-                    subCh4 = skipgram2Freq[ch2, otherCh];
+                    //subCh1 = skipgram2Freq[otherCh, ch1];
+                    //subCh2 = skipgram2Freq[ch1, otherCh];
+                    //subCh3 = skipgram2Freq[otherCh, ch2];
+                    //subCh4 = skipgram2Freq[ch2, otherCh];
 
-                    mResult.SfsDistancePerKey[k1i, k1j] -= (subCh1 / totalSkipgram2) * distance;
-                    mResult.SfsDistancePerKey[k1i, k1j] -= (subCh2 / totalSkipgram2) * distance;
-                    mResult.SfsDistancePerKey[k1i, k1j] += (subCh3 / totalSkipgram2) * distance;
-                    mResult.SfsDistancePerKey[k1i, k1j] += (subCh4 / totalSkipgram2) * distance;
+                    //mResult.SfsDistancePerKey[k1i, k1j] -= (subCh1 / totalSkipgram2) * distance;
+                    //mResult.SfsDistancePerKey[k1i, k1j] -= (subCh2 / totalSkipgram2) * distance;
+                    //mResult.SfsDistancePerKey[k1i, k1j] += (subCh3 / totalSkipgram2) * distance;
+                    //mResult.SfsDistancePerKey[k1i, k1j] += (subCh4 / totalSkipgram2) * distance;
 
-                    mResult.TotalSfs -= subCh1;
-                    mResult.TotalSfs -= subCh2;
-                    mResult.TotalSfs += subCh3;
-                    mResult.TotalSfs += subCh4;
+                    //mResult.TotalSfs -= subCh1;
+                    //mResult.TotalSfs -= subCh2;
+                    //mResult.TotalSfs += subCh3;
+                    //mResult.TotalSfs += subCh4;
                 }
             }
         }
