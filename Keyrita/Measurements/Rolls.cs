@@ -1,6 +1,7 @@
 ﻿using System;
 using Keyrita.Operations;
 using Keyrita.Operations.OperationUtil;
+using Keyrita.Settings;
 
 namespace Keyrita.Measurements
 {
@@ -36,10 +37,11 @@ namespace Keyrita.Measurements
 
         protected override void Compute()
         {
+            long totalTgs = SettingState.MeasurementSettings.CharFrequencyData.TrigramHitCount;
             TrigramStatsResult tgs = (TrigramStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TrigramStats];
-            mResult.TotalRolls = tgs.TotalRolls;
-            mResult.InRolls = tgs.InRolls;
-            mResult.OutRolls = tgs.OutRolls;
+            mResult.TotalRolls = tgs.TotalRolls / totalTgs * 100;
+            mResult.InRolls = tgs.InRolls / totalTgs * 100;
+            mResult.OutRolls = tgs.OutRolls / totalTgs * 100;
 
             SetResult(0, mResult.TotalRolls);
             SetResult(1, mResult.InRolls);

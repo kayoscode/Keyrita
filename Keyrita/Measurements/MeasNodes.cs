@@ -33,6 +33,8 @@ namespace Keyrita.Measurements
         HomeRowUsage,
         [UIData("Finger lag", "Shows how slow each finger will feel while typing")]
         FingerLag,
+        [UIData("Scissors", "Shows the rate of occurrence of undesirable key combinations which use different fingers: (like qwerty qx)")]
+        Scissors,
         [UIData("Score", "Based on custom weights, shows the score of the keyboard")]
         LayoutScore,
     }
@@ -46,6 +48,7 @@ namespace Keyrita.Measurements
             eMeasurements.FingerBalance,
             eMeasurements.FingerLag,
             eMeasurements.HomeRowUsage,
+            eMeasurements.Scissors
         };
 
         public static IEnumerable<eMeasurements> DynamicMeasurements = new List<eMeasurements>()

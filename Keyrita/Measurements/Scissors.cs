@@ -4,10 +4,59 @@ using System.Linq;
 using Keyrita.Operations;
 using Keyrita.Operations.OperationUtil;
 using Keyrita.Settings;
+using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
 
 namespace Keyrita.Measurements
 {
+    public class UserFacingScissorsResult : AnalysisResult
+    {
+        public UserFacingScissorsResult(Enum resultId) : base(resultId)
+        {
+        }
+
+        public double TotalResult { get; set; }
+        public double[] PerHandResult { get; private set; } = new double[Utils.GetTokens<eHand>().Count()];
+        public double[] PerFingerResult { get; private set; } = new double[Utils.GetTokens<eFinger>().Count()];
+    }
+
+    public class UserFacingScissors : FingerHandMeasurement
+    {
+        private UserFacingScissorsResult mResult;
+        public UserFacingScissors() : base(eMeasurements.Scissors)
+        {
+            AddInputNode(eInputNodes.ScissorsIntermediate);
+            mResult = new UserFacingScissorsResult(this.NodeId);
+        }
+
+        public override AnalysisResult GetResult()
+        {
+            return mResult;
+        }
+
+        protected override void Compute()
+        {
+            double bgTotal = SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
+            var mScissorsResult = (ScissorsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.ScissorsIntermediate];
+            mResult.TotalResult = mScissorsResult.TotalResult / bgTotal * 100;
+
+            // Set meas results.
+            int resultIdx = 0;
+            foreach(eFinger finger in Utils.GetTokens<eFinger>())
+            {
+                mResult.PerFingerResult[(int)finger] = mScissorsResult.PerFingerResult[(int)finger] / bgTotal * 100;
+                SetFingerResult(finger, mResult.PerFingerResult[(int)finger]);
+                resultIdx++;
+            }
+
+            mResult.PerHandResult[(int)eHand.Left] = mScissorsResult.PerHandResult[(int)eHand.Left] / bgTotal * 100;
+            mResult.PerHandResult[(int)eHand.Right] = mScissorsResult.PerHandResult[(int)eHand.Right] / bgTotal * 100;
+            SetLeftHandResult(mResult.PerHandResult[(int)eHand.Left]);
+            SetRightHandResult(mResult.PerHandResult[(int)eHand.Right]);
+            SetTotalResult(mResult.TotalResult);
+        }
+    }
+
     /// <summary>
     /// Gives the number of scissors per hand and finger, and total.
     /// </summary>

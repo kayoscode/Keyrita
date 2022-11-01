@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Keyrita.Operations;
 using Keyrita.Operations.OperationUtil;
+using Keyrita.Settings;
 
 namespace Keyrita.Measurements
 {
@@ -39,7 +40,7 @@ namespace Keyrita.Measurements
         protected override void Compute()
         {
             TrigramStatsResult tgs = (TrigramStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TrigramStats];
-            mResult.TotalAlternations = tgs.TotalAlternations;
+            mResult.TotalAlternations = tgs.TotalAlternations / SettingState.MeasurementSettings.CharFrequencyData.TrigramHitCount * 100;
 
             SetResult(0, mResult.TotalAlternations);
         }

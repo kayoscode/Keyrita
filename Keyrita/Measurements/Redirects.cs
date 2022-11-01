@@ -1,6 +1,7 @@
 ﻿using System;
 using Keyrita.Operations;
 using Keyrita.Operations.OperationUtil;
+using Keyrita.Settings;
 
 namespace Keyrita.Measurements
 {
@@ -34,8 +35,9 @@ namespace Keyrita.Measurements
 
         protected override void Compute()
         {
+            long totalTgs = SettingState.MeasurementSettings.CharFrequencyData.TrigramHitCount;
             TrigramStatsResult tgs = (TrigramStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TrigramStats];
-            mResult.TotalRedirects = tgs.TotalRedirects;
+            mResult.TotalRedirects = tgs.TotalRedirects / totalTgs * 100;
 
             SetResult(0, mResult.TotalRedirects);
         }

@@ -423,7 +423,7 @@ namespace Keyrita.Operations
             }
 
             // Set the thumb.
-            mResult.FingerToHomePosition[(int)eFinger.RightThumb] = (3, 0);
+            mResult.FingerToHomePosition[(int)eFinger.LeftThumb] = (3, 0);
         }
 
         public override bool RespondsToGenerateSwapKeysEvent => false;
@@ -741,7 +741,7 @@ namespace Keyrita.Operations
 
             // Add the space key.
             keyToFingerInt[KeyboardStateSetting.ROWS] = new int[1];
-            keyToFingerInt[KeyboardStateSetting.ROWS][0] = (int)eFinger.RightThumb;
+            keyToFingerInt[KeyboardStateSetting.ROWS][0] = (int)eFinger.LeftThumb;
 
             for (int i = 0; i < KeyboardStateSetting.ROWS; i++)
             {

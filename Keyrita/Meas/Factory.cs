@@ -41,6 +41,8 @@ namespace Keyrita.Operations
                     return new HomeUsage();
                 case eMeasurements.FingerLag:
                     return new FingerLag();
+                case eMeasurements.Scissors:
+                    return new UserFacingScissors();
                 default:
                     return null;
             }
