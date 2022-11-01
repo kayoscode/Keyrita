@@ -23,20 +23,21 @@ namespace Keyrita.Operations
         TwoFingerStats,
         FingerAsIntToHomePosition,
         KeyLag,
-        SameFingerMap
+        SameFingerMap,
+        ScissorsIntermediate
     }
 
     /// <summary>
     /// Given a key on the keyboard, find a weighted sum of its same finger bigrams and 
     /// </summary>
-    public class KeySpeedResult : PerKeyAnalysisResult
+    public class KeyLagResult : PerKeyAnalysisResult
     {
-        public KeySpeedResult(Enum resultId) : base(resultId)
+        public KeyLagResult(Enum resultId) : base(resultId)
         {
         }
     }
 
-    public class KeySpeed : GraphNode
+    public class KeyLag : GraphNode
     {
         // These all need to eventually be settings.
         private const double SFB_WEIGHT = 1000;
@@ -52,13 +53,14 @@ namespace Keyrita.Operations
             { 1.7, 1.45, 1.25, 1.1, 1.3, 1.3, 1.1, 1.25, 1.45, 1.7 },
         };
 
-        private KeySpeedResult mResult;
-        public KeySpeed() :
+        private KeyLagResult mResult;
+        public KeyLag() :
             base(eInputNodes.KeyLag)
         {
             AddInputNode(eInputNodes.TwoFingerStats);
             AddInputNode(eInputNodes.KeyToFingerAsInt);
-            AddInputNode(eMeasurements.Scissors);
+            AddInputNode(eInputNodes.ScissorsIntermediate);
+            mResult = new KeyLagResult(NodeId);
         }
 
         public override AnalysisResult GetResult()
@@ -72,10 +74,9 @@ namespace Keyrita.Operations
 
         protected override void Compute()
         {
-            mResult = new KeySpeedResult(NodeId);
             mK2f = (KeyToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyToFingerAsInt];
             mTfs = (TwoFingerStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TwoFingerStats];
-            mSr = (ScissorsResult)AnalysisGraphSystem.ResolvedNodes[eMeasurements.Scissors];
+            mSr = (ScissorsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.ScissorsIntermediate];
             ComputeResult();
         }
 
@@ -85,7 +86,7 @@ namespace Keyrita.Operations
             var sfbsPerKey = mTfs.SfbDistancePerKey;
             var sfsPerKey = mTfs.SfsDistancePerKey;
             var keyToFinger = mK2f.KeyToFinger;
-            var totalBg = SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
+            double totalBg = SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
 
             // This intermediate measurement is mainly used for evaluation/generate, but
             // is also used for the finger speed meaurement. 
@@ -217,56 +218,72 @@ namespace Keyrita.Operations
             uint[,] bigramFreq = SettingState.MeasurementSettings.CharFrequencyData.BigramFreq;
             double totalBg = SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
             uint[,] skipgram2Freq = SettingState.MeasurementSettings.CharFrequencyData.Skipgram2Freq;
-            double totalSkipgram2 = SettingState.MeasurementSettings.CharFrequencyData.Skipgram2HitCount;
-            string usedChars = SettingState.MeasurementSettings.CharFrequencyData.UsedCharset;
 
             for (int i = 0; i < ch1SameFingerMap.Count; i++)
             {
                 var sameFingerPos = ch1SameFingerMap[i];
+                long subCh1, subCh2, subCh3, subCh4;
 
-                if (sameFingerPos.Item1 != k2i && sameFingerPos.Item2 != k2j)
+                // If it is swapping with the other key.
+                var otherCh = kb[sameFingerPos.Item1][sameFingerPos.Item2];
+                if (otherCh == ch1)
                 {
-                    // If it is not swapping with the other key.
-                    var otherCh = kb[sameFingerPos.Item1][sameFingerPos.Item2];
+                    var distance = FingerUtil.MovementDistance[k1i, k1j, k2i, k2j];
+
+                    otherCh = ch2;
+                    subCh1 = bigramFreq[otherCh, ch1];
+                    subCh2 = bigramFreq[ch1, otherCh];
+
+                    mResult.TotalSfbs -= subCh1;
+                    mResult.TotalSfbs += subCh2;
+
+                    mResult.SfbDistancePerKey[k1i, k1j] -= (subCh2 / totalBg) * distance;
+                    mResult.SfbDistancePerKey[k1i, k1j] += (subCh1 / totalBg) * distance;
+
+                    subCh1 = skipgram2Freq[otherCh, ch1];
+                    subCh2 = skipgram2Freq[ch1, otherCh];
+
+                    mResult.SfsDistancePerKey[k1i, k1j] -= (subCh2 / totalBg) * distance;
+                    mResult.SfsDistancePerKey[k1i, k1j] += (subCh1 / totalBg) * distance;
+
+                    mResult.TotalSfs -= subCh1;
+                    mResult.TotalSfs += subCh2;
+                }
+                else
+                {
                     var distance = FingerUtil.MovementDistance[k1i, k1j, sameFingerPos.Item1, sameFingerPos.Item2];
 
-                    var subCh1 = bigramFreq[otherCh, ch1];
-                    var subCh2 = bigramFreq[ch1, otherCh];
-                    var subCh3 = bigramFreq[otherCh, ch2];
-                    var subCh4 = bigramFreq[ch2, otherCh];
-
-                    //mResult.SfbDistancePerKey[k1i, k1j] -= (subCh1 / totalBg) * distance;
-                    //mResult.SfbDistancePerKey[k1i, k1j] -= (subCh2 / totalBg) * distance;
-                    //mResult.SfbDistancePerKey[k1i, k1j] += (subCh3 / totalBg) * distance;
-                    //mResult.SfbDistancePerKey[k1i, k1j] += (subCh4 / totalBg) * distance;
-
-                    LogUtils.LogInfo($"{usedChars[otherCh]}->{usedChars[ch1]}; {usedChars[ch1]}->{usedChars[otherCh]}");
-                    LogUtils.LogInfo($"{usedChars[otherCh]}->{usedChars[ch2]}; {usedChars[ch2]}->{usedChars[otherCh]}");
+                    subCh1 = bigramFreq[otherCh, ch1];
+                    subCh2 = bigramFreq[ch1, otherCh];
+                    subCh3 = bigramFreq[otherCh, ch2];
+                    subCh4 = bigramFreq[ch2, otherCh];
 
                     mResult.TotalSfbs -= subCh1;
                     mResult.TotalSfbs -= subCh2;
                     mResult.TotalSfbs += subCh3;
                     mResult.TotalSfbs += subCh4;
 
+                    // The distance[i, j] = the distance from that key to every other bigram.
+                    mResult.SfbDistancePerKey[k1i, k1j] -= (subCh2 / totalBg) * distance;
+                    mResult.SfbDistancePerKey[k1i, k1j] += (subCh4 / totalBg) * distance;
+                    mResult.SfbDistancePerKey[sameFingerPos.Item1, sameFingerPos.Item2] -= (subCh1 / totalBg) * distance;
+                    mResult.SfbDistancePerKey[sameFingerPos.Item1, sameFingerPos.Item2] += (subCh3 / totalBg) * distance;
+
                     // Now do sfs.
-                    //subCh1 = skipgram2Freq[otherCh, ch1];
-                    //subCh2 = skipgram2Freq[ch1, otherCh];
-                    //subCh3 = skipgram2Freq[otherCh, ch2];
-                    //subCh4 = skipgram2Freq[ch2, otherCh];
+                    subCh1 = skipgram2Freq[otherCh, ch1];
+                    subCh2 = skipgram2Freq[ch1, otherCh];
+                    subCh3 = skipgram2Freq[otherCh, ch2];
+                    subCh4 = skipgram2Freq[ch2, otherCh];
 
-                    //mResult.SfsDistancePerKey[k1i, k1j] -= (subCh1 / totalSkipgram2) * distance;
-                    //mResult.SfsDistancePerKey[k1i, k1j] -= (subCh2 / totalSkipgram2) * distance;
-                    //mResult.SfsDistancePerKey[k1i, k1j] += (subCh3 / totalSkipgram2) * distance;
-                    //mResult.SfsDistancePerKey[k1i, k1j] += (subCh4 / totalSkipgram2) * distance;
+                    mResult.SfsDistancePerKey[k1i, k1j] -= (subCh2 / totalBg) * distance;
+                    mResult.SfsDistancePerKey[k1i, k1j] += (subCh4 / totalBg) * distance;
+                    mResult.SfsDistancePerKey[sameFingerPos.Item1, sameFingerPos.Item2] -= (subCh1 / totalBg) * distance;
+                    mResult.SfsDistancePerKey[sameFingerPos.Item1, sameFingerPos.Item2] += (subCh3 / totalBg) * distance;
 
-                    //mResult.TotalSfs -= subCh1;
-                    //mResult.TotalSfs -= subCh2;
-                    //mResult.TotalSfs += subCh3;
-                    //mResult.TotalSfs += subCh4;
-                }
-                else
-                {
-                    LogUtils.LogInfo("here");
+                    mResult.TotalSfs -= subCh1;
+                    mResult.TotalSfs -= subCh2;
+                    mResult.TotalSfs += subCh3;
+                    mResult.TotalSfs += subCh4;
                 }
             }
         }

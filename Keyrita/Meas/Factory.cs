@@ -41,8 +41,6 @@ namespace Keyrita.Operations
                     return new HomeUsage();
                 case eMeasurements.FingerLag:
                     return new FingerLag();
-                case eMeasurements.Scissors:
-                    return new Scissors();
                 default:
                     return null;
             }
@@ -82,9 +80,11 @@ namespace Keyrita.Operations
                 case eInputNodes.TwoFingerStats:
                     return new TwoFingerStats();
                 case eInputNodes.KeyLag:
-                    return new KeySpeed();
+                    return new KeyLag();
                 case eInputNodes.SameFingerMap:
                     return new SameFingerMap();
+                case eInputNodes.ScissorsIntermediate:
+                    return new ScissorsIntermediate();
                 default:
                     return null;
             }

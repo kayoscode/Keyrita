@@ -11,24 +11,25 @@ namespace Keyrita.Measurements
     /// <summary>
     /// Gives the number of scissors per hand and finger, and total.
     /// </summary>
-    public class ScissorsResult : PerKeyAnalysisResult
+    public class ScissorsResult : AnalysisResult
     {
         public ScissorsResult(Enum resultId) : base(resultId)
         {
         }
 
-        public double TotalResult { get; set; }
-        public double[] PerHandResult { get; private set; } = new double[Utils.GetTokens<eHand>().Count()];
-        public double[] PerFingerResult { get; private set; } = new double[Utils.GetTokens<eFinger>().Count()];
+        public long TotalResult { get; set; }
+        public long[] PerHandResult { get; private set; } = new long[Utils.GetTokens<eHand>().Count()];
+        public long[] PerFingerResult { get; private set; } = new long[Utils.GetTokens<eFinger>().Count()];
+        public long[,] PerKeyResult { get; private set; } = new long[KeyboardStateSetting.ROWS, KeyboardStateSetting.COLS];
     }
 
     /// <summary>
     /// A scissor for a given key is when you press that key and either go to 
     /// </summary>
-    public class Scissors : FingerHandMeasurement
+    public class ScissorsIntermediate : GraphNode
     {
         protected ScissorsResult mResult;
-        public Scissors() : base(eMeasurements.Scissors)
+        public ScissorsIntermediate() : base(eInputNodes.ScissorsIntermediate)
         {
             AddInputNode(eInputNodes.TransfomedKbState);
             AddInputNode(eInputNodes.KeyToFingerAsInt);
@@ -38,19 +39,43 @@ namespace Keyrita.Measurements
             int k1i, int k1j, int k2i, int k2j)
         {
             var kb = mKbState.TransformedKbState;
-            var bgFreq = SettingState.MeasurementSettings.CharFrequencyData.BigramFreq;
-            double totalBg = SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
+            var bigramFreq = SettingState.MeasurementSettings.CharFrequencyData.BigramFreq;
 
             for(int k = 0; k < si.Count; k++)
             {
                 var otherKeyPos = si[k];
-                var otherKey = kb[otherKeyPos.Item1][otherKeyPos.Item2];
-                mResult.PerKeyResult[k1i, k1j] -= (bgFreq[otherKey, ch1] / totalBg);
-                mResult.PerKeyResult[k1i, k1j] += (bgFreq[otherKey, ch2] / totalBg);
+                var otherCh = kb[otherKeyPos.Item1][otherKeyPos.Item2];
+                long subCh1, subCh2, subCh3, subCh4;
 
-                // Handle the inverse.
-                mResult.PerKeyResult[otherKeyPos.Item1, otherKeyPos.Item2] -= (bgFreq[ch1, otherKey] / totalBg);
-                mResult.PerKeyResult[otherKeyPos.Item1, otherKeyPos.Item2] += (bgFreq[ch2, otherKey] / totalBg);
+                if(otherCh == ch1)
+                {
+                    otherCh = ch2;
+                    subCh1 = bigramFreq[otherCh, ch1];
+                    subCh2 = bigramFreq[ch1, otherCh];
+
+                    mResult.TotalResult -= subCh1;
+                    mResult.TotalResult += subCh2;
+
+                    mResult.PerKeyResult[k1i, k1j] -= subCh2;
+                    mResult.PerKeyResult[k1i, k1j] += subCh1;
+                }
+                else
+                {
+                    subCh1 = bigramFreq[otherCh, ch1];
+                    subCh2 = bigramFreq[ch1, otherCh];
+                    subCh3 = bigramFreq[otherCh, ch2];
+                    subCh4 = bigramFreq[ch2, otherCh];
+
+                    mResult.TotalResult -= subCh1;
+                    mResult.TotalResult -= subCh2;
+                    mResult.TotalResult += subCh3;
+                    mResult.TotalResult += subCh4;
+
+                    mResult.PerKeyResult[k1i, k1j] -= subCh2;
+                    mResult.PerKeyResult[k1i, k1j] += subCh4;
+                    mResult.PerKeyResult[otherKeyPos.Item1, otherKeyPos.Item2] -= subCh1;
+                    mResult.PerKeyResult[otherKeyPos.Item1, otherKeyPos.Item2] += subCh3;
+                }
             }
         }
 
@@ -60,11 +85,7 @@ namespace Keyrita.Measurements
             // Only need to update the scissors total. Which means subtract the previous scissors from the new one.
             // NOTE: the keyboard state has already changed, so subtract the indices from the previous position instead of the new position.
             var kb = mKbState.TransformedKbState;
-
-            var bgFreq = SettingState.MeasurementSettings.CharFrequencyData.BigramFreq;
-            double totalBg = SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
             var scissorIndices = SettingState.KeyboardSettings.ScissorMap;
-
             var ch1 = kb[k2i][k2j];
             var ch2 = kb[k1i][k1j];
 
@@ -122,24 +143,6 @@ namespace Keyrita.Measurements
                     mResult.PerKeyResult[i, j] = scissorTotal;
                 }
             }
-
-            int resultIdx = 0;
-            foreach(eFinger finger in Utils.GetTokens<eFinger>())
-            {
-                double fingerResult = ((double)mResult.PerFingerResult[resultIdx] / totalBg) * 100;
-                mResult.PerFingerResult[resultIdx] = fingerResult;
-                SetFingerResult(finger, mResult.PerFingerResult[resultIdx]);
-
-                resultIdx++;
-            }
-
-            mResult.TotalResult = mResult.TotalResult / totalBg * 100;
-            mResult.PerHandResult[(int)eHand.Left] = mResult.PerHandResult[(int)eHand.Left] / totalBg * 100;
-            mResult.PerHandResult[(int)eHand.Right] = mResult.PerHandResult[(int)eHand.Right] / totalBg * 100;
-
-            SetLeftHandResult(mResult.PerHandResult[(int)eHand.Left]);
-            SetRightHandResult(mResult.PerHandResult[(int)eHand.Right]);
-            SetTotalResult(mResult.TotalResult);
         }
     }
 }

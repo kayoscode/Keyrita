@@ -31,24 +31,24 @@ namespace Keyrita.Measurements
         {
             mResult = new FingerLagResult(NodeId);
 
-            var ks = (KeySpeedResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyLag];
-            var keySpeed = ks.PerKeyResult;
+            var ks = (KeyLagResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyLag];
+            var keyLag = ks.PerKeyResult;
 
             var k2f = (KeyToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyToFingerAsInt];
             var keyToFinger = k2f.KeyToFinger;
 
             // Go through each key on the keyboard and get the finger used for it.
             // Then add the result to the sum. Higher finger speeds are worse.
-            for(int i = 0; i < keySpeed.GetLength(0); i++)
+            for(int i = 0; i < keyLag.GetLength(0); i++)
             {
-                for(int j = 0; j < keySpeed.GetLength(1); j++)
+                for(int j = 0; j < keyLag.GetLength(1); j++)
                 {
                     var finger = keyToFinger[i][j];
                     var hand = FingerUtil.GetHandForFingerAsInt(finger);
 
-                    mResult.PerFingerResult[finger] += keySpeed[i, j];
-                    mResult.PerHandResult[(int)hand] += keySpeed[i, j];
-                    mResult.TotalResult += keySpeed[i, j];
+                    mResult.PerFingerResult[finger] += keyLag[i, j];
+                    mResult.PerHandResult[(int)hand] += keyLag[i, j];
+                    mResult.TotalResult += keyLag[i, j];
                 }
             }
 

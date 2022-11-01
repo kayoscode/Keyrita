@@ -65,7 +65,10 @@ namespace Keyrita.Generate
                                 long expectedTotalSfbs, long totalSfbs,
                                 long expectedTotalSfs, long totalSfs,
                                 double[,] expectedSfbDistPerKey, double[,] sfbDistPerkey,
-                                double[,] expectedSfsDistPerKey, double[,] sfsDistPerkey)
+                                double[,] expectedSfsDistPerKey, double[,] sfsDistPerkey,
+                                long expectedTotalScissors, long totalScissors,
+                                long[,] expectedPerKeyScissors, long[,] perKeyScissors,
+                                double[,] expectedKeyLag, double[,] keyLag)
 
         {
             // Check the transformed kb state.
@@ -98,6 +101,21 @@ namespace Keyrita.Generate
                 return false;
             }
 
+            // Check scissors.
+            if(expectedTotalScissors != totalScissors ||
+                !Utils.CompareRectArray(expectedPerKeyScissors, perKeyScissors))
+            {
+                LogUtils.Assert(false, "Scissors should have returned back to the expected value after a double swap");
+                return false;
+            }
+
+            // Check key speed.
+            if(!Utils.CompareRectArrayDoubles(expectedKeyLag, keyLag))
+            {
+                LogUtils.Assert(false, "Key lag should have returned back to the expected value after a double swap");
+                return false;
+            }
+
             return true;
         }
 
@@ -108,7 +126,8 @@ namespace Keyrita.Generate
             var tfs = (TwoFingerStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TwoFingerStats];
             var c2kResult = (TransformedCharacterToKeyResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransformedCharacterToKey];
             var c2fResult = (TransformedCharacterToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransformedCharacterToFingerAsInt];
-            var scissorsResult = (ScissorsResult)AnalysisGraphSystem.ResolvedNodes[eMeasurements.Scissors];
+            var scissorsResult = (ScissorsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.ScissorsIntermediate];
+            var keyLagResult = (KeyLagResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyLag];
 
             var expectedKbState = Utils.CopyDoubleArray(kbStateResult.TransformedKbState);
             var expectedC2k = Utils.CopyArray(c2kResult.CharacterToKey);
@@ -118,11 +137,13 @@ namespace Keyrita.Generate
             var expectedTotalSfbs = tfs.TotalSfbs;
             var expectedTotalSfs = tfs.TotalSfs;
             var expectedTotalScissors = scissorsResult.TotalResult;
+            var expectedScissorsPerKey = Utils.CopyRectArray(scissorsResult.PerKeyResult);
+            var expectedKeyLag = Utils.CopyRectArray(keyLagResult.PerKeyResult);
 
             Random rand = new Random();
-            int swapCount = 2;
+            int swapCount = 5000;
 
-            LogUtils.LogInfo("Starting cached swapped tests.");
+            LogUtils.LogInfo("Starting key swap tests.");
             Stopwatch sw = new Stopwatch();
             sw.Start();
 
@@ -137,12 +158,15 @@ namespace Keyrita.Generate
                 // It never makes sense to swap a key with itself, wont even bother to make sure that behaves properly.
                 if (k1i == k2i && k1j == k2j) continue;
 
-                //AnalysisGraphSystem.GenerateSignalSwapKeys(k1i, k1j, k2i, k2j);
-                //AnalysisGraphSystem.GenerateSignalSwapKeys(k1i, k1j, k2i, k2j);
+                AnalysisGraphSystem.GenerateSignalSwapKeys(k1i, k1j, k2i, k2j);
+                AnalysisGraphSystem.GenerateSignalSwapKeys(k1i, k1j, k2i, k2j);
 
                 if (!CheckStats(expectedKbState, kbStateResult.TransformedKbState, expectedC2k, c2kResult.CharacterToKey,
                     expectedC2f, c2fResult.CharacterToFinger, expectedTotalSfbs, tfs.TotalSfbs, expectedTotalSfs, tfs.TotalSfs,
-                    expectedSfbDistPerKey, tfs.SfbDistancePerKey, expectedSfsDistPerKey, tfs.SfsDistancePerKey))
+                    expectedSfbDistPerKey, tfs.SfbDistancePerKey, expectedSfsDistPerKey, tfs.SfsDistancePerKey,
+                    expectedTotalScissors, scissorsResult.TotalResult,
+                    expectedScissorsPerKey, scissorsResult.PerKeyResult,
+                    expectedKeyLag, keyLagResult.PerKeyResult))
                 {
                     return false;
                 }
@@ -191,13 +215,16 @@ namespace Keyrita.Generate
 
             if (!CheckStats(expectedKbState, kbStateResult.TransformedKbState, expectedC2k, c2kResult.CharacterToKey,
                 expectedC2f, c2fResult.CharacterToFinger, expectedTotalSfbs, tfs.TotalSfbs, expectedTotalSfs, tfs.TotalSfs,
-                expectedSfbDistPerKey, tfs.SfbDistancePerKey, expectedSfsDistPerKey, tfs.SfsDistancePerKey))
+                expectedSfbDistPerKey, tfs.SfbDistancePerKey, expectedSfsDistPerKey, tfs.SfsDistancePerKey,
+                expectedTotalScissors, scissorsResult.TotalResult,
+                expectedScissorsPerKey, scissorsResult.PerKeyResult,
+                expectedKeyLag, keyLagResult.PerKeyResult))
             {
                 return false;
             }
 
             sw.Stop();
-            LogUtils.LogInfo($"Finished cached swapped tests. ({sw.ElapsedMilliseconds} ms)");
+            LogUtils.LogInfo($"Finished key swap tests. ({sw.ElapsedMilliseconds} ms)");
 
             return false;
         }
@@ -217,8 +244,8 @@ namespace Keyrita.Generate
 
             }
 
-            //long swapCount = MeasureLayoutsPerSecond();
-            //LogUtils.LogInfo($"Swaps per second: {swapCount}");
+            long swapCount = MeasureLayoutsPerSecond();
+            LogUtils.LogInfo($"Swaps per second: {swapCount}");
         }
     }
 }
