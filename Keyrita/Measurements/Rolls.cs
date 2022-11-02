@@ -28,6 +28,7 @@ namespace Keyrita.Measurements
         {
             mResult = new RollResult(this.NodeId);
             AddInputNode(eInputNodes.TrigramStats);
+            AddInputNode(eInputNodes.SortedTrigramSet);
         }
 
         public override AnalysisResult GetResult()
@@ -37,8 +38,12 @@ namespace Keyrita.Measurements
 
         protected override void Compute()
         {
-            long totalTgs = SettingState.MeasurementSettings.CharFrequencyData.TrigramHitCount;
             TrigramStatsResult tgs = (TrigramStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TrigramStats];
+
+            SortedTrigramSetResult tgSet = (SortedTrigramSetResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.SortedTrigramSet];
+
+            long totalTgs = tgSet.TrigramCoverage;
+
             mResult.TotalRolls = tgs.TotalRolls / totalTgs * 100;
             mResult.InRolls = tgs.InRolls / totalTgs * 100;
             mResult.OutRolls = tgs.OutRolls / totalTgs * 100;

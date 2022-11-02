@@ -97,7 +97,7 @@ namespace Keyrita.Settings
     public class TrigramDepthSetting : ConcreteValueSetting<int>
     {
         public TrigramDepthSetting() : 
-            base("Trigram Depth", 700, eSettingAttributes.None)
+            base("Trigram Depth", 2500, eSettingAttributes.None)
         {
         }
     }

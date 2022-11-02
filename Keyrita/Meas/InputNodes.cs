@@ -37,6 +37,7 @@ namespace Keyrita.Operations
         }
 
         public List<(long, byte[])> MostSignificantTrigrams { get; set; } = new List<(long, byte[])>();
+        public long TrigramCoverage { get; set; } = 0;
     }
 
     public class SortedTrigramSet : GraphNode
@@ -89,6 +90,14 @@ namespace Keyrita.Operations
 
             // Remove the unnecessary trigrams.
             mResult.MostSignificantTrigrams.RemoveRange(tgCount, mResult.MostSignificantTrigrams.Count() - tgCount);
+
+            long tgCoverage = 0;
+            for(int i = 0; i < mResult.MostSignificantTrigrams.Count(); i++)
+            {
+                tgCoverage += mResult.MostSignificantTrigrams[i].Item1;
+            }
+
+            mResult.TrigramCoverage = tgCoverage;
         }
     }
 
@@ -96,7 +105,6 @@ namespace Keyrita.Operations
     {
         public TransformedCharacterToTrigramSetResult(Enum resultId) : base(resultId)
         {
-            InvolvedTrigrams = new List<(int, long, byte[])>[SettingState.MeasurementSettings.CharFrequencyData.TrigramFreq.GetLength(0)];
         }
 
         /// <summary>
@@ -131,6 +139,8 @@ namespace Keyrita.Operations
         protected override void Compute()
         {
             mResult = new TransformedCharacterToTrigramSetResult(this.NodeId);
+            mResult.InvolvedTrigrams = new List<(int, long, byte[])>[SettingState.MeasurementSettings.CharFrequencyData.TrigramFreq.GetLength(0)];
+
             var allTrigrams = (SortedTrigramSetResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.SortedTrigramSet];
 
             for(int i = 0; i < mResult.InvolvedTrigrams.Count(); i++)
@@ -173,9 +183,9 @@ namespace Keyrita.Operations
         // Eventually let the user set these and discriminate their own way!
         private static double[,] KEY_LOCATION_PENALTY = new double[KeyboardStateSetting.ROWS, KeyboardStateSetting.COLS]
         {
-            { 1.7, 1.25, 1.2, 1.1, 1.05, 1.05, 1.1, 1.2, 1.25, 1.7 },
-            { 1.4, 1.2, 1.05, 1.0, 1.2, 1.2, 1.0, 1.05, 1.2, 1.4 },
-            { 1.7, 1.45, 1.25, 1.1, 1.3, 1.3, 1.1, 1.25, 1.45, 1.7 },
+            { 1.85, 1.35, 1.2, 1.1, 1.05, 1.05, 1.1, 1.2, 1.35, 1.85 },
+            { 1.4, 1.2, 1.05, 1.0, 1.2, 1.2, 1.0, 1.05, 1.2, 1.5 },
+            { 1.85, 1.55, 1.25, 1.1, 1.3, 1.3, 1.1, 1.25, 1.55, 1.85 },
         };
 
         private KeyLagResult mResult;
