@@ -37,7 +37,7 @@ namespace Keyrita.Operations
             : base(eInputNodes.TrigramStats)
         {
             mResult = new TrigramStatsResult(this.NodeId);
-            AddInputNode(eInputNodes.SortedTrigramSet);
+            AddInputNode(eInputNodes.BigramClassification);
             AddInputNode(eInputNodes.TransformedCharacterToTrigramSet);
             AddInputNode(eInputNodes.TransfomedKbState);
             AddInputNode(eInputNodes.TransformedCharacterToFingerAsInt);
@@ -59,6 +59,7 @@ namespace Keyrita.Operations
         private TransformedKbStateResult mKb;
         private TransformedCharacterToTrigramSetResult mTg;
         private SortedTrigramSetResult mTgSet;
+        private BigramClassificationResult mBgc;
 
         protected enum eTrigramClassification
         {
@@ -161,11 +162,8 @@ namespace Keyrita.Operations
             mKb = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
             var transformedKb = mKb.TransformedKbState;
 
-            mTg = (TransformedCharacterToTrigramSetResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransformedCharacterToTrigramSet];
-            var tgs = mTg.InvolvedTrigrams;
-
-            mTgSet = (SortedTrigramSetResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.SortedTrigramSet];
-            var allTgs = mTgSet.MostSignificantTrigrams;
+            mBgc = (BigramClassificationResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.BigramClassification];
+            var bigramClassif = mBgc.BigramClassifications;
 
             uint[,,] trigramFreq = SettingState.MeasurementSettings.CharFrequencyData.TrigramFreq;
 
@@ -178,34 +176,105 @@ namespace Keyrita.Operations
             long oneHandsLeft = 0;
             long oneHandsRight = 0;
 
-            for (int i = 0; i < allTgs.Count; i++)
+            // Go through each bigram, and if it's classified as a roll, see if the first or last character use the other hand. If so,
+            // we have a roll in the direction of the bigram classification.
+            for (int i = 0; i < bigramClassif.GetLength(0); i++)
             {
-                // Classify the trigram, and modify the scores appropriately.
-                var tg = allTgs[i];
-                int firstFinger = charToFinger[tg.Item2[0]];
-                int secondFinger = charToFinger[tg.Item2[1]];
-                int thirdFinger = charToFinger[tg.Item2[2]];
-                eHand firstHand = FingerUtil.GetHandForFingerAsInt(firstFinger);
-                eHand secondHand = FingerUtil.GetHandForFingerAsInt(secondFinger);
-                eHand thirdHand = FingerUtil.GetHandForFingerAsInt(thirdFinger);
-
-                // Trigrams are not filtered, so there's a chance we could get a character which isn't even on the keyboard. If so, ignore that trigram.
-                if(firstHand == eHand.None || secondHand == eHand.None || thirdHand == eHand.None ||
-                    firstFinger == (int)eFinger.None || secondFinger == (int)eFinger.None || thirdFinger == (int)eFinger.None)
+                for (int j = 0; j < bigramClassif.GetLength(1); j++)
                 {
-                    continue;
-                }
+                    BigramClassificationResult.eBigramClassification bgType = bigramClassif[i, j];
 
-                eTrigramClassification tgc = ClassifyTrigram(firstFinger, secondFinger, thirdFinger, 
-                    firstHand, secondHand, thirdHand);
+                    if (bgType == BigramClassificationResult.eBigramClassification.InRoll ||
+                        bgType == BigramClassificationResult.eBigramClassification.Outroll)
+                    {
+                        long totalRollsBg = 0;
 
-                if(tgc == eTrigramClassification.Inroll)
-                {
-                    totalInRolls += tg.Item1;
-                }
-                else if(tgc == eTrigramClassification.Outroll)
-                {
-                    totalOutRolls += tg.Item1;
+                        eHand rollHand = FingerUtil.GetHandForFingerAsInt(charToFinger[i]);
+                        eHand otherHand = FingerUtil.GetOtherHand(rollHand);
+                        LogUtils.Assert(rollHand == FingerUtil.GetHandForFingerAsInt(charToFinger[j]), "A roll must use the same hand.");
+
+                        // Loop through every key on the keyboard, and if it's on the other hand, add both trigram stats. (before and after bigram)
+                        for (int ki = 0; ki < transformedKb.Length; ki++)
+                        {
+                            for (int kj = 0; kj < transformedKb[ki].Length; kj++)
+                            {
+                                byte character = transformedKb[ki][kj];
+                                var kf = charToFinger[character];
+                                var kh = FingerUtil.GetHandForFingerAsInt(kf);
+
+                                if (kh == otherHand)
+                                {
+                                    totalRollsBg += trigramFreq[i, j, character];
+                                    totalRollsBg += trigramFreq[character, i, j];
+                                }
+                                else
+                                {
+
+                                    // If its on the same hand, it's a redirect if the second bigram rolls the opposite direction as the first.
+                                    var otherBgType = bigramClassif[j, character];
+                                    if (otherBgType == BigramClassificationResult.eBigramClassification.InRoll ||
+                                       otherBgType == BigramClassificationResult.eBigramClassification.Outroll)
+                                    {
+                                        if (otherBgType != bgType)
+                                        {
+                                            totalRedirects += trigramFreq[i, j, character];
+                                        }
+                                        else
+                                        {
+                                            var oneHands = trigramFreq[i, j, character];
+                                            totalOneHands += oneHands;
+
+                                            if (kh == eHand.Left)
+                                            {
+                                                oneHandsLeft += oneHands;
+                                            }
+                                            else
+                                            {
+                                                oneHandsRight += oneHands;
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // Here it should either be the same character or an sfb.
+                                        LogUtils.Assert(j == character ||
+                                            bigramClassif[j, character] == BigramClassificationResult.eBigramClassification.SFB);
+                                    }
+                                }
+                            }
+                        }
+
+                        if (bigramClassif[i, j] == BigramClassificationResult.eBigramClassification.InRoll)
+                        {
+                            totalInRolls += totalRollsBg;
+                        }
+                        else if (bigramClassif[i, j] == BigramClassificationResult.eBigramClassification.Outroll)
+                        {
+                            totalOutRolls += totalRollsBg;
+                        }
+                    }
+                    // For alternations, we just classify them using h1 h2 h1. Rolls handle h1 h1 h2 and h1 h2 h2.
+                    else if (bigramClassif[i, j] == BigramClassificationResult.eBigramClassification.Alternation)
+                    {
+                        // Use all keys starting with the same hand as the first character.
+                        eHand startHand = FingerUtil.GetHandForFingerAsInt(charToFinger[i]);
+
+                        // Loop through every key on the keyboard, and if it's on the other hand, add both trigram stats. (before and after bigram)
+                        for (int ki = 0; ki < transformedKb.Length; ki++)
+                        {
+                            for (int kj = 0; kj < transformedKb[ki].Length; kj++)
+                            {
+                                byte character = transformedKb[ki][kj];
+                                var kf = charToFinger[character];
+                                var kh = FingerUtil.GetHandForFingerAsInt(kf);
+
+                                if (kh == startHand)
+                                {
+                                    totalAlternations += trigramFreq[i, j, character];
+                                }
+                            }
+                        }
+                    }
                 }
             }
 

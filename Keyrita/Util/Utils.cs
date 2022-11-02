@@ -7,6 +7,25 @@ using System.Linq;
 
 namespace Keyrita.Util
 {
+    /// <summary>
+    /// The C# random number generation is way too slow. My own implementation is worse, but also fine for my needs.
+    /// </summary>
+    internal class FastRandom
+    {
+        public FastRandom(uint seed)
+        {
+            mNext = seed;
+        }
+
+        public int NextInt(int max)
+        {
+            mNext = mNext * 1103515245 + 12345;
+            return (int)((uint)(mNext / 65536) % 32768) % max;
+        }
+
+        private uint mNext;
+    }
+
     internal static class Utils
     {
         /// <summary>
@@ -66,6 +85,19 @@ namespace Keyrita.Util
             {
                 result[i] = new T[arr[i].Length];
                 for(int j = 0; j < arr[i].Length; j++)
+                {
+                    result[i][j] = arr[i][j];
+                }
+            }
+
+            return result;
+        }
+
+        public static byte[][] CopyKeyboardState(byte[][] arr, byte[][] result, int rows, int cols)
+        {
+            for(int i = 0; i < rows; i++)
+            {
+                for(int j = 0; j < cols; j++)
                 {
                     result[i][j] = arr[i][j];
                 }

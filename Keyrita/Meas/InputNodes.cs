@@ -909,10 +909,11 @@ namespace Keyrita.Operations
 
         public byte[][] TransformedKbState { get; set; }
 
+
         /// <summary>
         /// Just prints the kb state to the console log.
         /// </summary>
-        public void LogKbState()
+        public static void LogKbState(byte[][] kbState)
         {
             StringBuilder builder = new StringBuilder();
             string usedCharset = SettingState.MeasurementSettings.CharFrequencyData.UsedCharset;
@@ -921,7 +922,7 @@ namespace Keyrita.Operations
             {
                 for(int j = 0; j < KeyboardStateSetting.COLS; j++)
                 {
-                    builder.Append($" {usedCharset[TransformedKbState[i][j]]}");
+                    builder.Append($" {usedCharset[kbState[i][j]]}");
                 }
             }
 
