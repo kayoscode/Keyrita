@@ -242,7 +242,7 @@ namespace Keyrita.Generate
             var kbStateResult = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
             int rows = KeyboardStateSetting.ROWS;
             int cols = KeyboardStateSetting.COLS;
-            int layoutsOptimized = 10000;
+            int layoutsOptimized = 25000;
             Stopwatch timer = new Stopwatch();
 
             double bestScore = 1000000;

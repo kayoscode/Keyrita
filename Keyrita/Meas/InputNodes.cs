@@ -183,9 +183,9 @@ namespace Keyrita.Operations
         // Eventually let the user set these and discriminate their own way!
         private static double[,] KEY_LOCATION_PENALTY = new double[KeyboardStateSetting.ROWS, KeyboardStateSetting.COLS]
         {
-            { 1.85, 1.35, 1.2, 1.1, 1.05, 1.05, 1.1, 1.2, 1.35, 1.85 },
-            { 1.4, 1.2, 1.05, 1.0, 1.2, 1.2, 1.0, 1.05, 1.2, 1.5 },
-            { 1.85, 1.55, 1.25, 1.1, 1.3, 1.3, 1.1, 1.25, 1.55, 1.85 },
+            { 1.85, 1.35, 1.25, 1.1, 1.05, 1.05, 1.1, 1.25, 1.35, 1.85 },
+            { 1.4, 1.2, 1.05, 1.0, 1.15, 1.15, 1.0, 1.05, 1.2, 1.5 },
+            { 1.90, 1.55, 1.25, 1.1, 1.3, 1.3, 1.1, 1.25, 1.55, 1.90 },
         };
 
         private KeyLagResult mResult;
