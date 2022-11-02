@@ -35,6 +35,7 @@ namespace Keyrita.Operations
             : base(eInputNodes.TrigramStats)
         {
             mResult = new TrigramStatsResult(this.NodeId);
+            AddInputNode(eInputNodes.TransformedCharacterToTrigramSet);
             AddInputNode(eInputNodes.BigramClassification);
             AddInputNode(eInputNodes.TransfomedKbState);
             AddInputNode(eInputNodes.TransformedCharacterToFingerAsInt);

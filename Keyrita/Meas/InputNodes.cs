@@ -4,6 +4,7 @@ using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
+using System.Text;
 using Keyrita.Measurements;
 using Keyrita.Operations.OperationUtil;
 using Keyrita.Settings;
@@ -24,7 +25,129 @@ namespace Keyrita.Operations
         FingerAsIntToHomePosition,
         KeyLag,
         SameFingerMap,
-        ScissorsIntermediate
+        ScissorsIntermediate,
+        TransformedCharacterToTrigramSet,
+        SortedTrigramSet
+    }
+
+    public class SortedTrigramSetResult : AnalysisResult
+    {
+        public SortedTrigramSetResult(Enum resultId) : base(resultId)
+        {
+        }
+
+        public List<(long, byte[])> MostSignificantTrigrams { get; set; } = new List<(long, byte[])>();
+    }
+
+    public class SortedTrigramSet : GraphNode
+    {
+        private SortedTrigramSetResult mResult;
+        public SortedTrigramSet() : base(eInputNodes.SortedTrigramSet)
+        {
+            mResult = new SortedTrigramSetResult(this.NodeId);
+        }
+
+        public override bool RespondsToGenerateSwapKeysEvent => false;
+
+        public override AnalysisResult GetResult()
+        {
+            return mResult;
+        }
+
+        protected override void Compute()
+        {
+            int tgCount = SettingState.MeasurementSettings.TrigramDepth.Value;
+
+            LogUtils.Assert(SettingState.MeasurementSettings.CharFrequencyData.TrigramFreq.GetLength(0) <= byte.MaxValue);
+            mResult.MostSignificantTrigrams.Clear();
+
+            // Go through every trigram and setup append to each list the correct values.
+            for(int i = 0; i < SettingState.MeasurementSettings.CharFrequencyData.TrigramFreq.GetLength(0); i++)
+            {
+                for (int j = 0; j < SettingState.MeasurementSettings.CharFrequencyData.TrigramFreq.GetLength(1); j++)
+                {
+                    for (int k = 0; k < SettingState.MeasurementSettings.CharFrequencyData.TrigramFreq.GetLength(2); k++)
+                    {
+                        byte[] trigram = new byte[3];
+                        trigram[0] = (byte)i;
+                        trigram[1] = (byte)j;
+                        trigram[2] = (byte)k;
+
+                        long trigramFreq = SettingState.MeasurementSettings.CharFrequencyData.TrigramFreq[i, j, k];
+
+                        mResult.MostSignificantTrigrams.Add((trigramFreq, trigram));
+                    }
+                }
+            }
+
+            // Sort them, then remove the unnecessary ones.
+            mResult.MostSignificantTrigrams.Sort(new Comparison<(long, byte[])>((a, b) =>
+            {
+                if (a.Item1 == b.Item1) return 0;
+                return a.Item1 > b.Item1 ? -1 : 1;
+            }));
+
+            // Remove the unnecessary trigrams.
+            mResult.MostSignificantTrigrams.RemoveRange(tgCount, mResult.MostSignificantTrigrams.Count() - tgCount);
+        }
+    }
+
+    public class TransformedCharacterToTrigramSetResult : AnalysisResult
+    {
+        public TransformedCharacterToTrigramSetResult(Enum resultId) : base(resultId)
+        {
+            InvolvedTrigrams = new List<(int, long, byte[])>[SettingState.MeasurementSettings.CharFrequencyData.TrigramFreq.GetLength(0)];
+        }
+
+        /// <summary>
+        /// Stores a tuple with the following information.
+        /// 1. The index in the byte array this character resides.
+        /// 2. The trigramFrequency.
+        /// 3. The three characters representing the trigram. Do not mutate.
+        /// </summary>
+        public List<(int, long, byte[])>[] InvolvedTrigrams { get; set; }
+    }
+
+    /// <summary>
+    /// Creates an array mapping a transformed character to a list of trigrams its involved in.
+    /// </summary>
+    public class TransformedCharacterToTrigramSet : GraphNode
+    {
+        private TransformedCharacterToTrigramSetResult mResult;
+
+        public TransformedCharacterToTrigramSet() : base(eInputNodes.TransformedCharacterToTrigramSet)
+        {
+            mResult = new TransformedCharacterToTrigramSetResult(this.NodeId);
+            AddInputNode(eInputNodes.SortedTrigramSet);
+        }
+
+        public override bool RespondsToGenerateSwapKeysEvent => false;
+
+        public override AnalysisResult GetResult()
+        {
+            return mResult;
+        }
+
+        protected override void Compute()
+        {
+            mResult = new TransformedCharacterToTrigramSetResult(this.NodeId);
+            var allTrigrams = (SortedTrigramSetResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.SortedTrigramSet];
+
+            for(int i = 0; i < mResult.InvolvedTrigrams.Count(); i++)
+            {
+                mResult.InvolvedTrigrams[i] = new();
+            }
+
+            for(int i = 0; i < allTrigrams.MostSignificantTrigrams.Count; i++)
+            {
+                for(int j = 0; j < allTrigrams.MostSignificantTrigrams[i].Item2.Length; j++)
+                {
+                    mResult.InvolvedTrigrams[allTrigrams.MostSignificantTrigrams[i].Item2[j]].Add((j,
+                        allTrigrams.MostSignificantTrigrams[i].Item1,
+                        allTrigrams.MostSignificantTrigrams[i].Item2));
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -35,6 +158,8 @@ namespace Keyrita.Operations
         public KeyLagResult(Enum resultId) : base(resultId)
         {
         }
+
+        public double TotalResult { get; set; }
     }
 
     public class KeyLag : GraphNode
@@ -87,6 +212,7 @@ namespace Keyrita.Operations
             var sfsPerKey = mTfs.SfsDistancePerKey;
             var keyToFinger = mK2f.KeyToFinger;
             double totalBg = SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
+            mResult.TotalResult = 0;
 
             // This intermediate measurement is mainly used for evaluation/generate, but
             // is also used for the finger speed meaurement. 
@@ -105,6 +231,7 @@ namespace Keyrita.Operations
                     score *= fingerWeight;
                     score *= KEY_LOCATION_PENALTY[i, j]; // Sucks to suck.
                     mResult.PerKeyResult[i, j] = score;
+                    mResult.TotalResult += score;
                 }
             }
         }
@@ -423,7 +550,7 @@ namespace Keyrita.Operations
             }
 
             // Set the thumb.
-            mResult.FingerToHomePosition[(int)eFinger.LeftThumb] = (3, 0);
+            mResult.FingerToHomePosition[(int)eFinger.RightThumb] = (3, 0);
         }
 
         public override bool RespondsToGenerateSwapKeysEvent => false;
@@ -741,7 +868,7 @@ namespace Keyrita.Operations
 
             // Add the space key.
             keyToFingerInt[KeyboardStateSetting.ROWS] = new int[1];
-            keyToFingerInt[KeyboardStateSetting.ROWS][0] = (int)eFinger.LeftThumb;
+            keyToFingerInt[KeyboardStateSetting.ROWS][0] = (int)eFinger.RightThumb;
 
             for (int i = 0; i < KeyboardStateSetting.ROWS; i++)
             {
@@ -771,6 +898,25 @@ namespace Keyrita.Operations
         }
 
         public byte[][] TransformedKbState { get; set; }
+
+        /// <summary>
+        /// Just prints the kb state to the console log.
+        /// </summary>
+        public void LogKbState()
+        {
+            StringBuilder builder = new StringBuilder();
+            string usedCharset = SettingState.MeasurementSettings.CharFrequencyData.UsedCharset;
+
+            for(int i = 0; i < KeyboardStateSetting.ROWS; i++)
+            {
+                for(int j = 0; j < KeyboardStateSetting.COLS; j++)
+                {
+                    builder.Append($" {usedCharset[TransformedKbState[i][j]]}");
+                }
+            }
+
+            LogUtils.LogInfo($"Found local optimum: {builder.ToString()}");
+        }
     }
 
     /// <summary>

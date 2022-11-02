@@ -21,11 +21,6 @@ namespace Keyrita.Generate
         {
         }
 
-        /// <summary>
-        /// The number of keys to fix at a time.
-        /// </summary>
-        const int OPTIMIZATION_DEPTH = 3;
-
         protected void SetupAnalysis()
         {
             // Make sure required nodes are installed. 
@@ -46,7 +41,7 @@ namespace Keyrita.Generate
             // Perform a swap over and over again.
             while (true)
             {
-                AnalysisGraphSystem.GenerateSignalSwapKeys(0, 0, 0, 1);
+                AnalysisGraphSystem.GenerateSignalSwapKeys(0, 4, 0, 5);
                 swapCount++;
 
                 if(sw.ElapsedMilliseconds > 5000)
@@ -119,6 +114,8 @@ namespace Keyrita.Generate
             return true;
         }
 
+        private Random mRand = new Random();
+
         protected bool TestSwaps()
         {
             // Values to compare against.
@@ -140,7 +137,6 @@ namespace Keyrita.Generate
             var expectedScissorsPerKey = Utils.CopyRectArray(scissorsResult.PerKeyResult);
             var expectedKeyLag = Utils.CopyRectArray(keyLagResult.PerKeyResult);
 
-            Random rand = new Random();
             int swapCount = 5000;
 
             LogUtils.LogInfo("Starting key swap tests.");
@@ -150,10 +146,10 @@ namespace Keyrita.Generate
             // For each key, swap it with every other key, then swap back, and make sure we have the same results.
             for (int i = 0; i < swapCount; i++)
             {
-                int k1i = rand.Next(0, KeyboardStateSetting.ROWS);
-                int k1j = rand.Next(0, KeyboardStateSetting.COLS);
-                int k2i = rand.Next(0, KeyboardStateSetting.ROWS);
-                int k2j = rand.Next(0, KeyboardStateSetting.COLS);
+                int k1i = mRand.Next(0, KeyboardStateSetting.ROWS);
+                int k1j = mRand.Next(0, KeyboardStateSetting.COLS);
+                int k2i = mRand.Next(0, KeyboardStateSetting.ROWS);
+                int k2j = mRand.Next(0, KeyboardStateSetting.COLS);
 
                 // It never makes sense to swap a key with itself, wont even bother to make sure that behaves properly.
                 if (k1i == k2i && k1j == k2j) continue;
@@ -176,11 +172,11 @@ namespace Keyrita.Generate
             // At the end we will swap the keyboard back to its initial position and compare to the expected results.
             for (int i = 0; i < swapCount; i++)
             {
-                int k1i = rand.Next(0, KeyboardStateSetting.ROWS);
-                int k1j = rand.Next(0, KeyboardStateSetting.COLS);
+                int k1i = mRand.Next(0, KeyboardStateSetting.ROWS);
+                int k1j = mRand.Next(0, KeyboardStateSetting.COLS);
 
-                int k2i = rand.Next(0, KeyboardStateSetting.ROWS);
-                int k2j = rand.Next(0, KeyboardStateSetting.COLS);
+                int k2i = mRand.Next(0, KeyboardStateSetting.ROWS);
+                int k2j = mRand.Next(0, KeyboardStateSetting.COLS);
 
                 // It never makes sense to swap a key with itself, wont even bother to make sure that behaves properly.
                 if (k1i == k2i && k1j == k2j) continue;
@@ -196,10 +192,12 @@ namespace Keyrita.Generate
                 {
                     if (expectedKbState[i][j] != kbStateResult.TransformedKbState[i][j])
                     {
+                        int k = i;
+                        int w = j + 1;
                         // Find the key to swap with and perform the swap. Note the key can only be in front.
-                        for(int k = 0; k < KeyboardStateSetting.ROWS; k++)
+                        for(; k < KeyboardStateSetting.ROWS; k++)
                         {
-                            for(int w = 0; w < KeyboardStateSetting.COLS; w++)
+                            for(; w < KeyboardStateSetting.COLS; w++)
                             {
                                 if (kbStateResult.TransformedKbState[k][w] == expectedKbState[i][j])
                                 {
@@ -208,8 +206,12 @@ namespace Keyrita.Generate
                                     break;
                                 }
                             }
+
+                            w = 0;
                         }
                     }
+
+                    LogUtils.Assert(kbStateResult.TransformedKbState[i][j] == expectedKbState[i][j], "Swapping key back to position failed for some reason.");
                 }
             }
 
@@ -226,7 +228,7 @@ namespace Keyrita.Generate
             sw.Stop();
             LogUtils.LogInfo($"Finished key swap tests. ({sw.ElapsedMilliseconds} ms)");
 
-            return false;
+            return true;
         }
 
         /// <summary>
@@ -241,11 +243,166 @@ namespace Keyrita.Generate
             // Only proceed if the cache swapping system isn't obviously broken.
             if (TestSwaps())
             {
+                // Since we know swapping and reevaluation isn't completely messed up, go ahead and start the generation.
+                // The score is the total key score.
+                BestNSwapsOptimizer();
+            }
+        }
 
+        private void BestNSwapsOptimizer()
+        {
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
+            var keyLagResult = (KeyLagResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyLag];
+            var kbStateResult = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
+
+            long totalSwaps = 0;
+            double bestScore = 10000000;
+            int swapPasses = 0;
+            int optDepth = 2;
+
+            (int, int, int, int)[] bestSwaps = new (int, int, int, int)[optDepth];
+            double swapsPerSecond = 0;
+
+            while(PerformNBestSwaps(0, optDepth, ref bestScore, ref totalSwaps, keyLagResult, bestSwaps))
+            {
+                swapsPerSecond = totalSwaps / (timer.ElapsedMilliseconds / 1000.0);
+                LogUtils.LogInfo($"Performed pass: Swaps per second {swapsPerSecond}. Best score: {bestScore}");
+
+                // Only do the one swap we computed this round.
+                for(int i = 0; i < optDepth; i++)
+                {
+                    AnalysisGraphSystem.GenerateSignalSwapKeys(bestSwaps[i].Item1, bestSwaps[i].Item2, bestSwaps[i].Item3, bestSwaps[i].Item4);
+                }
+
+                swapPasses += 1;
             }
 
-            long swapCount = MeasureLayoutsPerSecond();
-            LogUtils.LogInfo($"Swaps per second: {swapCount}");
+            swapsPerSecond = totalSwaps / (timer.ElapsedMilliseconds / 1000.0);
+
+            timer.Stop();
+            LogUtils.LogInfo($"Generated layout in {timer.ElapsedMilliseconds / 1000.0} sseconds with {totalSwaps} swaps. {swapPasses} total passes");
+            LogUtils.LogInfo($"Swaps per second: {swapsPerSecond}");
+            kbStateResult.LogKbState();
+            LogUtils.LogInfo($"Score: {bestScore}");
+        }
+
+        private bool PerformNBestSwaps(int currentDepth, int totalDepth, ref double bestScore, ref long totalSwaps, KeyLagResult keyLag,
+            Span<(int, int, int, int)> bestSwaps)
+        {
+            if(currentDepth >= totalDepth)
+            {
+                if(keyLag.TotalResult < bestScore && bestScore - keyLag.TotalResult > 1e-6)
+                {
+                    bestScore = keyLag.TotalResult;
+                    return true;
+                }
+                return false;
+            }
+
+            int rows = KeyboardStateSetting.ROWS;
+            int cols = KeyboardStateSetting.COLS;
+            bool setBest = false;
+
+            for(int i = 0; i < rows; i++)
+            {
+                for(int j = 0; j < cols; j++)
+                {
+                    int k = i;
+                    int w = j + 1;
+
+                    for(; k < rows; k++)
+                    {
+                        for(; w < cols; w++)
+                        {
+                            AnalysisGraphSystem.GenerateSignalSwapKeys(i, j, k, w);
+
+                            if(PerformNBestSwaps(currentDepth + 1, totalDepth, ref bestScore, ref totalSwaps, keyLag, bestSwaps))
+                            {
+                                bestSwaps[currentDepth] = (i, j, k, w);
+                                setBest = true;
+                            }
+
+                            AnalysisGraphSystem.GenerateSignalSwapKeys(i, j, k, w);
+                            totalSwaps += 2;
+                        }
+
+                        w = 0;
+                    }
+                }
+            }
+
+            return setBest;
+        }
+
+        private void BestSwapOptimizer()
+        {
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
+
+            var keyLagResult = (KeyLagResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyLag];
+            var kbStateResult = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
+
+            long totalSwaps = 0;
+            double bestScore = 10000000;
+
+            while (PerformBestSwap(keyLagResult, ref bestScore, ref totalSwaps));
+
+            timer.Stop();
+
+            LogUtils.LogInfo($"Generated layout in {timer.ElapsedMilliseconds / 1000.0} sseconds with {totalSwaps} swaps");
+            kbStateResult.LogKbState();
+            LogUtils.LogInfo($"Score: {bestScore}");
+
+        }
+
+        // Finds the best swap in the layout, takes it, then does it again until no more swaps are available.
+        private bool PerformBestSwap(KeyLagResult keyLag, ref double bestScore, ref long totalSwaps)
+        {
+            int rows = KeyboardStateSetting.ROWS;
+            int cols = KeyboardStateSetting.COLS;
+
+            int bestSwap1i = 0, bestSwap1j = 0, bestSwap2i = 0, bestSwap2j = 0;
+
+            for(int i = 0; i < rows; i++)
+            {
+                for(int j = 0; j < cols; j++)
+                {
+                    int k = i;
+                    int w = j + 1;
+
+                    for(; k < rows; k++)
+                    {
+                        for(; w < cols; w++)
+                        {
+                            AnalysisGraphSystem.GenerateSignalSwapKeys(i, j, k, w);
+
+                            if(keyLag.TotalResult < bestScore)
+                            {
+                                bestScore = keyLag.TotalResult;
+                                bestSwap1i = i;
+                                bestSwap1j = j;
+                                bestSwap2i = k;
+                                bestSwap2j = w;
+                            }
+
+                            AnalysisGraphSystem.GenerateSignalSwapKeys(i, j, k, w);
+                            totalSwaps += 2;
+                        }
+
+                        w = 0;
+                    }
+                }
+            }
+
+            if (bestSwap1i != bestSwap2i || bestSwap1j != bestSwap2j)
+            {
+                AnalysisGraphSystem.GenerateSignalSwapKeys(bestSwap1i, bestSwap1j, bestSwap2i, bestSwap2j);
+                totalSwaps++;
+                return true;
+            }
+
+            return false;
         }
     }
 }

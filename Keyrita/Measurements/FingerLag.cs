@@ -48,7 +48,6 @@ namespace Keyrita.Measurements
 
                     mResult.PerFingerResult[finger] += keyLag[i, j];
                     mResult.PerHandResult[(int)hand] += keyLag[i, j];
-                    mResult.TotalResult += keyLag[i, j];
                 }
             }
 
@@ -60,6 +59,7 @@ namespace Keyrita.Measurements
                 resultIdx++;
             }
 
+            mResult.TotalResult = ks.TotalResult;
             SetLeftHandResult(mResult.PerHandResult[(int)eHand.Left]);
             SetRightHandResult(mResult.PerHandResult[(int)eHand.Right]);
             SetTotalResult(mResult.TotalResult);

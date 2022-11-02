@@ -85,7 +85,7 @@ namespace Keyrita.Measurements
         }
 
         protected void HandleCharSwap(byte ch1, byte ch2, List<(int, int)> si,
-            int k1i, int k1j, int k2i, int k2j)
+            int k1i, int k1j)
         {
             var kb = mKbState.TransformedKbState;
             var bigramFreq = SettingState.MeasurementSettings.CharFrequencyData.BigramFreq;
@@ -105,8 +105,8 @@ namespace Keyrita.Measurements
                     mResult.TotalResult -= subCh1;
                     mResult.TotalResult += subCh2;
 
-                    mResult.PerKeyResult[k1i, k1j] -= subCh2;
-                    mResult.PerKeyResult[k1i, k1j] += subCh1;
+                    mResult.PerKeyResult[k1i, k1j] -= subCh1;
+                    mResult.PerKeyResult[k1i, k1j] += subCh2;
                 }
                 else
                 {
@@ -120,10 +120,10 @@ namespace Keyrita.Measurements
                     mResult.TotalResult += subCh3;
                     mResult.TotalResult += subCh4;
 
-                    mResult.PerKeyResult[k1i, k1j] -= subCh2;
-                    mResult.PerKeyResult[k1i, k1j] += subCh4;
-                    mResult.PerKeyResult[otherKeyPos.Item1, otherKeyPos.Item2] -= subCh1;
-                    mResult.PerKeyResult[otherKeyPos.Item1, otherKeyPos.Item2] += subCh3;
+                    mResult.PerKeyResult[k1i, k1j] -= subCh1;
+                    mResult.PerKeyResult[k1i, k1j] += subCh3;
+                    mResult.PerKeyResult[otherKeyPos.Item1, otherKeyPos.Item2] -= subCh2;
+                    mResult.PerKeyResult[otherKeyPos.Item1, otherKeyPos.Item2] += subCh4;
                 }
             }
         }
@@ -143,8 +143,8 @@ namespace Keyrita.Measurements
             var si1 = scissorIndices.GetScissorsAt(k1i, k1j);
             var si2 = scissorIndices.GetScissorsAt(k2i, k2j);
 
-            HandleCharSwap(ch1, ch2, si1, k1i, k1j, k2i, k2j);
-            HandleCharSwap(ch2, ch1, si2, k2i, k2j, k1i, k1j);
+            HandleCharSwap(ch1, ch2, si1, k1i, k1j);
+            HandleCharSwap(ch2, ch1, si2, k2i, k2j);
         }
 
         public override AnalysisResult GetResult()

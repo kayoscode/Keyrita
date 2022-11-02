@@ -90,4 +90,15 @@ namespace Keyrita.Settings
             this.TrySetToPending(true);
         }
     }
+
+    /// <summary>
+    /// The number of trigrams to use for computations.
+    /// </summary>
+    public class TrigramDepthSetting : ConcreteValueSetting<int>
+    {
+        public TrigramDepthSetting() : 
+            base("Trigram Depth", 700, eSettingAttributes.None)
+        {
+        }
+    }
 }

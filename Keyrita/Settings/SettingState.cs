@@ -75,6 +75,9 @@ namespace Keyrita.Settings
         public ElementSetSetting<eMeasurements> AvailableMeasurements { get; } =
             new AvailableMeasurementList();
 
+        public TrigramDepthSetting TrigramDepth { get; } =
+            new TrigramDepthSetting();
+
         public IReadOnlyDictionary<int, ConcreteValueSetting<double>> RowOffsets => mRowOffsets;
         protected Dictionary<int, ConcreteValueSetting<double>> mRowOffsets = new Dictionary<int, ConcreteValueSetting<double>>();
 
