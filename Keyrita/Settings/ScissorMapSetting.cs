@@ -73,6 +73,7 @@ namespace Keyrita.Settings
 
             AddScissorIndices((0, 7), (2, 8));
             AddScissorIndices((0, 7), (2, 9));
+            AddScissorIndices((0, 7), (2, 6));
 
             AddScissorIndices((0, 8), (2, 7));
             AddScissorIndices((0, 8), (2, 9));

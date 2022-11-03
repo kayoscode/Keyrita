@@ -176,16 +176,16 @@ namespace Keyrita.Operations
     {
         // These all need to eventually be settings.
         private const double SFB_WEIGHT = 1000;
-        private const double SFS_WEIGHT = 450;
-        private const double SCISSOR_WEIGHT = 1900;
+        private const double SFS_WEIGHT = 500;
+        private const double SCISSOR_WEIGHT = 1550;
 
         // Penalty applied to key scores just for existing at their location :D
         // Eventually let the user set these and discriminate their own way!
         private static double[,] KEY_LOCATION_PENALTY = new double[KeyboardStateSetting.ROWS, KeyboardStateSetting.COLS]
         {
-            { 1.85, 1.35, 1.25, 1.1, 1.05, 1.05, 1.1, 1.25, 1.35, 1.85 },
-            { 1.4, 1.2, 1.05, 1.0, 1.15, 1.15, 1.0, 1.05, 1.2, 1.5 },
-            { 1.90, 1.55, 1.25, 1.1, 1.40, 1.3, 1.1, 1.25, 1.55, 1.90 },
+            { 1.81, 1.45, 1.21, 1.33, 1.45,  1.21, 1.33, 1.21, 1.45, 1.81 },
+            { 1.10, 0.78, 0.66, 0.60, 1.57,  1.57, 0.60, 0.66, 0.78, 1.10 },
+            { 2.12, 1.81, 1.63, 1.33, 2.24,  1.33, 1.10, 1.45, 1.69, 2.00 }
         };
 
         private KeyLagResult mResult;

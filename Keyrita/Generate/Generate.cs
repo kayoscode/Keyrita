@@ -231,6 +231,8 @@ namespace Keyrita.Generate
             return true;
         }
 
+        private TranspositionTable mTranspositionTable;
+
         /// <summary>
         /// Given the current layout, locked keys, and much more, find the best possible arrangement.
         /// When finished, set the screen to use the new layout.
@@ -239,11 +241,19 @@ namespace Keyrita.Generate
         public void GenerateBetterLayout()
         {
             SetupAnalysis();
+            long totalSwaps = 0;
+
             var kbStateResult = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
             int rows = KeyboardStateSetting.ROWS;
             int cols = KeyboardStateSetting.COLS;
-            int layoutsOptimized = 500;
+            int optimizationCount = 1000;
+            double numOptimizations = (double)optimizationCount;
             Stopwatch timer = new Stopwatch();
+
+            if(mTranspositionTable == null)
+            {
+                mTranspositionTable = new TranspositionTable(optimizationCount);
+            }
 
             double bestScore = 1000000;
             byte[][] bestLayout = new byte[rows][];
@@ -259,10 +269,11 @@ namespace Keyrita.Generate
                 timer.Start();
                 var keyLagResult = (KeyLagResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyLag];
 
-                for (int count = 0; count < layoutsOptimized; count++)
+                for (int count = 0; count < optimizationCount; count++)
                 {
+                    int numSwaps = random.NextInt((int)(10 * (1 - (count / numOptimizations))) + 1) + 5;
                     // Perform a couple of completely random swaps, then randomize the layout.
-                    for (int i = 0; i < 6; i++)
+                    for (int i = 0; i < numSwaps; i++)
                     {
                         int k1i = random.NextInt(rows);
                         int k1j = random.NextInt(cols);
@@ -275,7 +286,8 @@ namespace Keyrita.Generate
                     }
 
                     // Optimize the layout. 
-                    BestSwapOptimizer(keyLagResult);
+                    long swaps = BestSwapOptimizer(keyLagResult);
+                    totalSwaps += swaps;
 
                     if (keyLagResult.TotalResult < bestScore)
                     {
@@ -285,11 +297,11 @@ namespace Keyrita.Generate
                 }
 
                 timer.Stop();
-                long olps = layoutsOptimized / (timer.ElapsedMilliseconds / 1000);
+                long olps = optimizationCount / (timer.ElapsedMilliseconds / 1000);
                 LogUtils.LogInfo($"Optimized layouts per second: {olps}");
                 LogUtils.LogInfo($"Best score: {bestScore}");
-                LogUtils.LogInfo($"Average swaps per optimization: {bestScore}");
-                LogUtils.LogInfo($"Total swaps: {bestScore}");
+                LogUtils.LogInfo($"Average swaps per optimization: {totalSwaps / (double)optimizationCount}");
+                LogUtils.LogInfo($"Total swaps: {totalSwaps}");
 
                 string chars = SettingState.MeasurementSettings.CharFrequencyData.AvailableCharSet;
                 char[,] newKbState = new char[KeyboardStateSetting.ROWS, KeyboardStateSetting.COLS];
@@ -303,6 +315,77 @@ namespace Keyrita.Generate
 
                 SettingState.KeyboardSettings.KeyboardState.SetKeyboardState(newKbState);
             }
+        }
+
+        private long BestSwapOptimizer(KeyLagResult keyLagResult)
+        {
+            long totalSwaps = 0;
+            double bestScore = 10000000;
+
+            BestSwapOptimizerRecursive(keyLagResult, ref bestScore, ref totalSwaps);
+
+            return totalSwaps;
+        }
+
+        private void BestSwapOptimizerRecursive(KeyLagResult keyLag, ref double bestScore, ref long totalSwaps)
+        {
+            int bestSwap1i, bestSwap1j, bestSwap2i, bestSwap2j;
+            
+            bool isNotOptimal = PerformBestSwap(keyLag, ref bestScore, ref totalSwaps,
+                out bestSwap1i, out bestSwap1j, out bestSwap2i, out bestSwap2j);
+
+            if (isNotOptimal)
+            {
+                AnalysisGraphSystem.GenerateSignalSwapKeys(bestSwap1i, bestSwap1j, bestSwap2i, bestSwap2j);
+                BestSwapOptimizerRecursive(keyLag, ref bestScore, ref totalSwaps);
+            }
+        }
+
+        // Finds the best swap in the layout, takes it, then does it again until no more swaps are available.
+        private bool PerformBestSwap(KeyLagResult keyLag, ref double bestScore, ref long totalSwaps,
+            out int bestSwap1i, out int bestSwap1j, out int bestSwap2i, out int bestSwap2j)
+        {
+            int rows = KeyboardStateSetting.ROWS;
+            int cols = KeyboardStateSetting.COLS;
+            bool setBest = false;
+            bestSwap1i = 0;
+            bestSwap1j = 0;
+            bestSwap2i = 0;
+            bestSwap2j = 0;
+
+            for(int i = 0; i < rows; i++)
+            {
+                for(int j = 0; j < cols; j++)
+                {
+                    int k = i;
+                    int w = j + 1;
+
+                    for(; k < rows; k++)
+                    {
+                        for(; w < cols; w++)
+                        {
+                            AnalysisGraphSystem.GenerateSignalSwapKeys(i, j, k, w);
+
+                            if(keyLag.TotalResult < bestScore && bestScore - keyLag.TotalResult > 1e-6)
+                            {
+                                bestScore = keyLag.TotalResult;
+                                bestSwap1i = i;
+                                bestSwap1j = j;
+                                bestSwap2i = k;
+                                bestSwap2j = w;
+                                setBest = true;
+                            }
+
+                            AnalysisGraphSystem.GenerateSignalSwapKeys(i, j, k, w);
+                            totalSwaps += 2;
+                        }
+
+                        w = 0;
+                    }
+                }
+            }
+
+            return setBest;
         }
 
         private void BestNSwapsOptimizer(int depth)
@@ -371,63 +454,6 @@ namespace Keyrita.Generate
             }
 
             return setBest;
-        }
-
-        private void BestSwapOptimizer(KeyLagResult keyLagResult)
-        {
-            long totalSwaps = 0;
-            double bestScore = 10000000;
-
-            while (PerformBestSwap(keyLagResult, ref bestScore, ref totalSwaps));
-        }
-
-        // Finds the best swap in the layout, takes it, then does it again until no more swaps are available.
-        private bool PerformBestSwap(KeyLagResult keyLag, ref double bestScore, ref long totalSwaps)
-        {
-            int rows = KeyboardStateSetting.ROWS;
-            int cols = KeyboardStateSetting.COLS;
-
-            int bestSwap1i = 0, bestSwap1j = 0, bestSwap2i = 0, bestSwap2j = 0;
-
-            for(int i = 0; i < rows; i++)
-            {
-                for(int j = 0; j < cols; j++)
-                {
-                    int k = i;
-                    int w = j + 1;
-
-                    for(; k < rows; k++)
-                    {
-                        for(; w < cols; w++)
-                        {
-                            AnalysisGraphSystem.GenerateSignalSwapKeys(i, j, k, w);
-
-                            if(keyLag.TotalResult < bestScore)
-                            {
-                                bestScore = keyLag.TotalResult;
-                                bestSwap1i = i;
-                                bestSwap1j = j;
-                                bestSwap2i = k;
-                                bestSwap2j = w;
-                            }
-
-                            AnalysisGraphSystem.GenerateSignalSwapKeys(i, j, k, w);
-                            totalSwaps += 2;
-                        }
-
-                        w = 0;
-                    }
-                }
-            }
-
-            if (bestSwap1i != bestSwap2i || bestSwap1j != bestSwap2j)
-            {
-                AnalysisGraphSystem.GenerateSignalSwapKeys(bestSwap1i, bestSwap1j, bestSwap2i, bestSwap2j);
-                totalSwaps++;
-                return true;
-            }
-
-            return false;
         }
     }
 }
