@@ -119,15 +119,7 @@ namespace Keyrita.Settings
 
         protected override void DoAction()
         {
-            if(SettingState.MeasurementSettings.AnalysisEnabled.HasValue && SettingState.KeyboardSettings.KeyboardValid.HasValue)
-            {
-                if (SettingState.MeasurementSettings.AnalysisEnabled.Value.Equals(eOnOff.On) &&
-                   SettingState.KeyboardSettings.KeyboardValid.Value.Equals(eOnOff.On))
-                {
-                    // Resolve the ops.
-                    AnalysisGraphSystem.ResolveGraph();
-                }
-            }
+            AnalysisGraphSystem.ResolveGraph();
         }
     }
 
@@ -617,6 +609,23 @@ namespace Keyrita.Settings
         }
 
         #region Public manipulation interface
+
+        public void SetKeyboardState(char[,] newKbState)
+        {
+            LogUtils.Assert(newKbState.GetLength(0) == ROWS);
+            LogUtils.Assert(newKbState.GetLength(1) == COLS);
+
+            for(int i = 0; i < ROWS; i++)
+            {
+                for(int j = 0; j < COLS; j++)
+                {
+                    this.mPendingKeyState[i, j] = newKbState[i, j];
+                }
+            }
+
+            CopyBoard(mDesiredKeyState, mPendingKeyState);
+            TrySetToPending(true);
+        }
 
         public void SwapKeys(char k1, char k2)
         {

@@ -116,7 +116,7 @@ namespace Keyrita.Settings
                 }
             }
 
-            string allCharacters = SettingState.MeasurementSettings.CharFrequencyData.UsedCharset;
+            string allCharacters = SettingState.MeasurementSettings.CharFrequencyData.AvailableCharSet;
             char selectedKey = SettingState.KeyboardSettings.SelectedKey.Value;
 
             if(SettingState.MeasurementSettings.CharFrequencyData.HasValue && allCharacters != null)

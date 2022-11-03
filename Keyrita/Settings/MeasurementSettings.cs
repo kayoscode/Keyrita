@@ -7,6 +7,24 @@ using Keyrita.Util;
 
 namespace Keyrita.Settings
 {
+    /// <summary>
+    /// Which finger will be used for the space key
+    /// </summary>
+    public class SpaceFingerSetting : EnumValueSetting<eFinger>
+    {
+        public SpaceFingerSetting() : base("Space Finger", eFinger.RightThumb, eSettingAttributes.Recall)
+        {
+            ChangeLimits();
+        }
+
+        protected override void ChangeLimits()
+        {
+            mValidTokens.Clear();
+            mValidTokens.Add(eFinger.LeftThumb);
+            mValidTokens.Add(eFinger.RightThumb);
+        }
+    }
+
     /// The set of measurements available to the user.
     /// Nonrecallable.
     /// </summary>
@@ -62,7 +80,7 @@ namespace Keyrita.Settings
     public class MeasurementInstalledSetting : OnOffSetting
     {
         public MeasurementInstalledSetting(eMeasurements measurement)
-            : base($"Measurement OnOff State", eOnOff.Off, eSettingAttributes.Recall, measurement)
+            : base($"Measurement OnOff State", eOnOff.On, eSettingAttributes.None, measurement)
         {
         }
 
@@ -97,7 +115,7 @@ namespace Keyrita.Settings
     public class TrigramDepthSetting : ConcreteValueSetting<int>
     {
         public TrigramDepthSetting() : 
-            base("Trigram Depth", 2500, eSettingAttributes.None)
+            base("Trigram Depth", 800, eSettingAttributes.None)
         {
         }
     }

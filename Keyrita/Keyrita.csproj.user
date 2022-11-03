@@ -28,9 +28,6 @@
     <Compile Update="Gui\Controls\MeasurementOutput.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Gui\Controls\MeasurementToolbar.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Update="Gui\Controls\MenuItemOpenDlg.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -76,9 +73,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Gui\Controls\MeasurementOutput.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="Gui\Controls\MeasurementToolbar.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Gui\Controls\MenuItemOpenDlg.xaml">

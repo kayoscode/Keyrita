@@ -44,7 +44,7 @@ namespace Keyrita.Settings
         protected uint[,,] mSkipgramFreq;
         public long[] SkipgramHitCount { get; protected set; } = new long[NativeAnalysis.SKIPGRAM_DEPTH];
 
-        public string UsedCharset => mUsedCharset;
+        public string AvailableCharSet => mUsedCharset;
         protected string mUsedCharset;
 
         public override bool HasValue => !(CharFreq == null || BigramFreq == null || TrigramFreq == null 
@@ -60,7 +60,7 @@ namespace Keyrita.Settings
         {
             if(HasValue)
             {
-                LogUtils.Assert(charIdx >= 0 && charIdx < UsedCharset.Length, "Sanity check failed.");
+                LogUtils.Assert(charIdx >= 0 && charIdx < AvailableCharSet.Length, "Sanity check failed.");
                 return CharFreq[charIdx] / (double)CharHitCount;
             }
 
@@ -77,8 +77,8 @@ namespace Keyrita.Settings
         {
             if(HasValue)
             {
-                LogUtils.Assert(idx1 >= 0 && idx1 < UsedCharset.Length, "Sanity check failed.");
-                LogUtils.Assert(idx2 >= 0 && idx2 < UsedCharset.Length, "Sanity check failed.");
+                LogUtils.Assert(idx1 >= 0 && idx1 < AvailableCharSet.Length, "Sanity check failed.");
+                LogUtils.Assert(idx2 >= 0 && idx2 < AvailableCharSet.Length, "Sanity check failed.");
 
                 if(BigramHitCount != 0)
                 {

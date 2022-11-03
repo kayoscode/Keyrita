@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Keyrita.Measurements;
+using Keyrita.Settings;
+using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
 
 namespace Keyrita.Operations.OperationUtil
@@ -123,18 +125,29 @@ namespace Keyrita.Operations.OperationUtil
         }
 
         /// <summary>
+        /// Whether or not the analyzer is in a position to get a valid result.
+        /// </summary>
+        public static bool CanAnalyze =>
+                SettingState.MeasurementSettings.CharFrequencyData.HasValue &&
+                       SettingState.KeyboardSettings.KeyboardValid.Value.Equals(eOnOff.On) &&
+                       SettingState.MeasurementSettings.AnalysisEnabled.Value.Equals(eOnOff.On);
+
+        /// <summary>
         /// Computes the results of all ops.
         /// </summary>
         public static void ResolveGraph()
         {
-            ResolvedNodes.Clear();
-
-            // Go through each operation, and make sure their dependents have been resolved. If so,
-            foreach(var node in ActiveNodes)
+            if (CanAnalyze)
             {
-                LogUtils.Assert(node.Value != null, "Sanity check failed.");
-                LogUtils.Assert(node.Value.NodeId.Equals(node.Key), "Sanity check failed.");
-                ResolveNode(node.Value);
+                ResolvedNodes.Clear();
+
+                // Go through each operation, and make sure their dependents have been resolved. If so,
+                foreach(var node in ActiveNodes)
+                {
+                    LogUtils.Assert(node.Value != null, "Sanity check failed.");
+                    LogUtils.Assert(node.Value.NodeId.Equals(node.Key), "Sanity check failed.");
+                    ResolveNode(node.Value);
+                }
             }
         }
 

@@ -60,6 +60,9 @@ namespace Keyrita.Settings
     /// </summary>
     public class MeasurementSettings
     {
+        public EnumValueSetting<eFinger> SpaceFinger { get; } =
+            new SpaceFingerSetting();
+
         public CharFrequencySetting CharFrequencyData { get; } =
             new CharFrequencySetting();
 

@@ -176,8 +176,8 @@ namespace Keyrita.Operations
     {
         // These all need to eventually be settings.
         private const double SFB_WEIGHT = 1000;
-        private const double SFS_WEIGHT = 500;
-        private const double SCISSOR_WEIGHT = 1700;
+        private const double SFS_WEIGHT = 450;
+        private const double SCISSOR_WEIGHT = 1900;
 
         // Penalty applied to key scores just for existing at their location :D
         // Eventually let the user set these and discriminate their own way!
@@ -185,7 +185,7 @@ namespace Keyrita.Operations
         {
             { 1.85, 1.35, 1.25, 1.1, 1.05, 1.05, 1.1, 1.25, 1.35, 1.85 },
             { 1.4, 1.2, 1.05, 1.0, 1.15, 1.15, 1.0, 1.05, 1.2, 1.5 },
-            { 1.90, 1.55, 1.25, 1.1, 1.3, 1.3, 1.1, 1.25, 1.55, 1.90 },
+            { 1.90, 1.55, 1.25, 1.1, 1.40, 1.3, 1.1, 1.25, 1.55, 1.90 },
         };
 
         private KeyLagResult mResult;
@@ -560,7 +560,7 @@ namespace Keyrita.Operations
             }
 
             // Set the thumb.
-            mResult.FingerToHomePosition[(int)eFinger.RightThumb] = (3, 0);
+            mResult.FingerToHomePosition[(int)(eFinger)SettingState.MeasurementSettings.SpaceFinger.Value] = (3, 0);
         }
 
         public override bool RespondsToGenerateSwapKeysEvent => false;
@@ -838,7 +838,7 @@ namespace Keyrita.Operations
         protected override void Compute()
         {
             mResult = new CharacterSetAsListResult(this.NodeId);
-            List<char> characterSet = SettingState.MeasurementSettings.CharFrequencyData.UsedCharset.ToList<char>();
+            List<char> characterSet = SettingState.MeasurementSettings.CharFrequencyData.AvailableCharSet.ToList<char>();
             mResult.CharacterSet = characterSet;
         }
 
@@ -878,7 +878,7 @@ namespace Keyrita.Operations
 
             // Add the space key.
             keyToFingerInt[KeyboardStateSetting.ROWS] = new int[1];
-            keyToFingerInt[KeyboardStateSetting.ROWS][0] = (int)eFinger.RightThumb;
+            keyToFingerInt[KeyboardStateSetting.ROWS][0] = (int)(eFinger)SettingState.MeasurementSettings.SpaceFinger.Value;
 
             for (int i = 0; i < KeyboardStateSetting.ROWS; i++)
             {
@@ -908,26 +908,6 @@ namespace Keyrita.Operations
         }
 
         public byte[][] TransformedKbState { get; set; }
-
-
-        /// <summary>
-        /// Just prints the kb state to the console log.
-        /// </summary>
-        public static void LogKbState(byte[][] kbState)
-        {
-            StringBuilder builder = new StringBuilder();
-            string usedCharset = SettingState.MeasurementSettings.CharFrequencyData.UsedCharset;
-
-            for(int i = 0; i < KeyboardStateSetting.ROWS; i++)
-            {
-                for(int j = 0; j < KeyboardStateSetting.COLS; j++)
-                {
-                    builder.Append($" {usedCharset[kbState[i][j]]}");
-                }
-            }
-
-            LogUtils.LogInfo($"Found local optimum: {builder.ToString()}");
-        }
     }
 
     /// <summary>

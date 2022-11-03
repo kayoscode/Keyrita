@@ -21,6 +21,9 @@
         <settings:SetComboBox Width="150"
                            Height="50"
                            x:Name="mHeatMapSetting"/>
+        <settings:SetComboBox Width="150"
+                              Height="50"
+                              x:Name="mSpaceFingerSetting"/>
         <settings:SetCheckBox Width="150"
                            Height="50"
                            x:Name="mShowFingerUsage"/>

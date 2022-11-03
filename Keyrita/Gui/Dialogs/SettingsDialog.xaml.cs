@@ -17,6 +17,7 @@ namespace Keyrita.Gui.Dialogs
             mLanguage.Setting = SettingState.KeyboardSettings.KeyboardLanguage as EnumValueSetting;
             mShowFingerUsage.Setting = SettingState.KeyboardSettings.ShowFingerUsage as OnOffSetting;
             mHeatMapSetting.Setting = SettingState.KeyboardSettings.HeatmapType as EnumValueSetting;
+            mSpaceFingerSetting.Setting = SettingState.MeasurementSettings.SpaceFinger as EnumValueSetting;
 
             this.ResizeMode = System.Windows.ResizeMode.NoResize;
         }

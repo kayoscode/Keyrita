@@ -242,7 +242,7 @@ namespace Keyrita.Generate
             var kbStateResult = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
             int rows = KeyboardStateSetting.ROWS;
             int cols = KeyboardStateSetting.COLS;
-            int layoutsOptimized = 25000;
+            int layoutsOptimized = 500;
             Stopwatch timer = new Stopwatch();
 
             double bestScore = 1000000;
@@ -288,7 +288,20 @@ namespace Keyrita.Generate
                 long olps = layoutsOptimized / (timer.ElapsedMilliseconds / 1000);
                 LogUtils.LogInfo($"Optimized layouts per second: {olps}");
                 LogUtils.LogInfo($"Best score: {bestScore}");
-                TransformedKbStateResult.LogKbState(bestLayout);
+                LogUtils.LogInfo($"Average swaps per optimization: {bestScore}");
+                LogUtils.LogInfo($"Total swaps: {bestScore}");
+
+                string chars = SettingState.MeasurementSettings.CharFrequencyData.AvailableCharSet;
+                char[,] newKbState = new char[KeyboardStateSetting.ROWS, KeyboardStateSetting.COLS];
+                for(int i = 0; i < rows; i++)
+                {
+                    for(int j = 0; j < cols; j++)
+                    {
+                        newKbState[i, j] = chars[bestLayout[i][j]];
+                    }
+                }
+
+                SettingState.KeyboardSettings.KeyboardState.SetKeyboardState(newKbState);
             }
         }
 
