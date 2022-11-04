@@ -582,6 +582,7 @@ namespace Keyrita.Settings
 
         public bool IsKeyLocked(int i, int j)
         {
+            if (i == -1 || j == -1) return false;
             return this.GetValueAt(i, j);
         }
 
@@ -751,7 +752,6 @@ namespace Keyrita.Settings
                 }
             }
 
-            LogUtils.Assert(false, "Character not found");
             return (-1, -1);
         }
 

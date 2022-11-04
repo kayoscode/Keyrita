@@ -231,15 +231,15 @@ namespace Keyrita.Settings
         public override void SetToDefault()
         {
             mDesiredState[(int)eFinger.None] = 0;
-            mDesiredState[(int)eFinger.LeftPinkie] = 2.0;
-            mDesiredState[(int)eFinger.LeftRing] = 1.35;
-            mDesiredState[(int)eFinger.LeftMiddle] = 1.1;
+            mDesiredState[(int)eFinger.LeftPinkie] = 2.4;
+            mDesiredState[(int)eFinger.LeftRing] = 1.5;
+            mDesiredState[(int)eFinger.LeftMiddle] = 1.15;
             mDesiredState[(int)eFinger.LeftIndex] = 1;
 
             mDesiredState[(int)eFinger.RightRing] = 1;
-            mDesiredState[(int)eFinger.RightMiddle] = 1.1;
-            mDesiredState[(int)eFinger.RightIndex] = 1.35;
-            mDesiredState[(int)eFinger.RightPinkie] = 2.0;
+            mDesiredState[(int)eFinger.RightMiddle] = 1.15;
+            mDesiredState[(int)eFinger.RightIndex] = 1.5;
+            mDesiredState[(int)eFinger.RightPinkie] = 2.4;
 
             SetToDesiredValue();
         }

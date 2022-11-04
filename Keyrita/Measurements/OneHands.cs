@@ -37,7 +37,9 @@ namespace Keyrita.Measurements
 
         protected override void Compute()
         {
-            long totalTgs = SettingState.MeasurementSettings.CharFrequencyData.TrigramHitCount;
+            SortedTrigramSetResult tgSet = (SortedTrigramSetResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.SortedTrigramSet];
+            long totalTgs = tgSet.TrigramCoverage;
+
             TrigramStatsResult tgs = (TrigramStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TrigramStats];
             mResult.TotalOneHands = tgs.TotalOneHands / totalTgs * 100;
             mResult.OneHandsLeft = tgs.OneHandsLeft / totalTgs * 100;

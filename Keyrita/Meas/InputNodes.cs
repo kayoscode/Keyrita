@@ -176,16 +176,16 @@ namespace Keyrita.Operations
     public class KeyLag : GraphNode
     {
         // These all need to eventually be settings.
-        private const double SFB_WEIGHT = 1000;
-        private const double SFS_WEIGHT = 500;
-        private const double SCISSOR_WEIGHT = 1550;
+        private const double SFB_WEIGHT = 1250;
+        private const double SFS_WEIGHT = 400;
+        private const double SCISSOR_WEIGHT = 350;
 
         // Penalty applied to key scores just for existing at their location :D
         // Eventually let the user set these and discriminate their own way!
         private static double[,] KEY_LOCATION_PENALTY = new double[KeyboardStateSetting.ROWS, KeyboardStateSetting.COLS]
         {
-            { 1.81, 1.45, 1.21, 1.33, 1.45,  1.21, 1.33, 1.21, 1.45, 1.81 },
-            { 1.10, 0.78, 0.66, 0.60, 1.57,  1.57, 0.60, 0.66, 0.78, 1.10 },
+            { 1.91, 1.45, 1.21, 1.33, 1.45,  1.21, 1.33, 1.21, 1.45, 1.91 },
+            { 1.22, 0.78, 0.66, 0.60, 1.57,  1.57, 0.60, 0.66, 0.78, 1.22 },
             { 2.12, 1.81, 1.63, 1.33, 2.24,  1.33, 1.10, 1.45, 1.69, 2.00 }
         };
 

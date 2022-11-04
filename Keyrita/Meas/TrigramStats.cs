@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Windows.Documents;
 using System.Windows.Documents.Serialization;
 using Keyrita.Operations.OperationUtil;
 using Keyrita.Settings;
@@ -32,22 +36,69 @@ namespace Keyrita.Operations
     {
         protected TrigramStatsResult mResult;
 
-
         public TrigramStats()
             : base(eInputNodes.TrigramStats)
         {
             mResult = new TrigramStatsResult(this.NodeId);
-            AddInputNode(eInputNodes.BigramClassification);
             AddInputNode(eInputNodes.TransformedCharacterToTrigramSet);
             AddInputNode(eInputNodes.TransfomedKbState);
             AddInputNode(eInputNodes.TransformedCharacterToFingerAsInt);
+
+            int fingerCount = Utils.GetTokens<eFinger>().Count();
+            mTgClassifications = new eTrigramClassification[fingerCount, fingerCount, fingerCount];
+
+            for (int i = 0; i < fingerCount; i++)
+            {
+                for (int j = 0; j < fingerCount; j++)
+                {
+                    for (int k = 0; k < fingerCount; k++)
+                    {
+                        eHand firstHand = FingerUtil.GetHandForFingerAsInt(i);
+                        eHand secondHand = FingerUtil.GetHandForFingerAsInt(j);
+                        eHand thirdHand = FingerUtil.GetHandForFingerAsInt(k);
+
+                        mTgClassifications[i, j, k] = ClassifyTrigram(i, j, k, firstHand, secondHand, thirdHand);
+                    }
+                }
+            }
         }
 
+        protected eTrigramClassification[,,] mTgClassifications;
         public override bool RespondsToGenerateSwapKeysEvent => true;
         public override void SwapKeys(int k1i, int k1j, int k2i, int k2j)
         {
             // Trying to do something to make alternations work, lets see what happens.
+            byte c1 = mKb.TransformedKbState[k2i][k2j];
+            byte c2 = mKb.TransformedKbState[k1i][k1j];
 
+            // Subtract off the previous classification, and add on the new classification.
+
+            var tgSet1 = mCharToTgSet.InvolvedTrigrams[c1];
+            var tgSet2 = mCharToTgSet.InvolvedTrigrams[c2];
+
+            for (int i = 0; i < tgSet1.Count; i++)
+            {
+                int previousFinger1 = 0;
+                int previousFinger2 = 0;
+                int previousFinger3 = 0;
+
+                // If character2 is involved in this trigram, then the finger needs to be set to finger 1
+                eTrigramClassification oldTrigramClassification =
+                    mTgClassifications[previousFinger1, previousFinger2, previousFinger3];
+
+                // All the fingers for each of the characters involved in the trigram have already been updated.
+                // So we can get the new classification simply by using the trigram byte array.
+                int finger1 = mC2f.CharacterToFinger[tgSet1[i].Item3[0]];
+                int finger2 = mC2f.CharacterToFinger[tgSet1[i].Item3[1]];
+                int finger3 = mC2f.CharacterToFinger[tgSet1[i].Item3[2]];
+
+                eTrigramClassification newClassification = mTgClassifications[finger1, finger2, finger3];
+            }
+
+            for (int j = 0; j < tgSet2.Count; j++)
+            {
+
+            }
         }
 
         public override AnalysisResult GetResult()
@@ -57,9 +108,8 @@ namespace Keyrita.Operations
 
         private TransformedCharacterToFingerAsIntResult mC2f;
         private TransformedKbStateResult mKb;
-        private TransformedCharacterToTrigramSetResult mTg;
+        private TransformedCharacterToTrigramSetResult mCharToTgSet;
         private SortedTrigramSetResult mTgSet;
-        private BigramClassificationResult mBgc;
 
         protected enum eTrigramClassification
         {
@@ -69,89 +119,114 @@ namespace Keyrita.Operations
             Redirect,
             BadRedirect,
             OneHand,
+            SameFingerTrigram,
             Unclassified
         }
 
+        /// <summary>
+        /// Matches the trigram with a pattern and returns its classification.
+        /// </summary>
+        /// <param name="firstFinger"></param>
+        /// <param name="secondFinger"></param>
+        /// <param name="thirdFinger"></param>
+        /// <param name="firstHand"></param>
+        /// <param name="secondHand"></param>
+        /// <param name="thirdHand"></param>
+        /// <returns></returns>
         protected eTrigramClassification ClassifyTrigram(int firstFinger, int secondFinger, int thirdFinger,
             eHand firstHand, eHand secondHand, eHand thirdHand)
         {
-            if (firstHand == secondHand)
+            if (firstFinger == (int)eFinger.None || 
+                secondFinger == (int)eFinger.None ||
+                thirdFinger == (int)eFinger.None)
             {
-                // If the third hand is different, it's a roll.
-                if(thirdHand != firstHand)
+                return eTrigramClassification.Unclassified;
+            }
+
+            if (firstFinger == secondFinger && secondFinger == thirdFinger)
+            {
+                return eTrigramClassification.SameFingerTrigram;
+            }
+
+            // SFBS are not counted in trigram stats.
+            if (firstFinger == secondFinger || secondFinger == thirdFinger)
+            {
+                return eTrigramClassification.Unclassified;
+            }
+
+            if (firstHand != secondHand && secondHand != thirdHand)
+            {
+                return eTrigramClassification.Alternation;
+            }
+            else if (firstHand == secondHand && secondHand == thirdHand)
+            {
+                // Could be either a one hand or a redirect
+                if (firstFinger > secondFinger && secondFinger > thirdFinger ||
+                    firstFinger < secondFinger && secondFinger < thirdFinger)
                 {
-
-                    if(firstHand == eHand.Left)
-                    {
-                        if(firstFinger < secondFinger)
-                        {
-                            return eTrigramClassification.Outroll;
-                        }
-                        else if(firstFinger > secondFinger)
-                        {
-                            return eTrigramClassification.Inroll;
-                        }
-
-                        return eTrigramClassification.Unclassified;
-                    }
-                    else
-                    {
-                        if(firstFinger < secondFinger)
-                        {
-                            return eTrigramClassification.Inroll;
-                        }
-                        else if(firstFinger > secondFinger)
-                        {
-                            return eTrigramClassification.Outroll;
-                        }
-
-                        return eTrigramClassification.Unclassified;
-                    }
+                    return eTrigramClassification.OneHand;
                 }
-                else
-                {
-                    // It could either be a one hand or a redirect.
-                }
+
+                return (firstFinger == (int)eFinger.LeftIndex || firstFinger == (int)eFinger.RightIndex ||
+                        secondFinger == (int)eFinger.LeftIndex || secondFinger == (int)eFinger.RightIndex ||
+                        thirdFinger == (int)eFinger.LeftIndex || thirdFinger == (int)eFinger.RightIndex)
+                    ? eTrigramClassification.Redirect
+                    : eTrigramClassification.BadRedirect;
             }
             else
             {
-                // It's a roll in this case.
-                if(secondHand == thirdHand)
+                // It has to be some form of roll.
+                if (firstHand == secondHand)
                 {
-                    if(secondHand == eHand.Left)
+                    if (firstHand == eHand.Left)
                     {
-                        if(secondFinger < thirdFinger)
+                        if (firstFinger > secondFinger)
                         {
                             return eTrigramClassification.Outroll;
                         }
-                        else if(secondFinger > thirdFinger)
+                        else
                         {
                             return eTrigramClassification.Inroll;
                         }
-
-                        return eTrigramClassification.Unclassified;
                     }
                     else
                     {
-                        if(secondFinger < thirdFinger)
+                        if (firstFinger > secondFinger)
                         {
                             return eTrigramClassification.Inroll;
                         }
-                        else if(secondFinger > thirdFinger)
+                        else
                         {
                             return eTrigramClassification.Outroll;
                         }
-
-                        return eTrigramClassification.Unclassified;
                     }
                 }
                 else
                 {
-                    // It could either be a redirect or one hand.
+                    if (secondHand == eHand.Left)
+                    {
+                        if (secondFinger > thirdFinger)
+                        {
+                            return eTrigramClassification.Outroll;
+                        }
+                        else
+                        {
+                            return eTrigramClassification.Inroll;
+                        }
+                    }
+                    else
+                    {
+                        if (secondFinger > thirdFinger)
+                        {
+                            return eTrigramClassification.Inroll;
+                        }
+                        else
+                        {
+                            return eTrigramClassification.Outroll;
+                        }
+                    }
                 }
             }
-
-            return eTrigramClassification.Unclassified;
         }
 
         protected override void Compute()
@@ -162,8 +237,12 @@ namespace Keyrita.Operations
             mKb = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
             var transformedKb = mKb.TransformedKbState;
 
-            mBgc = (BigramClassificationResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.BigramClassification];
-            var bigramClassif = mBgc.BigramClassifications;
+            mTgSet = (SortedTrigramSetResult)AnalysisGraphSystem.ResolvedNodes[
+                eInputNodes.SortedTrigramSet];
+            var trigrams = mTgSet.MostSignificantTrigrams;
+
+            mCharToTgSet = (TransformedCharacterToTrigramSetResult)AnalysisGraphSystem.ResolvedNodes[
+                eInputNodes.TransformedCharacterToTrigramSet];
 
             uint[,,] trigramFreq = SettingState.MeasurementSettings.CharFrequencyData.TrigramFreq;
 
@@ -175,110 +254,46 @@ namespace Keyrita.Operations
             long totalOneHands = 0;
             long oneHandsLeft = 0;
             long oneHandsRight = 0;
+            long totalSameFingerTrigrams = 0;
 
-            // Go through each bigram, and if it's classified as a roll, see if the first or last character use the other hand. If so,
-            // we have a roll in the direction of the bigram classification.
-            for (int i = 0; i < bigramClassif.GetLength(0); i++)
+            for (int i = 0; i < trigrams.Count; i++)
             {
-                for (int j = 0; j < bigramClassif.GetLength(1); j++)
+                int firstFinger = charToFinger[trigrams[i].Item2[0]];
+                int secondFinger = charToFinger[trigrams[i].Item2[1]];
+                int thirdFinger = charToFinger[trigrams[i].Item2[2]];
+
+                long freq = trigrams[i].Item1;
+
+                switch (mTgClassifications[firstFinger, secondFinger, thirdFinger])
                 {
-                    BigramClassificationResult.eBigramClassification bgType = bigramClassif[i, j];
-
-                    if (bgType == BigramClassificationResult.eBigramClassification.InRoll ||
-                        bgType == BigramClassificationResult.eBigramClassification.Outroll)
-                    {
-                        long totalRollsBg = 0;
-
-                        eHand rollHand = FingerUtil.GetHandForFingerAsInt(charToFinger[i]);
-                        eHand otherHand = FingerUtil.GetOtherHand(rollHand);
-                        LogUtils.Assert(rollHand == FingerUtil.GetHandForFingerAsInt(charToFinger[j]), "A roll must use the same hand.");
-
-                        // Loop through every key on the keyboard, and if it's on the other hand, add both trigram stats. (before and after bigram)
-                        for (int ki = 0; ki < transformedKb.Length; ki++)
-                        {
-                            for (int kj = 0; kj < transformedKb[ki].Length; kj++)
-                            {
-                                byte character = transformedKb[ki][kj];
-                                var kf = charToFinger[character];
-                                var kh = FingerUtil.GetHandForFingerAsInt(kf);
-
-                                if (kh == otherHand)
-                                {
-                                    totalRollsBg += trigramFreq[i, j, character];
-                                    totalRollsBg += trigramFreq[character, i, j];
-                                }
-                                else
-                                {
-
-                                    // If its on the same hand, it's a redirect if the second bigram rolls the opposite direction as the first.
-                                    var otherBgType = bigramClassif[j, character];
-                                    if (otherBgType == BigramClassificationResult.eBigramClassification.InRoll ||
-                                       otherBgType == BigramClassificationResult.eBigramClassification.Outroll)
-                                    {
-                                        if (otherBgType != bgType)
-                                        {
-                                            totalRedirects += trigramFreq[i, j, character];
-                                        }
-                                        else
-                                        {
-                                            var oneHands = trigramFreq[i, j, character];
-                                            totalOneHands += oneHands;
-
-                                            if (kh == eHand.Left)
-                                            {
-                                                oneHandsLeft += oneHands;
-                                            }
-                                            else
-                                            {
-                                                oneHandsRight += oneHands;
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        // Here it should either be the same character or an sfb.
-                                        LogUtils.Assert(j == character ||
-                                            bigramClassif[j, character] == BigramClassificationResult.eBigramClassification.SFB);
-                                    }
-                                }
-                            }
-                        }
-
-                        if (bigramClassif[i, j] == BigramClassificationResult.eBigramClassification.InRoll)
-                        {
-                            totalInRolls += totalRollsBg;
-                        }
-                        else if (bigramClassif[i, j] == BigramClassificationResult.eBigramClassification.Outroll)
-                        {
-                            totalOutRolls += totalRollsBg;
-                        }
-                    }
-                    // For alternations, we just classify them using h1 h2 h1. Rolls handle h1 h1 h2 and h1 h2 h2.
-                    else if (bigramClassif[i, j] == BigramClassificationResult.eBigramClassification.Alternation)
-                    {
-                        // Use all keys starting with the same hand as the first character.
-                        eHand startHand = FingerUtil.GetHandForFingerAsInt(charToFinger[i]);
-
-                        // Loop through every key on the keyboard, and if it's on the other hand, add both trigram stats. (before and after bigram)
-                        for (int ki = 0; ki < transformedKb.Length; ki++)
-                        {
-                            for (int kj = 0; kj < transformedKb[ki].Length; kj++)
-                            {
-                                byte character = transformedKb[ki][kj];
-                                var kf = charToFinger[character];
-                                var kh = FingerUtil.GetHandForFingerAsInt(kf);
-
-                                if (kh == startHand)
-                                {
-                                    totalAlternations += trigramFreq[i, j, character];
-                                }
-                            }
-                        }
-                    }
+                    case eTrigramClassification.Alternation:
+                        totalAlternations += freq;
+                        break;
+                    case eTrigramClassification.Inroll:
+                        totalInRolls += freq;
+                        break;
+                    case eTrigramClassification.Outroll:
+                        totalOutRolls += freq;
+                        break;
+                    case eTrigramClassification.OneHand:
+                        totalOneHands += freq;
+                        break;
+                    case eTrigramClassification.Redirect:
+                        totalRedirects += freq;
+                        break;
+                    case eTrigramClassification.SameFingerTrigram:
+                        totalSameFingerTrigrams += freq;
+                        break;
+                    case eTrigramClassification.Unclassified:
+                        break;
+                    case eTrigramClassification.BadRedirect:
+                        // TODO
+                        totalRedirects += freq;
+                        break;
                 }
             }
 
-            mResult.TotalRolls = totalInRolls + totalOutRolls;
+            mResult.TotalRolls = (totalInRolls + totalOutRolls);
             mResult.InRolls = totalInRolls;
             mResult.OutRolls = totalOutRolls;
             mResult.TotalAlternations = totalAlternations;
