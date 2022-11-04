@@ -3,6 +3,7 @@ using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
 using Microsoft.Win32;
 using System;
+using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using System.Xml;
@@ -92,6 +93,23 @@ namespace Keyrita.Gui.Dialogs
             this.CommandBindings.Add(redoCmdBinding);
         }
 
+        public void CreateCopyPasteCommand()
+        {
+            // Copy
+            CommandBinding copyBinding = new CommandBinding(
+                ApplicationCommands.Copy,
+                CopyLayoutToClipboard);
+
+            this.CommandBindings.Add(copyBinding);
+
+            // Paste
+            CommandBinding pasteBinding = new CommandBinding(
+                ApplicationCommands.Paste,
+                LoadLayoutFromClipboard);
+
+            this.CommandBindings.Add(pasteBinding);
+        }
+
         /// <summary>
         /// Clear the selection if they press escape.
         /// </summary>
@@ -129,12 +147,76 @@ namespace Keyrita.Gui.Dialogs
         {
             CreateUndoRedoCommand();
             CreateNewSaveOpenCommands();
+            CreateCopyPasteCommand();
         }
 
         protected override void OnClosed(EventArgs e)
         {
             LogUtils.LogInfo($"Closing window {this.Title}");
             base.OnClosed(e);
+        }
+
+        protected void LoadLayoutFromClipboard(object sender, RoutedEventArgs e)
+        {
+            // We accept two layout formats. 
+            if (Clipboard.ContainsText(TextDataFormat.Text))
+            {
+                string clipboardText = Clipboard.GetText(TextDataFormat.Text);
+
+                clipboardText = clipboardText.Trim();
+
+                // Clear newlines -> we just want an array of 30 characters.
+                clipboardText = clipboardText.Replace("\r\n", " ");
+                clipboardText = clipboardText.Replace("\n", " ");
+                clipboardText = clipboardText.Replace("\t", " ");
+
+                string[] layout = clipboardText.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+
+                if(layout.Length == 30)
+                {
+                    char[,] loadedLayout = new char[KeyboardStateSetting.ROWS, KeyboardStateSetting.COLS];
+
+                    int index = 0;
+                    for(int i = 0; i < loadedLayout.GetLength(0); i++)
+                    {
+                        for(int j = 0; j < loadedLayout.GetLength(1); j++)
+                        {
+                            loadedLayout[i, j] = layout[index][0];
+                            index++;
+                        }
+                    }
+
+                    SettingState.KeyboardSettings.KeyboardState.SetKeyboardState(loadedLayout);
+                }
+                else
+                {
+                    MessageBox.Show("Layout in wrong format", "Message", MessageBoxButton.OK);
+                }
+            }
+            else
+            {
+                MessageBox.Show("A layout is not in the clipboard", "Message", MessageBoxButton.OK);
+            }
+        }
+
+        protected void CopyLayoutToClipboard(object sender, RoutedEventArgs e)
+        {
+            // Create a string to represent the layout in the correct format
+            StringBuilder layout = new StringBuilder();
+            var kbState = SettingState.KeyboardSettings.KeyboardState.KeyStateCopy;
+
+            for(int i = 0; i < KeyboardStateSetting.ROWS; i++)
+            {
+                for(int j = 0; j < KeyboardStateSetting.COLS; j++)
+                {
+                    layout.Append(kbState[i, j]);
+                    layout.Append(" ");
+                }
+
+                layout.Append("\n");
+            }
+
+            Clipboard.SetText(layout.ToString());
         }
     }
 }

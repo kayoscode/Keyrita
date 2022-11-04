@@ -32,6 +32,8 @@
                                       Click="ClearDataset"/>
                 <MenuItem Header="Load Components"
                           ToolTip="Loads only specific components from the selected file">
+                    <MenuItem Header="Layout from clipboard"
+                              Click="LoadLayoutFromClipboard"></MenuItem>
                     <MenuItem Header="Load Layout"></MenuItem>
                     <MenuItem Header="Load Dataset"></MenuItem>
                     <MenuItem Header="Load Effort Map"></MenuItem>
@@ -65,6 +67,14 @@
                 </MenuItem>
                 <MenuItem Header="Generate"
                           Click="StartGenerate"></MenuItem>
+                <MenuItem Header="Optimize">
+                    <MenuItem Header="Depth 1"
+                              Click="OptimizeD1"></MenuItem>
+                    <MenuItem Header="Depth 2"
+                              Click="OptimizeD2"></MenuItem>
+                    <MenuItem Header="Depth 3 (Long operation)"
+                              Click="OptimizeD3"></MenuItem>
+                </MenuItem>
             </MenuItem>
         </Menu>
         <local:SetProgressBar   x:Name="mLoadDatasetProgressBar"

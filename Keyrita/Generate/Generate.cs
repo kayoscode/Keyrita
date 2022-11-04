@@ -235,6 +235,63 @@ namespace Keyrita.Generate
             }
         }
 
+        public void OptimizeLayout(int depth)
+        {
+            SetupAnalysis();
+
+            long totalSwaps = 0;
+
+            var kbStateResult = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
+            int rows = KeyboardStateSetting.ROWS;
+            int cols = KeyboardStateSetting.COLS;
+            Stopwatch timer = new Stopwatch();
+            var lockedKeys = SettingState.KeyboardSettings.LockedKeys.KeyStateCopy;
+
+            double bestScore = 1000000;
+            byte[][] bestLayout = new byte[rows][];
+            for (int i = 0; i < rows; i++)
+            {
+                bestLayout[i] = new byte[cols];
+            }
+
+            // Only proceed if the cache swapping system isn't obviously broken.
+            if (TestSwaps())
+            {
+                timer.Start();
+                var keyLagResult = (KeyLagResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyLag];
+
+                // Set initial best layout to the current one.
+                bestScore = keyLagResult.TotalResult;
+                bestLayout = Utils.CopyKeyboardState(kbStateResult.TransformedKbState, bestLayout, rows, cols);
+
+                // Optimize to depth n.
+                BestNSwapsOptimizer(depth, keyLagResult, lockedKeys);
+
+                if (keyLagResult.TotalResult < bestScore)
+                {
+                    bestScore = keyLagResult.TotalResult;
+                    bestLayout = Utils.CopyKeyboardState(kbStateResult.TransformedKbState, bestLayout, rows, cols);
+                }
+
+                timer.Stop();
+                LogUtils.LogInfo($"Best score: {bestScore}");
+                LogUtils.LogInfo($"Total swaps: {totalSwaps}");
+
+                string chars = SettingState.MeasurementSettings.CharFrequencyData.AvailableCharSet;
+                char[,] newKbState = new char[KeyboardStateSetting.ROWS, KeyboardStateSetting.COLS];
+                for(int i = 0; i < rows; i++)
+                {
+                    for(int j = 0; j < cols; j++)
+                    {
+                        newKbState[i, j] = chars[bestLayout[i][j]];
+                    }
+                }
+
+                // Swap to the best keyboard layout and do a depth 2 search to make sure we get over local optima in case we converged late.
+                SettingState.KeyboardSettings.KeyboardState.SetKeyboardState(newKbState);
+            }
+        }
+
         /// <summary>
         /// Given the current layout, locked keys, and much more, find the best possible arrangement.
         /// When finished, set the screen to use the new layout.
@@ -277,7 +334,12 @@ namespace Keyrita.Generate
                     int k1j = keyLagResult.WorstKey.Item2;
                     int k2i = random.NextInt(rows);
                     int k2j = random.NextInt(cols);
-                    AnalysisGraphSystem.GenerateSignalSwapKeys(k1i, k1j, k2i, k2j);
+
+                    if (k1i != k2i && k1j != k2j &&
+                            !lockedKeys[k1i, k1j] && !lockedKeys[k2i, k2j])
+                    {
+                        AnalysisGraphSystem.GenerateSignalSwapKeys(k1i, k1j, k2i, k2j);
+                    }
 
                     int numSwaps = random.NextInt((int)(20 * (1 - (count / numOptimizations))) + 1) + 5;
 

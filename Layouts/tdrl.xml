@@ -40,7 +40,8 @@
       <key2_9>(0,7) (0,8) </key2_9>
     </Keys>
   </ScissorMap>
-  <EditMode>Keyrita.Settings.eKeyboardEditMode ScissorMap</EditMode>
+  <EditMode>Keyrita.Settings.eKeyboardEditMode Normal</EditMode>
+  <LockedKeys>False False False False False False False False False False False False False False False False False False False False False False False False False False False False False False </LockedKeys>
   <SpaceFinger>Keyrita.Settings.eFinger RightThumb</SpaceFinger>
   <LanguageData>
     <SettingData>

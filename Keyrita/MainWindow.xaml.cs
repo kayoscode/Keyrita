@@ -143,6 +143,24 @@ namespace Keyrita
             }
         }
 
+        protected void OptimizeD1(object sender, RoutedEventArgs e)
+        {
+            GenerateLayout gl = new GenerateLayout();
+            gl.OptimizeLayout(1);
+        }
+
+        protected void OptimizeD2(object sender, RoutedEventArgs e)
+        {
+            GenerateLayout gl = new GenerateLayout();
+            gl.OptimizeLayout(2);
+        }
+
+        protected void OptimizeD3(object sender, RoutedEventArgs e)
+        {
+            GenerateLayout gl = new GenerateLayout();
+            gl.OptimizeLayout(3);
+        }
+
         protected void StartGenerate(object sender, RoutedEventArgs e)
         {
             // Lock out app control by switching to a new mode.
