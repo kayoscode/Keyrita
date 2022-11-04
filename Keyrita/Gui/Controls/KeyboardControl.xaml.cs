@@ -85,14 +85,19 @@ namespace Keyrita.Gui.Controls
         {
             if(e.LeftButton == MouseButtonState.Pressed)
             {
-                StartDragDropData data = new StartDragDropData((Key)sender,
-                                                                e.GetPosition((UIElement)sender),
-                                                                e.GetPosition(mKeyCanvas));
-                Panel.SetZIndex((UIElement)sender, 10000);
-                ((UIElement)sender).IsHitTestVisible = false;
-                DragDrop.DoDragDrop((DependencyObject) sender, 
-                    new DataObject(DataFormats.Serializable, data), 
-                    DragDropEffects.Move);
+                var characterPosition = SettingState.KeyboardSettings.KeyboardState.GetKeyForCharacter(((Key)sender).KeyCharacter.Character);
+
+                if(!SettingState.KeyboardSettings.LockedKeys.IsKeyLocked(characterPosition.Item1, characterPosition.Item2))
+                {
+                    StartDragDropData data = new StartDragDropData((Key)sender,
+                                                                    e.GetPosition((UIElement)sender),
+                                                                    e.GetPosition(mKeyCanvas));
+                    Panel.SetZIndex((UIElement)sender, 10000);
+                    ((UIElement)sender).IsHitTestVisible = false;
+                    DragDrop.DoDragDrop((DependencyObject) sender, 
+                        new DataObject(DataFormats.Serializable, data), 
+                        DragDropEffects.Move);
+                }
             }
         }
 

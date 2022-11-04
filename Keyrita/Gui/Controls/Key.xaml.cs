@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using Keyrita.Settings;
 using Keyrita.Settings.SettingUtil;
@@ -65,7 +66,21 @@ namespace Keyrita.Gui.Controls
 
             if (draggedOverKey != null && draggedOverKey != key)
             {
-                SettingState.KeyboardSettings.KeyboardState.SwapKeys(key.KeyCharacter.Character, draggedOverKey.KeyCharacter.Character);
+                var swapKeyPos = SettingState.KeyboardSettings.KeyboardState.GetKeyForCharacter(draggedOverKey.KeyCharacter.Character);
+
+                if(!SettingState.KeyboardSettings.LockedKeys.IsKeyLocked(swapKeyPos.Item1, swapKeyPos.Item2))
+                {
+                    SettingState.KeyboardSettings.KeyboardState.SwapKeys(key.KeyCharacter.Character, draggedOverKey.KeyCharacter.Character);
+                }
+            }
+        }
+
+        protected void LockUnlockKey()
+        {
+            if(this.KeyCharacter != null)
+            {
+                var character = SettingState.KeyboardSettings.KeyboardState.GetKeyForCharacter(this.KeyCharacter.Character);
+                SettingState.KeyboardSettings.LockedKeys.ToggleKeyLock(character.Item1, character.Item2);
             }
         }
 
@@ -76,13 +91,26 @@ namespace Keyrita.Gui.Controls
             InitializeComponent();
 
             mSelectedKey = SettingState.KeyboardSettings.SelectedKey;
+            mLockedKeys = SettingState.KeyboardSettings.LockedKeys;
+
             mSelectedKey.ValueChangedNotifications.AddGui(SyncWithSelectedKey);
+            mLockedKeys.ValueChangedNotifications.AddGui(SyncWithLockedKeys);
 
             this.AllowDrop = true;
             this.Drop += DropKey;
+            this.MouseLeftButtonDown += (sender, e) =>
+            {
+                if (Keyboard.IsKeyDown(System.Windows.Input.Key.LeftShift) || Keyboard.IsKeyDown(System.Windows.Input.Key.RightShift))
+                {
+                    LockUnlockKey();
+                }
+            };
+            this.mLockIcon.Visibility = Visibility.Collapsed;
 
+            SyncWithLockedKeys(null);
             SyncWithSelectedKey(null);
         }
+
 
         private static readonly DependencyProperty KeyCharacterProperty =
             DependencyProperty.Register(nameof(KeyCharacter),
@@ -103,13 +131,14 @@ namespace Keyrita.Gui.Controls
             mKeyCharacter = newValue;
             mBorder.BorderBrush = FingerToColor[newValue.Finger];
 
-            if(mKeyCharacter != null)
+            if (mKeyCharacter != null)
             {
                 mChar.Text = "_" + mKeyCharacter.Character;
             }
 
             SyncWithSelectedKey(null);
             SyncWithHeatmap(null);
+            SyncWithLockedKeys(null);
         }
 
         protected Color GetGradientColor(float heatmapValue, Color highestFreqColor)
@@ -171,17 +200,53 @@ namespace Keyrita.Gui.Controls
 
         #endregion
 
+        #region Lock keys
+
+        protected void SyncWithLockedKeys(object changedSetting)
+        {
+            if (this.KeyCharacter != null)
+            {
+                var characterPos = SettingState.KeyboardSettings.KeyboardState.GetKeyForCharacter(this.KeyCharacter.Character);
+                if(SettingState.KeyboardSettings.LockedKeys.IsKeyLocked(characterPos.Item1, characterPos.Item2))
+                {
+                    SetLocked();
+                }
+                else
+                {
+                    SetUnlocked();
+                }
+            }
+            else
+            {
+                SetUnlocked();
+            }
+        }
+
+        public void SetLocked()
+        {
+            this.mLockIcon.Visibility = Visibility.Visible;
+        }
+
+        public void SetUnlocked()
+        {
+            this.mLockIcon.Visibility = Visibility.Collapsed;
+        }
+
+        protected LockedKeysSetting mLockedKeys;
+
+        #endregion
+
         #region Heatmap properties
 
         protected void SyncWithHeatmap(object changedSetting)
         {
-            if(KeyCharacter != null && mHeatmap != null)
+            if (KeyCharacter != null && mHeatmap != null)
             {
                 if (mHeatmap.HeatMapData.ContainsKey(KeyCharacter.Character))
                 {
                     double heatmapValue = mHeatmap.HeatMapData[KeyCharacter.Character];
 
-                    Color keyHighlightColor = GetGradientColor((float)heatmapValue, 
+                    Color keyHighlightColor = GetGradientColor((float)heatmapValue,
                         FingerToColor[KeyCharacter.Finger].Color);
                     mBorder.Background = new SolidColorBrush(keyHighlightColor);
                 }
@@ -216,7 +281,7 @@ namespace Keyrita.Gui.Controls
 
             mHeatmap = newValue;
 
-            if(mHeatmap != null)
+            if (mHeatmap != null)
             {
                 mHeatmap.ValueChangedNotifications.AddGui(SyncWithHeatmap);
                 mHeatmap.LimitsChangedNotifications.AddGui(SyncWithHeatmap);
@@ -244,6 +309,7 @@ namespace Keyrita.Gui.Controls
         {
             // Remove all event handlers.
             mSelectedKey.ValueChangedNotifications.Remove(SyncWithSelectedKey);
+            mLockedKeys.ValueChangedNotifications.Remove(SyncWithLockedKeys);
             KeyHeatMap = null;
         }
     }

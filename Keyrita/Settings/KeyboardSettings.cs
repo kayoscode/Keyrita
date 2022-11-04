@@ -55,7 +55,7 @@ namespace Keyrita.Settings
         /// <summary>
         /// Editing by changing the scissor map.
         /// </summary>
-        ScissorMap
+        ScissorMap,
     }
 
     /// <summary>
@@ -548,6 +548,59 @@ namespace Keyrita.Settings
     }
 
     /// <summary>
+    /// Which keys in the layout are locked.
+    /// </summary>
+    public class LockedKeysSetting : PerkeySetting<bool>
+    {
+        public LockedKeysSetting() : base("Locked Keys", eSettingAttributes.Recall)
+        {
+        }
+
+        #region Public modification
+
+        public void UnlockAll()
+        {
+            for(int i = 0; i < ROWS; i++)
+            {
+                for(int j = 0; j < COLS; j++)
+                {
+                    this.mPendingKeyState[i, j] = false;
+                }
+            }
+
+            CopyBoard(mDesiredKeyState, mPendingKeyState);
+            TrySetToPending(true);
+        }
+
+        public void ToggleKeyLock(int i, int j)
+        {
+            this.mPendingKeyState[i, j] = !this.mPendingKeyState[i, j];
+            this.mDesiredKeyState[i, j] = this.mPendingKeyState[i, j];
+
+            TrySetToPending(true);
+        }
+
+        public bool IsKeyLocked(int i, int j)
+        {
+            return this.GetValueAt(i, j);
+        }
+
+        #endregion
+
+        public override void SetToDefault()
+        {
+            for (int i = 0; i < ROWS; i++)
+            {
+                for (int j = 0; j < COLS; j++)
+                {
+                    mDesiredKeyState[i, j] = false;
+                }
+            }
+            SetToDesiredValue();
+        }
+    }
+
+    /// <summary>
     /// The list of keys
     /// </summary>
     public class KeyboardStateSetting : PerkeySetting<char>
@@ -683,6 +736,23 @@ namespace Keyrita.Settings
 
             CopyBoard(mDesiredKeyState, mPendingKeyState);
             TrySetToPending(true);
+        }
+
+        public (int, int) GetKeyForCharacter(char character)
+        {
+            for(int i = 0; i < ROWS; i++)
+            {
+                for(int j = 0; j < COLS; j++)
+                {
+                    if(this.GetValueAt(i, j) == character)
+                    {
+                        return (i, j);
+                    }
+                }
+            }
+
+            LogUtils.Assert(false, "Character not found");
+            return (-1, -1);
         }
 
         #endregion

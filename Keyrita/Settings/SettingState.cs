@@ -53,6 +53,9 @@ namespace Keyrita.Settings
 
         public EnumValueSetting<eKeyboardEditMode> KeyboardEditMode { get; } =
             new KeyboardEditMode();
+
+        public LockedKeysSetting LockedKeys { get; set; } =
+            new LockedKeysSetting();
     }
 
     /// <summary>

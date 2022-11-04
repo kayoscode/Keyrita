@@ -170,6 +170,7 @@ namespace Keyrita.Operations
         }
 
         public double TotalResult { get; set; }
+        public (int, int) WorstKey { get; set; }
     }
 
     public class KeyLag : GraphNode
@@ -223,6 +224,7 @@ namespace Keyrita.Operations
             var keyToFinger = mK2f.KeyToFinger;
             double totalBg = SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
             mResult.TotalResult = 0;
+            double worstKeyScore = -1;
 
             // This intermediate measurement is mainly used for evaluation/generate, but
             // is also used for the finger speed meaurement. 
@@ -242,6 +244,11 @@ namespace Keyrita.Operations
                     score *= KEY_LOCATION_PENALTY[i, j]; // Sucks to suck.
                     mResult.PerKeyResult[i, j] = score;
                     mResult.TotalResult += score;
+
+                    if(score > worstKeyScore)
+                    {
+                        mResult.WorstKey = (i, j);
+                    }
                 }
             }
         }

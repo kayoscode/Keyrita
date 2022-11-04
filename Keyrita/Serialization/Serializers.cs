@@ -233,6 +233,39 @@ namespace Keyrita.Serialization
     }
 
     /// <summary>
+    /// Converts a char to text and vice versa.
+    /// </summary>
+    public class BoolSerializer : TextSerializer, ITextSerializer<bool>
+    {
+        public override string ToText(object obj)
+        {
+            return ToText(obj);
+        }
+
+        public string ToText(bool obj)
+        {
+            return $"{obj}";
+        }
+
+        public override bool TryParse(string text, out object obj)
+        {
+            return TryParse(text, out obj);
+        }
+
+        public bool TryParse(string text, out bool obj)
+        {
+            if(text.Length >= 1)
+            {
+                obj = bool.Parse(text);
+                return true;
+            }
+
+            obj = default(bool);
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Class storing a dictionary mapping a type to a serializer.
     /// </summary>
     public static class TextSerializers
@@ -244,6 +277,7 @@ namespace Keyrita.Serialization
             { typeof(char), new CharSerializer() },
             { typeof(uint), new UIntSerializer() },
             { typeof(double), new DoubleSerializer() },
+            { typeof(bool), new BoolSerializer() },
             { typeof((int, int)), new IntTuple2Serializer() }
         };
 
