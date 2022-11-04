@@ -515,7 +515,7 @@ namespace Keyrita.Generate
                     {
                         for(; w < cols; w++)
                         {
-                            if (lockedKeys[k, k]) continue;
+                            if (lockedKeys[k, w]) continue;
 
                             AnalysisGraphSystem.GenerateSignalSwapKeys(i, j, k, w);
 
