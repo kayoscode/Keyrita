@@ -46,7 +46,7 @@ namespace Keyrita.Settings
         {
         }
 
-        protected override void SetDependencies()
+        protected override void Init()
         {
             SettingState.KeyboardSettings.AvailableCharSet.AddDependent(this);
         }
@@ -66,7 +66,7 @@ namespace Keyrita.Settings
             TrySetToPending();
         }
 
-        protected override void ChangeLimits()
+        protected override void ConformToLimits()
         {
             if (!SettingState.KeyboardSettings.AvailableCharSet.Collection.Contains(mValue))
             {
@@ -93,7 +93,7 @@ namespace Keyrita.Settings
         {
         }
 
-        protected override void SetDependencies()
+        protected override void Init()
         {
             // Dependent on char frequencies, and the type of heatmap to display.
             SettingState.KeyboardSettings.HeatmapType.AddDependent(this);
@@ -102,7 +102,7 @@ namespace Keyrita.Settings
             SettingState.KeyboardSettings.SelectedKey.AddDependent(this);
         }
 
-        protected override void ChangeLimits()
+        protected override void ConformToLimits()
         {
             mHeatMapData.Clear();
             mValueHasChanged = true;
@@ -315,7 +315,7 @@ namespace Keyrita.Settings
         {
             if(ValueHasChanged)
             {
-                SettingTransaction("Heatmap updating", false, () =>
+                InitiateSettingChange("Heatmap updating", false, () =>
                 {
                     mValueHasChanged = false;
                 });

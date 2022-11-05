@@ -71,8 +71,6 @@ namespace Keyrita.Operations
                     return new KeyToFingerAsInt();
                 case eInputNodes.TransfomedKbState:
                     return new TransformedKbState();
-                case eInputNodes.BigramClassification:
-                    return new BigramClassification();
                 case eInputNodes.TransformedCharacterToFingerAsInt:
                     return new TransformedCharacterToFingerAsInt();
                 case eInputNodes.TransformedCharacterToKey:

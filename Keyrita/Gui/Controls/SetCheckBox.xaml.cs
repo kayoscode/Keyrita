@@ -66,8 +66,8 @@ namespace Keyrita.Gui.Controls
 
             if(mSetting != null)
             {
-                mSetting.ValueChangedNotifications.AddGui(SettingUpdated);
-                mSetting.LimitsChangedNotifications.AddGui(SettingUpdated);
+                mSetting.ValueChangedNotifications.Add(SettingUpdated);
+                mSetting.LimitsChangedNotifications.Add(SettingUpdated);
 
                 mSettingName.Text = Setting.SettingName;
                 mSettingName.ToolTip = Setting.ToolTip;

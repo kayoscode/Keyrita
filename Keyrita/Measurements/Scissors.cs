@@ -69,7 +69,12 @@ namespace Keyrita.Measurements
         public long TotalResult { get; set; }
         public long[] PerHandResult { get; private set; } = new long[Utils.GetTokens<eHand>().Count()];
         public long[] PerFingerResult { get; private set; } = new long[Utils.GetTokens<eFinger>().Count()];
-        public long[,] PerKeyResult { get; private set; } = new long[KeyboardStateSetting.ROWS, KeyboardStateSetting.COLS];
+        public long[][] PerKeyResult { get; private set; } = new long[KeyboardStateSetting.ROWS][]
+        {
+            new long[KeyboardStateSetting.COLS],
+            new long[KeyboardStateSetting.COLS],
+            new long[KeyboardStateSetting.COLS]
+        };
     }
 
     /// <summary>
@@ -99,31 +104,31 @@ namespace Keyrita.Measurements
                 if(otherCh == ch1)
                 {
                     otherCh = ch2;
-                    subCh1 = bigramFreq[otherCh, ch1];
-                    subCh2 = bigramFreq[ch1, otherCh];
+                    subCh1 = bigramFreq[otherCh][ch1];
+                    subCh2 = bigramFreq[ch1][otherCh];
 
                     mResult.TotalResult -= subCh1;
                     mResult.TotalResult += subCh2;
 
-                    mResult.PerKeyResult[k1i, k1j] -= subCh1;
-                    mResult.PerKeyResult[k1i, k1j] += subCh2;
+                    mResult.PerKeyResult[k1i][k1j] -= subCh1;
+                    mResult.PerKeyResult[k1i][k1j] += subCh2;
                 }
                 else
                 {
-                    subCh1 = bigramFreq[otherCh, ch1];
-                    subCh2 = bigramFreq[ch1, otherCh];
-                    subCh3 = bigramFreq[otherCh, ch2];
-                    subCh4 = bigramFreq[ch2, otherCh];
+                    subCh1 = bigramFreq[otherCh][ch1];
+                    subCh2 = bigramFreq[ch1][otherCh];
+                    subCh3 = bigramFreq[otherCh][ch2];
+                    subCh4 = bigramFreq[ch2][otherCh];
 
                     mResult.TotalResult -= subCh1;
                     mResult.TotalResult -= subCh2;
                     mResult.TotalResult += subCh3;
                     mResult.TotalResult += subCh4;
 
-                    mResult.PerKeyResult[k1i, k1j] -= subCh1;
-                    mResult.PerKeyResult[k1i, k1j] += subCh3;
-                    mResult.PerKeyResult[otherKeyPos.Item1, otherKeyPos.Item2] -= subCh2;
-                    mResult.PerKeyResult[otherKeyPos.Item1, otherKeyPos.Item2] += subCh4;
+                    mResult.PerKeyResult[k1i][k1j] -= subCh1;
+                    mResult.PerKeyResult[k1i][k1j] += subCh3;
+                    mResult.PerKeyResult[otherKeyPos.Item1][otherKeyPos.Item2] -= subCh2;
+                    mResult.PerKeyResult[otherKeyPos.Item1][otherKeyPos.Item2] += subCh4;
                 }
             }
         }
@@ -181,7 +186,7 @@ namespace Keyrita.Measurements
 
                     for(int k = 0; k < si.Count; k++)
                     {
-                        scissorTotal += bgFreq[kb[si[k].Item1][si[k].Item2], kb[i][j]];
+                        scissorTotal += bgFreq[kb[si[k].Item1][si[k].Item2]][kb[i][j]];
                     }
 
                     mResult.TotalResult += scissorTotal;
@@ -189,7 +194,7 @@ namespace Keyrita.Measurements
                     mResult.PerHandResult[(int)hand] += scissorTotal;
 
                     // Set the value for this key and normalize.
-                    mResult.PerKeyResult[i, j] = scissorTotal;
+                    mResult.PerKeyResult[i][j] = scissorTotal;
                 }
             }
         }

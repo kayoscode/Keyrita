@@ -153,7 +153,7 @@ namespace Keyrita.Settings
         {
         }
 
-        protected override void SetDependencies()
+        protected override void Init()
         {
             SettingState.FingerSettings.FingerHomePosition.AddDependent(this);
         }
@@ -313,7 +313,7 @@ namespace Keyrita.Settings
             return mState[finger];
         }
 
-        protected override sealed void ChangeLimits()
+        protected override sealed void ConformToLimits()
         {
             ChangeLimits(mNewState);
         }
@@ -348,7 +348,7 @@ namespace Keyrita.Settings
             {
                 var description = $"Changing {count} keys";
 
-                SettingTransaction(description, userInitiated, () =>
+                InitiateSettingChange(description, userInitiated, () =>
                 {
                     CopyState(mState, mPendingState);
                 });

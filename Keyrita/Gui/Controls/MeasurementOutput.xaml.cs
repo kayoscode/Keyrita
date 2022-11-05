@@ -19,7 +19,7 @@ namespace Keyrita.Gui.Controls
             
             foreach(SettingBase meas in SettingState.MeasurementSettings.InstalledPerFingerMeasurements.Values)
             {
-                meas.ValueChangedNotifications.AddGui(SyncWithInstalledMeasurements);
+                meas.ValueChangedNotifications.Add(SyncWithInstalledMeasurements);
 
                 var measLine = new MeasurementLine();
                 measLine.ParentGrid = mLineGrid;

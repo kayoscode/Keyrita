@@ -7,9 +7,8 @@ using Keyrita.Util;
 namespace Keyrita.Operations.OperationUtil
 {
     /// <summary>
-    /// The result of an operator.
+    /// The result of an analysis node.
     /// Each op can have many inputs, but only one output.
-    /// The operator may NOT write to any of its inputs.
     /// </summary>
     public abstract class AnalysisResult 
     {
@@ -41,23 +40,20 @@ namespace Keyrita.Operations.OperationUtil
             {
                 for(int j = 0; j < KeyboardStateSetting.COLS; j++)
                 {
-                    PerKeyResult[i, j] = 0;
+                    PerKeyResult[i][j] = 0;
                 }
             }
         }
 
         // Each key is given a total sfb score. Needed for finding the worst keys on the keyboard.
-        public double[,] PerKeyResult { get; private set; } = new double[KeyboardStateSetting.ROWS, KeyboardStateSetting.COLS];
+        public double[][] PerKeyResult { get; private set; } = new double[KeyboardStateSetting.ROWS][]
+        {
+            new double[KeyboardStateSetting.COLS],
+            new double[KeyboardStateSetting.COLS],
+            new double[KeyboardStateSetting.COLS],
+        };
     }
 
-    /// <summary>
-    /// Contains the base functionality of an operation.
-    /// The core idea is that generic operations with dependencies can be plugged into the system.
-    /// Each time the analyzer runs, the system runs through the network of operations and produces a result.
-    /// Each operation is Id'd by an enumeration token. The network can reuse the result of operations for other
-    /// operations down the road. A fully generic AnalysisResult class is used to communicate the results 
-    /// to the operators. Only when an operation has completed can the dependent ops do their work.
-    /// </summary>
     public abstract class GraphNode
     {
         /// <summary>
@@ -66,7 +62,7 @@ namespace Keyrita.Operations.OperationUtil
         public ChangeNotification ValueChangedNotifications = new ChangeNotification();
 
         /// <summary>
-        /// The Id for this operator.
+        /// The Id for this node.
         /// </summary>
         public Enum NodeId { get; private set; }
 
@@ -75,9 +71,6 @@ namespace Keyrita.Operations.OperationUtil
         /// </summary>
         public IList<Enum> Inputs { get; private set; } = new List<Enum>();
 
-        /// <summary>
-        /// Indicates whether this operator will respond to the simple swap keys analysis event.
-        /// </summary>
         public abstract bool RespondsToGenerateSwapKeysEvent { get; }
         public virtual void SwapKeys(int k1i, int k1j, int k2i, int k2j)
         {
@@ -85,7 +78,7 @@ namespace Keyrita.Operations.OperationUtil
 
         /// <summary>
         /// Standard constructor.
-        /// Input operations should be added in the constructor.
+        /// Input nodes should be added in the constructor.
         /// </summary>
         public GraphNode(Enum id)
         {
@@ -112,7 +105,7 @@ namespace Keyrita.Operations.OperationUtil
         }
 
         /// <summary>
-        /// Adds an input operator to the network.
+        /// Adds an input node to the network.
         /// </summary>
         /// <param name="inputNode"></param>
         public void AddInputNode(Enum inputNode)
@@ -122,7 +115,7 @@ namespace Keyrita.Operations.OperationUtil
         }
 
         /// <summary>
-        /// Operators must have a way to get the abstract analysis result.
+        /// This should return a non null value with an override of the AnalysisResult class.
         /// </summary>
         /// <returns></returns>
         public abstract AnalysisResult GetResult();

@@ -27,21 +27,21 @@ namespace Keyrita.Settings
         protected uint[] mCharFreq;
         public long CharHitCount { get; protected set; }
 
-        public uint[,] BigramFreq => mBigramFreq;
-        protected uint[,] mBigramFreq;
+        public uint[][] BigramFreq => mBigramFreq;
+        protected uint[][] mBigramFreq;
         public long BigramHitCount { get; protected set; }
 
-        public uint[,,] TrigramFreq => mTrigramFreq;
-        protected uint[,,] mTrigramFreq;
+        public uint[][][] TrigramFreq => mTrigramFreq;
+        protected uint[][][] mTrigramFreq;
         public long TrigramHitCount { get; protected set; }
 
         // The commonality of trigrams that start with the first index and end with the second.
-        public uint[,] Skipgram2Freq => mSkipgram2Freq;
-        protected uint[,] mSkipgram2Freq;
+        public uint[][] Skipgram2Freq => mSkipgram2Freq;
+        protected uint[][] mSkipgram2Freq;
         public long Skipgram2HitCount => TrigramHitCount;
 
-        public uint[,,] SkipgramFreq => mSkipgramFreq;
-        protected uint[,,] mSkipgramFreq;
+        public uint[][][] SkipgramFreq => mSkipgramFreq;
+        protected uint[][][] mSkipgramFreq;
         public long[] SkipgramHitCount { get; protected set; } = new long[NativeAnalysis.SKIPGRAM_DEPTH];
 
         public string AvailableCharSet => mUsedCharset;
@@ -82,7 +82,7 @@ namespace Keyrita.Settings
 
                 if(BigramHitCount != 0)
                 {
-                    return mBigramFreq[idx1, idx2] / (double)BigramHitCount;
+                    return mBigramFreq[idx1][idx2] / (double)BigramHitCount;
                 }
             }
 
@@ -120,7 +120,7 @@ namespace Keyrita.Settings
 
         private bool mValueHasChanged = false;
 
-        protected override void SetDependencies()
+        protected override void Init()
         {
         }
 
@@ -180,10 +180,52 @@ namespace Keyrita.Settings
                     }
 
                     mUsedCharset = GetCharList();
+
+                    // This method needs rectangle arrays, so create them, then convert them to appropriately.
                     long charCount = NativeAnalysis.AnalyzeDataset(fileText, mUsedCharset,
-                        out mCharFreq, out mBigramFreq, out mTrigramFreq, out mSkipgramFreq,
+                        out mCharFreq, out uint[,] bgFreq, out uint[,,] tgFreq, out uint[,,] skgFreq,
                         mProgress, mIsCanceled);
+
                     mIsCanceled[0] = false;
+
+                    // Copy the data to the member arrays.
+                    mBigramFreq = new uint[bgFreq.GetLength(0)][];
+                    for(int i = 0; i < bgFreq.GetLength(0); i++)
+                    {
+                        mBigramFreq[i] = new uint[bgFreq.GetLength(1)];
+                        for(int j = 0; j < bgFreq.GetLength(1); j++)
+                        {
+                            mBigramFreq[i][j] = bgFreq[i, j];
+                        }
+                    }
+
+                    mTrigramFreq = new uint[tgFreq.GetLength(0)][][];
+                    for(int i = 0; i < tgFreq.GetLength(0); i++)
+                    {
+                        mTrigramFreq[i] = new uint[tgFreq.GetLength(1)][];
+                        for(int j = 0; j < tgFreq.GetLength(1); j++)
+                        {
+                            mTrigramFreq[i][j] = new uint[tgFreq.GetLength(2)];
+                            for(int k = 0; k < tgFreq.GetLength(2); k++)
+                            {
+                                mTrigramFreq[i][j][k] = tgFreq[i, j, k];
+                            }
+                        }
+                    }
+
+                    mSkipgramFreq = new uint[skgFreq.GetLength(0)][][];
+                    for(int i = 0; i < mSkipgramFreq.GetLength(0); i++)
+                    {
+                        mSkipgramFreq[i] = new uint[mSkipgramFreq.GetLength(1)][];
+                        for(int j = 0; j < mSkipgramFreq.GetLength(1); j++)
+                        {
+                            mSkipgramFreq[i][j] = new uint[mSkipgramFreq.GetLength(2)];
+                            for(int k = 0; k < mSkipgramFreq.GetLength(2); k++)
+                            {
+                                mSkipgramFreq[i][j][k] = skgFreq[i, j, k];
+                            }
+                        }
+                    }
 
                     if(charCount != -1)
                     {
@@ -227,7 +269,7 @@ namespace Keyrita.Settings
             // Nothing to do.
         }
 
-        protected override void ChangeLimits()
+        protected override void ConformToLimits()
         {
             // This setting doesn't use a pending value!
         }
@@ -260,38 +302,40 @@ namespace Keyrita.Settings
                     CharHitCount += mCharFreq[i];
                 }
 
-                for (int i = 0; i < mBigramFreq.GetLength(0); i++)
+                for (int i = 0; i < mBigramFreq.Length; i++)
                 {
-                    for (int j = 0; j < mBigramFreq.GetLength(1); j++)
+                    for (int j = 0; j < mBigramFreq[i].Length; j++)
                     {
-                        BigramHitCount += mBigramFreq[i, j];
+                        BigramHitCount += mBigramFreq[i][j];
                     }
                 }
 
-                mSkipgram2Freq = new uint[mTrigramFreq.GetLength(0), mTrigramFreq.GetLength(2)];
-                for (int i = 0; i < mTrigramFreq.GetLength(0); i++)
+                mSkipgram2Freq = new uint[mTrigramFreq.Length][];
+                for (int i = 0; i < mTrigramFreq.Length; i++)
                 {
-                    for (int j = 0; j < mTrigramFreq.GetLength(2); j++)
+                    mSkipgram2Freq[i] = new uint[mTrigramFreq[i].Length];
+
+                    for (int j = 0; j < mTrigramFreq.Length; j++)
                     {
                         uint hitCount = 0;
 
-                        for (int k = 0; k < mTrigramFreq.GetLength(1); k++)
+                        for (int k = 0; k < mTrigramFreq.Length; k++)
                         {
-                            hitCount += mTrigramFreq[i, k, j];
+                            hitCount += mTrigramFreq[i][k][j];
                         }
 
-                        mSkipgram2Freq[i, j] = hitCount;
+                        mSkipgram2Freq[i][j] = hitCount;
                         TrigramHitCount += hitCount;
                     }
                 }
 
-                for (int i = 0; i < mSkipgramFreq.GetLength(0); i++)
+                for (int i = 0; i < mSkipgramFreq.Length; i++)
                 {
-                    for (int j = 0; j < mSkipgramFreq.GetLength(1); j++)
+                    for (int j = 0; j < mSkipgramFreq[i].Length; j++)
                     {
-                        for (int k = 0; k < mSkipgramFreq.GetLength(2); k++)
+                        for (int k = 0; k < mSkipgramFreq[i][j].Length; k++)
                         {
-                            SkipgramHitCount[i] += mSkipgramFreq[i, j, k];
+                            SkipgramHitCount[i] += mSkipgramFreq[i][j][k];
                         }
                     }
                 }
@@ -361,13 +405,14 @@ namespace Keyrita.Settings
                 // The size needs to be a perfect square. k.
                 if(bigramFreqDataLen == sqrtDatalen * sqrtDatalen && sqrtDatalen == mUsedCharset.Length)
                 {
-                    mBigramFreq = new uint[sqrtDatalen, sqrtDatalen];
+                    mBigramFreq = new uint[sqrtDatalen][];
 
                     for(int i = 0; i < sqrtDatalen; i++)
                     {
+                        mBigramFreq[i] = new uint[sqrtDatalen];
                         for(int j = 0; j < sqrtDatalen; j++)
                         {
-                            TextSerializers.TryParse(bigramFreqData[i * sqrtDatalen + j], out mBigramFreq[i, j]);
+                            TextSerializers.TryParse(bigramFreqData[i * sqrtDatalen + j], out mBigramFreq[i][j]);
                         }
                     }
                 }
@@ -384,15 +429,17 @@ namespace Keyrita.Settings
                 // The size needs to be a perfect cube. k.
                 if(trigramFreqDataLen == cbRootDatalen * cbRootDatalen * cbRootDatalen && cbRootDatalen == mUsedCharset.Length)
                 {
-                    mTrigramFreq = new uint[cbRootDatalen, cbRootDatalen, cbRootDatalen];
+                    mTrigramFreq = new uint[cbRootDatalen][][];
 
                     for(int i = 0; i < cbRootDatalen; i++)
                     {
+                        mTrigramFreq[i] = new uint[cbRootDatalen][];
                         for(int j = 0; j < cbRootDatalen; j++)
                         {
+                            mTrigramFreq[i][j] = new uint[cbRootDatalen];
                             for(int k = 0; k < cbRootDatalen; k++)
                             {
-                                TextSerializers.TryParse(trigramFreqData[(i * (cbRootDatalen * cbRootDatalen)) + (j * cbRootDatalen) + k], out mTrigramFreq[i, j, k]);
+                                TextSerializers.TryParse(trigramFreqData[(i * (cbRootDatalen * cbRootDatalen)) + (j * cbRootDatalen) + k], out mTrigramFreq[i][j][k]);
                             }
                         }
                     }
@@ -411,7 +458,18 @@ namespace Keyrita.Settings
                 }
             }
 
-            mSkipgramFreq = new uint[allSkipgramNodes.Count(), mUsedCharset.Length, mUsedCharset.Length];
+            int skArrSize = mUsedCharset.Length;
+            mSkipgramFreq = new uint[allSkipgramNodes.Count()][][];
+
+            for (int i = 0; i < mSkipgramFreq.Length; i++)
+            {
+                mSkipgramFreq[i] = new uint[skArrSize][];
+                for(int j = 0; j < mSkipgramFreq[i].Length; j++)
+                {
+                    mSkipgramFreq[i][j] = new uint[skArrSize];
+                }
+            }
+
             foreach(XmlNode child in allSkipgramNodes)
             {
                 int ski = child.Name[child.Name.Length - 1] - '0';
@@ -429,7 +487,7 @@ namespace Keyrita.Settings
                         {
                             for(int j = 0; j < sqrtDatalen; j++)
                             {
-                                TextSerializers.TryParse(skipgramFreqData[i * sqrtDatalen + j], out mSkipgramFreq[ski, i, j]);
+                                TextSerializers.TryParse(skipgramFreqData[i * sqrtDatalen + j], out mSkipgramFreq[ski][i][j]);
                             }
                         }
                     }
@@ -470,7 +528,7 @@ namespace Keyrita.Settings
                     for(int j = 0; j < available.Length; j++)
                     {
                         // Writing to the file in order {available[i]: avaialble[j]}
-                        writer.WriteString(TextSerializers.ToText(BigramFreq[i, j]));
+                        writer.WriteString(TextSerializers.ToText(BigramFreq[i][j]));
                         writer.WriteString(" ");
                     }
                 }
@@ -483,21 +541,21 @@ namespace Keyrita.Settings
                     {
                         for(int k = 0; k < available.Length; k++)
                         {
-                            writer.WriteString(TextSerializers.ToText(TrigramFreq[i, j, k]));
+                            writer.WriteString(TextSerializers.ToText(TrigramFreq[i][j][k]));
                             writer.WriteString(" ");
                         }
                     }
                 }
                 writer.WriteEndElement();
 
-                for(int i = 0; i < SkipgramFreq.GetLength(0); i++)
+                for(int i = 0; i < SkipgramFreq.Length; i++)
                 {
                     writer.WriteStartElement($"SkipgramFreq{i}");
                     for(int j = 0; j < available.Length; j++)
                     {
                         for(int k = 0; k < available.Length; k++)
                         {
-                            writer.WriteString(TextSerializers.ToText(SkipgramFreq[i, j, k]));
+                            writer.WriteString(TextSerializers.ToText(SkipgramFreq[i][j][k]));
                             writer.WriteString(" ");
                         }
                     }
@@ -517,7 +575,7 @@ namespace Keyrita.Settings
             // We aren't using a pending value, so lets just report a settings transaction occurred.
             if (ValueHasChanged)
             {
-                SettingTransaction("Analyzing dataset", false, () =>
+                InitiateSettingChange("Analyzing dataset", false, () =>
                 {
                     // Now that we have reported the setting change, just make it so that we report the setting hasn't changed yet.
                     mValueHasChanged = false;

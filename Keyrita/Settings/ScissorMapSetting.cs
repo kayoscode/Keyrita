@@ -35,7 +35,7 @@ namespace Keyrita.Settings
         public override bool HasValue => mScissorMapState != null;
         protected override bool ValueHasChanged => MapMatches(mPendingScissorMapState, mScissorMapState) > 0;
 
-        protected override void ChangeLimits()
+        protected override void ConformToLimits()
         {
         }
 
@@ -181,7 +181,7 @@ namespace Keyrita.Settings
             {
                 var description = $"Changing {count} map items";
 
-                SettingTransaction(description, userInitiated, () =>
+                InitiateSettingChange(description, userInitiated, () =>
                 {
                     CopyMap(mScissorMapState, mPendingScissorMapState);
                 });

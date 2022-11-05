@@ -36,7 +36,7 @@ namespace Keyrita.Settings.SettingUtil
         public delegate void ChangeNotif(object settingChanged);
         protected List<ChangeNotif> Notifications = new List<ChangeNotif>();
 
-        public void AddGui(ChangeNotif notificationFunc)
+        public void Add(ChangeNotif notificationFunc)
         {
             Notifications.Add(notificationFunc);
         }
@@ -146,7 +146,7 @@ namespace Keyrita.Settings.SettingUtil
         /// This is where you target specific settings in which you want to know if they change.
         /// By convention, every setting registered here should be used in the limit changing function.
         /// </summary>
-        protected virtual void SetDependencies()
+        protected virtual void Init()
         {
         }
 
@@ -155,14 +155,14 @@ namespace Keyrita.Settings.SettingUtil
         /// </summary>
         public virtual void PreInitialization()
         {
-            SetDependencies();
+            Init();
         }
 
         /// <summary>
         /// When one of the values of a dependent changes, 
         /// use this function to modify the limits for this setting.
         /// </summary>
-        protected abstract void ChangeLimits();
+        protected abstract void ConformToLimits();
 
         /// <summary>
         /// When the value of this setting changes, make changes in the system.
@@ -261,7 +261,7 @@ namespace Keyrita.Settings.SettingUtil
         /// <summary>
         /// Genericly handle setting changes.
         /// </summary>
-        protected void SettingTransaction(string description, bool userInitiated, SettingAction action)
+        protected void InitiateSettingChange(string description, bool userInitiated, SettingAction action)
         {
             try
             {
@@ -275,7 +275,7 @@ namespace Keyrita.Settings.SettingUtil
 
                     foreach (SettingBase dependent in mDependents)
                     {
-                        dependent.ChangeLimits();
+                        dependent.ConformToLimits();
                         dependent.SetToNewLimits();
                         dependent.LimitsChangedNotifications.NotifyGui(dependent);
                     }

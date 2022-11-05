@@ -65,18 +65,16 @@ namespace Keyrita.Gui.Controls
             {
                 // Reset key position
                 ResetKeyPosition();
-                e.Action = DragAction.Cancel;
+                e.Action = DragAction.Drop;
             }
         }
 
         protected void ResetKeyPosition()
         {
-            Panel.SetZIndex(this, 0);
-            this.IsHitTestVisible = true;
-
             // Reset key to original position.
             Canvas.SetLeft(this, this.StartPosition.X); 
             Canvas.SetTop(this, this.StartPosition.Y);
+            Panel.SetZIndex(this, 0);
         }
 
         protected void DropKey(object sender, DragEventArgs e)
@@ -120,8 +118,8 @@ namespace Keyrita.Gui.Controls
             mSelectedKey = SettingState.KeyboardSettings.SelectedKey;
             mLockedKeys = SettingState.KeyboardSettings.LockedKeys;
 
-            mSelectedKey.ValueChangedNotifications.AddGui(SyncWithSelectedKey);
-            mLockedKeys.ValueChangedNotifications.AddGui(SyncWithLockedKeys);
+            mSelectedKey.ValueChangedNotifications.Add(SyncWithSelectedKey);
+            mLockedKeys.ValueChangedNotifications.Add(SyncWithLockedKeys);
 
             this.AllowDrop = true;
             this.Drop += DropKey;
@@ -310,8 +308,8 @@ namespace Keyrita.Gui.Controls
 
             if (mHeatmap != null)
             {
-                mHeatmap.ValueChangedNotifications.AddGui(SyncWithHeatmap);
-                mHeatmap.LimitsChangedNotifications.AddGui(SyncWithHeatmap);
+                mHeatmap.ValueChangedNotifications.Add(SyncWithHeatmap);
+                mHeatmap.LimitsChangedNotifications.Add(SyncWithHeatmap);
                 SyncWithHeatmap(null);
             }
         }

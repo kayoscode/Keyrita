@@ -119,8 +119,8 @@ namespace Keyrita.Gui.Controls
 
             if(mKeyboardState != null)
             {
-                mKeyboardState.ValueChangedNotifications.AddGui(SyncWithKeyboard);
-                mKeyboardState.LimitsChangedNotifications.AddGui(SyncWithKeyboard);
+                mKeyboardState.ValueChangedNotifications.Add(SyncWithKeyboard);
+                mKeyboardState.LimitsChangedNotifications.Add(SyncWithKeyboard);
                 SyncWithAvailableChars();
             }
         }
@@ -167,8 +167,8 @@ namespace Keyrita.Gui.Controls
 
             if(mAvailableChars != null)
             {
-                mAvailableChars.ValueChangedNotifications.AddGui(SyncWithKeyboard);
-                mAvailableChars.LimitsChangedNotifications.AddGui(SyncWithKeyboard);
+                mAvailableChars.ValueChangedNotifications.Add(SyncWithKeyboard);
+                mAvailableChars.LimitsChangedNotifications.Add(SyncWithKeyboard);
                 SyncWithAvailableChars();
             }
         }

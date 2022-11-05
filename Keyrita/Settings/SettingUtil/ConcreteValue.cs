@@ -61,7 +61,7 @@ namespace Keyrita.Settings.SettingUtil
         {
         }
 
-        protected override void ChangeLimits()
+        protected override void ConformToLimits()
         {
         }
 
@@ -85,7 +85,7 @@ namespace Keyrita.Settings.SettingUtil
         {
             if(mPendingValue == null)
             {
-                SettingTransaction("Setting to null", userInitiated, () =>
+                InitiateSettingChange("Setting to null", userInitiated, () =>
                 {
                     mValue = mPendingValue;
                 });
@@ -95,7 +95,7 @@ namespace Keyrita.Settings.SettingUtil
             {
                 string description = $"Changing concrete value {mValue} to {mPendingValue}";
 
-                SettingTransaction(description, userInitiated, () =>
+                InitiateSettingChange(description, userInitiated, () =>
                 {
                     mValue = mPendingValue;
                 });

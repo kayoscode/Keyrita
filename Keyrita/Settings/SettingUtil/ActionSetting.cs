@@ -52,7 +52,7 @@ namespace Keyrita.Settings.SettingUtil
         /// <summary>
         /// Swap to other state to trigger a setting change + effect.
         /// </summary>
-        protected override sealed void ChangeLimits()
+        protected override sealed void ConformToLimits()
         {
             LimitValue = !Value;
         }
@@ -94,7 +94,7 @@ namespace Keyrita.Settings.SettingUtil
             if (Value != PendingValue)
             {
                 string description = "Doing effect";
-                SettingTransaction(description, userInitiated, () =>
+                InitiateSettingChange(description, userInitiated, () =>
                 {
                     Value = PendingValue;
                 });

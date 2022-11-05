@@ -103,7 +103,7 @@ namespace Keyrita.Settings.SettingUtil
         {
         }
 
-        protected override sealed void ChangeLimits()
+        protected override sealed void ConformToLimits()
         {
             mNewLimits.Clear();
             ChangeLimits(mNewLimits);
@@ -189,7 +189,7 @@ namespace Keyrita.Settings.SettingUtil
                     description += $"Removing {string.Join(" ", mPendingRemovals)} from collection. ";
                 }
 
-                SettingTransaction(description, userInitiated, () =>
+                InitiateSettingChange(description, userInitiated, () =>
                 {
                     // Remove each item in the removals, then add each one in the additions.
                     foreach (var removal in mPendingRemovals)

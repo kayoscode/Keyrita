@@ -95,7 +95,7 @@ namespace Keyrita.Gui.Controls
             {
                 this.Visibility = Visibility.Visible;
                 this.ToolTip = mMeasurement.UIToolTip();
-                this.mMeasurementOp.ValueChangedNotifications.AddGui(SyncWithMeasurement);
+                this.mMeasurementOp.ValueChangedNotifications.Add(SyncWithMeasurement);
                 SyncWithMeasurement(null);
             }
             else

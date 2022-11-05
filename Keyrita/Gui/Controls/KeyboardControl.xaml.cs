@@ -56,8 +56,8 @@ namespace Keyrita.Gui.Controls
             for(int i = 0; i < KeyboardStateSetting.ROWS; i++)
             {
                 RowOffsets[i] = SettingState.MeasurementSettings.RowOffsets[i];
-                RowOffsets[i].LimitsChangedNotifications.AddGui(SyncWithShape);
-                RowOffsets[i].LimitsChangedNotifications.AddGui(SyncWithShape);
+                RowOffsets[i].LimitsChangedNotifications.Add(SyncWithShape);
+                RowOffsets[i].LimitsChangedNotifications.Add(SyncWithShape);
             }
         }
 
@@ -285,8 +285,8 @@ namespace Keyrita.Gui.Controls
 
             if (mKeyboardState != null)
             {
-                mKeyboardState.ValueChangedNotifications.AddGui(SyncWithKeyboard);
-                mKeyboardState.LimitsChangedNotifications.AddGui(SyncWithKeyboard);
+                mKeyboardState.ValueChangedNotifications.Add(SyncWithKeyboard);
+                mKeyboardState.LimitsChangedNotifications.Add(SyncWithKeyboard);
                 SyncWithKeyboard();
             }
         }
@@ -342,6 +342,7 @@ namespace Keyrita.Gui.Controls
                 for (int j = 0; j < KeyboardStateSetting.COLS; j++)
                 {
                     Key nextKey = (Key)mKeyCanvas.Children[keyIndex++];
+                    nextKey.IsHitTestVisible = true;
 
                     Canvas.SetTop(nextKey, i * (keySize));
                     Canvas.SetLeft(nextKey, j * (keySize) + (double)RowOffsets[i].Value * (double)keySize - (minOffset * keySize));
@@ -387,8 +388,8 @@ namespace Keyrita.Gui.Controls
 
             if (mKeyMappings != null)
             {
-                mKeyMappings.ValueChangedNotifications.AddGui(SyncWithKeyboard);
-                mKeyMappings.LimitsChangedNotifications.AddGui(SyncWithKeyboard);
+                mKeyMappings.ValueChangedNotifications.Add(SyncWithKeyboard);
+                mKeyMappings.LimitsChangedNotifications.Add(SyncWithKeyboard);
                 SyncWithKeyboard();
             }
         }
@@ -437,8 +438,8 @@ namespace Keyrita.Gui.Controls
 
             if (mShowFingerUsage != null)
             {
-                mShowFingerUsage.ValueChangedNotifications.AddGui(SyncWithKeyboard);
-                mShowFingerUsage.LimitsChangedNotifications.AddGui(SyncWithKeyboard);
+                mShowFingerUsage.ValueChangedNotifications.Add(SyncWithKeyboard);
+                mShowFingerUsage.LimitsChangedNotifications.Add(SyncWithKeyboard);
                 SyncWithKeyboard();
             }
         }
@@ -487,8 +488,8 @@ namespace Keyrita.Gui.Controls
 
             if (mEditMode != null)
             {
-                mEditMode.ValueChangedNotifications.AddGui(SyncWithEditMode);
-                mEditMode.LimitsChangedNotifications.AddGui(SyncWithEditMode);
+                mEditMode.ValueChangedNotifications.Add(SyncWithEditMode);
+                mEditMode.LimitsChangedNotifications.Add(SyncWithEditMode);
                 SyncWithKeyboard();
             }
         }
@@ -537,8 +538,8 @@ namespace Keyrita.Gui.Controls
 
             if (mScissorMap != null)
             {
-                mScissorMap.ValueChangedNotifications.AddGui(SyncWithEditMode);
-                mScissorMap.LimitsChangedNotifications.AddGui(SyncWithEditMode);
+                mScissorMap.ValueChangedNotifications.Add(SyncWithEditMode);
+                mScissorMap.LimitsChangedNotifications.Add(SyncWithEditMode);
                 SyncWithKeyboard();
             }
         }

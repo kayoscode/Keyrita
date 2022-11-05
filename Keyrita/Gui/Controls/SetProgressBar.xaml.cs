@@ -66,7 +66,7 @@ namespace Keyrita.Gui.Controls
 
             if(mSetting != null)
             {
-                mSetting.NotifyProgressBarStarted.AddGui(SettingUpdated);
+                mSetting.NotifyProgressBarStarted.Add(SettingUpdated);
                 SyncWithSetting();
             }
         }

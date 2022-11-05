@@ -8,7 +8,8 @@ using Keyrita.Util;
 namespace Keyrita.Operations.OperationUtil
 {
     /// <summary>
-    /// Class responsible for creating and maintaining operators.
+    /// Class responsible for creating and maintaining the analysis graph.
+    /// Threaded support.
     /// </summary>
     public static class AnalysisGraphSystem
     {
@@ -25,7 +26,7 @@ namespace Keyrita.Operations.OperationUtil
 
         /// <summary>
         /// Sets up the generate algorithm to quickly swap keys during its lifetime.
-        /// Creates the order such that it guarantees by the time an operator runs, all its dependents have run.
+        /// Creates the order such that it guarantees by the time a node runs, all its dependents have run.
         /// </summary>
         public static void PreprocessSwapKeysResolveOrder()
         {
@@ -71,7 +72,7 @@ namespace Keyrita.Operations.OperationUtil
             // Instead of completely re analyzing, trigger swap keys event so each measurement can just respond to deltas.
             // This ensures we don't have to clear previous data, reallocate, nor re analyze the entire system.
 
-            // Go through each operator and make sure its dependents have been resolved. (swapped keys)
+            // Go through each node and make sure its dependents have been resolved. (swapped keys)
             for(int i = 0; i < GenerateSwapKeysNodes.Count; i++)
             {
                 GenerateSwapKeysNodes[i].SwapKeys(k1i, k1j, k2i, k2j);

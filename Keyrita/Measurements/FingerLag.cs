@@ -39,15 +39,15 @@ namespace Keyrita.Measurements
 
             // Go through each key on the keyboard and get the finger used for it.
             // Then add the result to the sum. Higher finger speeds are worse.
-            for(int i = 0; i < keyLag.GetLength(0); i++)
+            for(int i = 0; i < keyLag.Length; i++)
             {
-                for(int j = 0; j < keyLag.GetLength(1); j++)
+                for(int j = 0; j < keyLag[i].Length; j++)
                 {
                     var finger = keyToFinger[i][j];
                     var hand = FingerUtil.GetHandForFingerAsInt(finger);
 
-                    mResult.PerFingerResult[finger] += keyLag[i, j];
-                    mResult.PerHandResult[(int)hand] += keyLag[i, j];
+                    mResult.PerFingerResult[finger] += keyLag[i][j];
+                    mResult.PerHandResult[(int)hand] += keyLag[i][j];
                 }
             }
 

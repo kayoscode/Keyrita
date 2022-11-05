@@ -132,6 +132,32 @@ namespace Keyrita.Util
             return true;
         }
 
+        public static bool CompareDoubleArrayDoubles(double[][] arr, double[][] arr2)
+        {
+            if(arr.Length != arr2.Length)
+            {
+                return false;
+            }
+
+            for(int i = 0; i < arr.Length; i++)
+            {
+                if (arr[i].Length != arr2[i].Length)
+                {
+                    return false;
+                }
+
+                for(int j = 0; j < arr[i].Length; j++)
+                {
+                    if (!AreClose(arr[i][j], arr2[i][j]))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
         public static T[,] CopyRectArray<T>(T[,] arr)
         {
             T[,] result = new T[arr.GetLength(0), arr.GetLength(1)];

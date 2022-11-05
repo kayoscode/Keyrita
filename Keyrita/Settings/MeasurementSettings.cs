@@ -14,10 +14,10 @@ namespace Keyrita.Settings
     {
         public SpaceFingerSetting() : base("Space Finger", eFinger.RightThumb, eSettingAttributes.Recall)
         {
-            ChangeLimits();
+            ConformToLimits();
         }
 
-        protected override void ChangeLimits()
+        protected override void ConformToLimits()
         {
             mValidTokens.Clear();
             mValidTokens.Add(eFinger.LeftThumb);

@@ -110,7 +110,7 @@ namespace Keyrita.Settings
         {
         }
 
-        protected override void SetDependencies()
+        protected override void Init()
         {
             SettingState.KeyboardSettings.KeyboardState.AddDependent(this);
             SettingState.KeyboardSettings.KeyboardValid.AddDependent(this);
@@ -134,12 +134,12 @@ namespace Keyrita.Settings
         {
         }
 
-        protected override void SetDependencies()
+        protected override void Init()
         {
             SettingState.KeyboardSettings.KeyboardValid.AddDependent(this);
         }
 
-        protected override void ChangeLimits()
+        protected override void ConformToLimits()
         {
             mValidTokens.Clear();
 
@@ -165,7 +165,7 @@ namespace Keyrita.Settings
         {
         }
 
-        protected override void SetDependencies()
+        protected override void Init()
         {
             // We depend on the keyboard state, and the language.
             SettingState.KeyboardSettings.AvailableCharSet.AddDependent(this);
@@ -175,7 +175,7 @@ namespace Keyrita.Settings
         /// <summary>
         /// Scan the keyboard and see if we are valid.
         /// </summary>
-        protected override void ChangeLimits()
+        protected override void ConformToLimits()
         {
             mValidTokens.Clear();
 
@@ -228,12 +228,12 @@ namespace Keyrita.Settings
         {
         }
 
-        protected override void SetDependencies()
+        protected override void Init()
         {
             SettingState.KeyboardSettings.KeyboardLanguage.AddDependent(this);
         }
 
-        protected override void ChangeLimits()
+        protected override void ConformToLimits()
         {
             mValidTokens.Clear();
 
@@ -313,12 +313,12 @@ namespace Keyrita.Settings
             mLimitValue = STANDARD_ROW_OFFSETS[rowIndex];
         }
 
-        protected override void SetDependencies()
+        protected override void Init()
         {
             SettingState.KeyboardSettings.KeyboardDisplay.AddDependent(this);
         }
 
-        protected override void ChangeLimits()
+        protected override void ConformToLimits()
         {
             if (SettingState.KeyboardSettings.KeyboardDisplay.Value.Equals(eKeyboardDisplay.GridView))
             {
@@ -349,7 +349,7 @@ namespace Keyrita.Settings
             }
         }
 
-        protected override void SetDependencies()
+        protected override void Init()
         {
             SettingState.KeyboardSettings.KeyboardLanguage.AddDependent(this);
         }
@@ -463,7 +463,7 @@ namespace Keyrita.Settings
             return mKeyState[row, col];
         }
 
-        protected override sealed void ChangeLimits()
+        protected override sealed void ConformToLimits()
         {
             ChangeLimits(mNewKeyState);
         }
@@ -498,7 +498,7 @@ namespace Keyrita.Settings
             {
                 var description = $"Changing {count} keys";
 
-                SettingTransaction(description, userInitiated, () =>
+                InitiateSettingChange(description, userInitiated, () =>
                 {
                     CopyBoard(mKeyState, mPendingKeyState);
                 });
@@ -656,7 +656,7 @@ namespace Keyrita.Settings
             SetToDesiredValue();
         }
 
-        protected override void SetDependencies()
+        protected override void Init()
         {
             // We care about the keyboard format and language.
             SettingState.KeyboardSettings.AvailableCharSet.AddDependent(this);

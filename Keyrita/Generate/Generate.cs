@@ -59,11 +59,11 @@ namespace Keyrita.Generate
                                 int[] expectedC2f, int[] c2f,
                                 long expectedTotalSfbs, long totalSfbs,
                                 long expectedTotalSfs, long totalSfs,
-                                double[,] expectedSfbDistPerKey, double[,] sfbDistPerkey,
-                                double[,] expectedSfsDistPerKey, double[,] sfsDistPerkey,
+                                double[][] expectedSfbDistPerKey, double[][] sfbDistPerkey,
+                                double[][] expectedSfsDistPerKey, double[][] sfsDistPerkey,
                                 long expectedTotalScissors, long totalScissors,
-                                long[,] expectedPerKeyScissors, long[,] perKeyScissors,
-                                double[,] expectedKeyLag, double[,] keyLag)
+                                long[][] expectedPerKeyScissors, long[][] perKeyScissors,
+                                double[][] expectedKeyLag, double[][] keyLag)
 
         {
             // Check the transformed kb state.
@@ -89,8 +89,8 @@ namespace Keyrita.Generate
 
             // Two finger stats.
             if(expectedTotalSfbs != totalSfbs || expectedTotalSfs != totalSfs ||
-                !Utils.CompareRectArrayDoubles(expectedSfbDistPerKey, sfbDistPerkey) ||
-                !Utils.CompareRectArrayDoubles(expectedSfsDistPerKey, sfsDistPerkey))
+                !Utils.CompareDoubleArrayDoubles(expectedSfbDistPerKey, sfbDistPerkey) ||
+                !Utils.CompareDoubleArrayDoubles(expectedSfsDistPerKey, sfsDistPerkey))
             {
                 LogUtils.Assert(false, "Same finger stats should have been preserved");
                 return false;
@@ -98,14 +98,14 @@ namespace Keyrita.Generate
 
             // Check scissors.
             if(expectedTotalScissors != totalScissors ||
-                !Utils.CompareRectArray(expectedPerKeyScissors, perKeyScissors))
+                !Utils.CompareDoubleArray(expectedPerKeyScissors, perKeyScissors))
             {
                 LogUtils.Assert(false, "Scissors should have returned back to the expected value after a double swap");
                 return false;
             }
 
             // Check key speed.
-            if(!Utils.CompareRectArrayDoubles(expectedKeyLag, keyLag))
+            if(!Utils.CompareDoubleArrayDoubles(expectedKeyLag, keyLag))
             {
                 LogUtils.Assert(false, "Key lag should have returned back to the expected value after a double swap");
                 return false;
@@ -129,13 +129,13 @@ namespace Keyrita.Generate
             var expectedKbState = Utils.CopyDoubleArray(kbStateResult.TransformedKbState);
             var expectedC2k = Utils.CopyArray(c2kResult.CharacterToKey);
             var expectedC2f = Utils.CopyArray(c2fResult.CharacterToFinger);
-            var expectedSfbDistPerKey = Utils.CopyRectArray(tfs.SfbDistancePerKey);
-            var expectedSfsDistPerKey = Utils.CopyRectArray(tfs.SfsDistancePerKey);
+            var expectedSfbDistPerKey = Utils.CopyDoubleArray(tfs.SfbDistancePerKey);
+            var expectedSfsDistPerKey = Utils.CopyDoubleArray(tfs.SfsDistancePerKey);
             var expectedTotalSfbs = tfs.TotalSfbs;
             var expectedTotalSfs = tfs.TotalSfs;
             var expectedTotalScissors = scissorsResult.TotalResult;
-            var expectedScissorsPerKey = Utils.CopyRectArray(scissorsResult.PerKeyResult);
-            var expectedKeyLag = Utils.CopyRectArray(keyLagResult.PerKeyResult);
+            var expectedScissorsPerKey = Utils.CopyDoubleArray(scissorsResult.PerKeyResult);
+            var expectedKeyLag = Utils.CopyDoubleArray(keyLagResult.PerKeyResult);
 
             int swapCount = 5000;
 
@@ -295,7 +295,7 @@ namespace Keyrita.Generate
         /// <summary>
         /// Given the current layout, locked keys, and much more, find the best possible arrangement.
         /// When finished, set the screen to use the new layout.
-        /// This class needs to hijack the operator system. (nothing else can do analysis in the meantime). 
+        /// This class needs to hijack the analysis system. (nothing else can do analysis in the meantime). 
         /// </summary>
         public void GenerateBetterLayout()
         {
@@ -305,7 +305,7 @@ namespace Keyrita.Generate
             var kbStateResult = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
             int rows = KeyboardStateSetting.ROWS;
             int cols = KeyboardStateSetting.COLS;
-            int optimizationCount = 15000;
+            int optimizationCount = 2500;
             double numOptimizations = (double)optimizationCount;
             Stopwatch timer = new Stopwatch();
             var lockedKeys = SettingState.KeyboardSettings.LockedKeys.KeyStateCopy;

@@ -182,7 +182,7 @@ namespace Keyrita.Settings.SettingUtil
         {
         }
 
-        protected override void ChangeLimits()
+        protected override void ConformToLimits()
         {
         }
 
@@ -232,7 +232,7 @@ namespace Keyrita.Settings.SettingUtil
             // If the values don't match, we need to initialize a new setting transaction.
             if (!PendingValue.Equals(Value) && mValidTokens.Contains(PendingValue))
             {
-                SettingTransaction($"Setting token value from {Value} to {PendingValue}", 
+                InitiateSettingChange($"Setting token value from {Value} to {PendingValue}", 
                     userInitiated, 
                 () =>
                 {
