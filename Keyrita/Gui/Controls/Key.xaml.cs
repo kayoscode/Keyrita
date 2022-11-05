@@ -55,6 +55,30 @@ namespace Keyrita.Gui.Controls
 
         #region
 
+        protected void QueryResetKeyPosition(object sender, QueryContinueDragEventArgs e)
+        {
+            if (e.KeyStates == DragDropKeyStates.LeftMouseButton)
+            {
+                e.Action = DragAction.Continue;
+            }
+            else
+            {
+                // Reset key position
+                ResetKeyPosition();
+                e.Action = DragAction.Cancel;
+            }
+        }
+
+        protected void ResetKeyPosition()
+        {
+            Panel.SetZIndex(this, 0);
+            this.IsHitTestVisible = true;
+
+            // Reset key to original position.
+            Canvas.SetLeft(this, this.StartPosition.X); 
+            Canvas.SetTop(this, this.StartPosition.Y);
+        }
+
         protected void DropKey(object sender, DragEventArgs e)
         {
             // Swap the keys.
@@ -86,9 +110,12 @@ namespace Keyrita.Gui.Controls
 
         #endregion
 
+        public Point StartPosition;
+
         public Key()
         {
             InitializeComponent();
+            StartPosition = new Point(0, 0);
 
             mSelectedKey = SettingState.KeyboardSettings.SelectedKey;
             mLockedKeys = SettingState.KeyboardSettings.LockedKeys;
@@ -98,6 +125,7 @@ namespace Keyrita.Gui.Controls
 
             this.AllowDrop = true;
             this.Drop += DropKey;
+            this.QueryContinueDrag += QueryResetKeyPosition;
             this.MouseLeftButtonDown += (sender, e) =>
             {
                 if (Keyboard.IsKeyDown(System.Windows.Input.Key.LeftShift) || Keyboard.IsKeyDown(System.Windows.Input.Key.RightShift))
@@ -110,7 +138,6 @@ namespace Keyrita.Gui.Controls
             SyncWithLockedKeys(null);
             SyncWithSelectedKey(null);
         }
-
 
         private static readonly DependencyProperty KeyCharacterProperty =
             DependencyProperty.Register(nameof(KeyCharacter),

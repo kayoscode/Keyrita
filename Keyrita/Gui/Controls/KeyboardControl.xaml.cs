@@ -341,10 +341,12 @@ namespace Keyrita.Gui.Controls
             {
                 for (int j = 0; j < KeyboardStateSetting.COLS; j++)
                 {
-                    var nextKey = mKeyCanvas.Children[keyIndex++];
+                    Key nextKey = (Key)mKeyCanvas.Children[keyIndex++];
 
                     Canvas.SetTop(nextKey, i * (keySize));
                     Canvas.SetLeft(nextKey, j * (keySize) + (double)RowOffsets[i].Value * (double)keySize - (minOffset * keySize));
+
+                    nextKey.StartPosition = new Point(Canvas.GetLeft(nextKey), Canvas.GetTop(nextKey));
                 }
             }
         }

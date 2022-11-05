@@ -65,6 +65,8 @@ namespace Keyrita.Operations
 
         protected eTrigramClassification[,,] mTgClassifications;
         public override bool RespondsToGenerateSwapKeysEvent => true;
+
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public override void SwapKeys(int k1i, int k1j, int k2i, int k2j)
         {
             // Trying to do something to make alternations work, lets see what happens.
@@ -95,9 +97,8 @@ namespace Keyrita.Operations
                 eTrigramClassification newClassification = mTgClassifications[finger1, finger2, finger3];
             }
 
-            for (int j = 0; j < tgSet2.Count; j++)
+            for (int i = 0; i < tgSet2.Count; i++)
             {
-
             }
         }
 
