@@ -150,8 +150,11 @@ namespace Keyrita.Settings
         public KeyMappingSetting KeyMappings { get; } =
             new KeyMappingSetting();
 
-        public FingerWeights FingerWeights { get; } =
-            new FingerWeights();
+        public FingerWeightsSetting FingerWeights { get; } =
+            new FingerWeightsSetting();
+
+        public EffortMapSetting EffortMap { get; } =
+            new EffortMapSetting();
     }
 
     /// <summary>

@@ -170,24 +170,14 @@ namespace Keyrita.Operations
         }
 
         public double TotalResult { get; set; }
-        public (int, int) WorstKey { get; set; }
     }
 
     public class KeyLag : GraphNode
     {
         // These all need to eventually be settings.
-        private const double SFB_WEIGHT = 1250;
-        private const double SFS_WEIGHT = 400;
-        private const double SCISSOR_WEIGHT = 350;
-
-        // Penalty applied to key scores just for existing at their location :D
-        // Eventually let the user set these and discriminate their own way!
-        private static double[][] KEY_LOCATION_PENALTY = new double[KeyboardStateSetting.ROWS][]
-        {
-            new double[KeyboardStateSetting.COLS]{ 1.91, 1.45, 1.21, 1.33, 1.45,  1.21, 1.33, 1.21, 1.45, 1.91 },
-            new double[KeyboardStateSetting.COLS]{ 1.22, 0.78, 0.66, 0.60, 1.57,  1.57, 0.60, 0.66, 0.78, 1.22 },
-            new double[KeyboardStateSetting.COLS]{ 2.12, 1.81, 1.63, 1.33, 2.24,  1.33, 1.10, 1.45, 1.69, 2.00 }
-        };
+        private const double SFB_WEIGHT = 1450;
+        private const double SFS_WEIGHT = 150;
+        private const double SCISSOR_WEIGHT = 1550;
 
         private KeyLagResult mResult;
         public KeyLag() :
@@ -196,6 +186,7 @@ namespace Keyrita.Operations
             AddInputNode(eInputNodes.TwoFingerStats);
             AddInputNode(eInputNodes.KeyToFingerAsInt);
             AddInputNode(eInputNodes.ScissorsIntermediate);
+            AddInputNode(eInputNodes.TransfomedKbState);
             mResult = new KeyLagResult(NodeId);
         }
 
@@ -207,56 +198,44 @@ namespace Keyrita.Operations
         private KeyToFingerAsIntResult mK2f;
         private TwoFingerStatsResult mTfs;
         private ScissorsResult mSr;
+        private TransformedKbStateResult mKbState;
 
         protected override void Compute()
         {
             mK2f = (KeyToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyToFingerAsInt];
             mTfs = (TwoFingerStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TwoFingerStats];
             mSr = (ScissorsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.ScissorsIntermediate];
+            mKbState = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
             ComputeResult();
         }
 
         private void ComputeResult()
         {
-            var scissorValues = mSr.PerKeyResult;
-            var sfbsPerKey = mTfs.SfbDistancePerKey;
-            var sfsPerKey = mTfs.SfsDistancePerKey;
-            var keyToFinger = mK2f.KeyToFinger;
             double totalBg = SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
-            mResult.TotalResult = 0;
-            double worstKeyScore = -1;
 
-            // This intermediate measurement is mainly used for evaluation/generate, but
-            // is also used for the finger speed meaurement. 
-            // Each key is assigned a weighted sum of the same finger grams coming from it weighted differently depending on the depth.
+            mResult.TotalResult = 0;
+
+            mResult.TotalResult = mTfs.TotalSfbDistance * SFB_WEIGHT;
+            mResult.TotalResult += mTfs.TotalSfsDistance * SFS_WEIGHT;
+            mResult.TotalResult += mSr.TotalWeightedResult * SCISSOR_WEIGHT;
+
+            double effortMapScore = 0;
             for(int i = 0; i < KeyboardStateSetting.ROWS; i++)
             {
                 for(int j = 0; j < KeyboardStateSetting.COLS; j++)
                 {
-                    var finger = keyToFinger[i][j];
-                    var fingerWeight = SettingState.FingerSettings.FingerWeights.GetValueAt(finger);
-
-                    double score = sfbsPerKey[i][j] * SFB_WEIGHT;
-                    score += sfsPerKey[i][j] * SFS_WEIGHT;
-                    score += (scissorValues[i][j] / totalBg) * SCISSOR_WEIGHT;
-
-                    score *= fingerWeight;
-                    score *= KEY_LOCATION_PENALTY[i][j]; // Sucks to suck.
-                    mResult.PerKeyResult[i][j] = score;
-                    mResult.TotalResult += score;
-
-                    if(score > worstKeyScore)
-                    {
-                        mResult.WorstKey = (i, j);
-                    }
+                    effortMapScore += (SettingState.MeasurementSettings.CharFrequencyData.CharFreq[mKbState.TransformedKbState[i][j]] / totalBg) * 
+                        SettingState.FingerSettings.EffortMap.GetValueAt(i, j);
                 }
             }
+
+            mResult.TotalResult *= effortMapScore;
         }
 
         public override bool RespondsToGenerateSwapKeysEvent => true;
         public override void SwapKeys(int k1i, int k1j, int k2i, int k2j)
         {
-            // So much would have changed by the time we get here, just recompute it all.
+            // So much would have changed by the time we get here, just recompute it.
             ComputeResult();
         }
     }
@@ -272,6 +251,7 @@ namespace Keyrita.Operations
         }
 
         public long TotalSfbs { get; set; }
+        public double TotalSfbDistance { get; set; }
         public long[] SfbsPerHand { get; private set; } = new long[Utils.GetTokens<eHand>().Count()];
         public long[] SfbsPerFinger { get; private set; } = new long[Utils.GetTokens<eFinger>().Count()];
         public double[][] SfbDistancePerKey { get; private set; } = new double[KeyboardStateSetting.ROWS][]
@@ -282,6 +262,7 @@ namespace Keyrita.Operations
         };
 
         public long TotalSfs { get; set; }
+        public double TotalSfsDistance { get; set; }
         public long[] SfsPerHand { get; private set; } = new long[Utils.GetTokens<eHand>().Count()];
         public long[] SfsPerFinger { get; private set; } = new long[Utils.GetTokens<eFinger>().Count()];
         public double[][] SfsDistancePerKey { get; private set; } = new double[KeyboardStateSetting.ROWS][]
@@ -302,12 +283,12 @@ namespace Keyrita.Operations
 
         public TwoFingerStats() : base(eInputNodes.TwoFingerStats)
         {
-            AddInputNode(eInputNodes.TransformedCharacterToFingerAsInt);
+            AddInputNode(eInputNodes.KeyToFingerAsInt);
             AddInputNode(eInputNodes.TransfomedKbState);
             AddInputNode(eInputNodes.SameFingerMap);
         }
 
-        private TransformedCharacterToFingerAsIntResult mC2f;
+        private KeyToFingerAsIntResult mK2f;
         private TransformedKbStateResult mKb;
         private SameFingerMapResult mSfm;
 
@@ -315,7 +296,7 @@ namespace Keyrita.Operations
         {
             mResult = new TwoFingerStatsResult(NodeId);
 
-            mC2f = (TransformedCharacterToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransformedCharacterToFingerAsInt];
+            mK2f = (KeyToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyToFingerAsInt];
             mKb = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
             mSfm = (SameFingerMapResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.SameFingerMap];
 
@@ -324,7 +305,7 @@ namespace Keyrita.Operations
             uint[][] skipgram2Freq = SettingState.MeasurementSettings.CharFrequencyData.Skipgram2Freq;
             double totalSkipgram2 = SettingState.MeasurementSettings.CharFrequencyData.Skipgram2HitCount;
 
-            var characterToFinger = mC2f.CharacterToFinger;
+            var keyToFinger = mK2f.KeyToFinger;
             var sameFingerMap = mSfm.SameFingerKeysPerKey;
 
             // Loop over all the keys, and get its same finger map.
@@ -333,6 +314,8 @@ namespace Keyrita.Operations
                 for(int j = 0; j < sameFingerMap[i].Length; j++)
                 {
                     var thisKeySfbMap = sameFingerMap[i][j];
+                    var finger = keyToFinger[i][j];
+                    var fingerWeight = SettingState.FingerSettings.FingerWeights.GetValueAt(finger);
 
                     // Get every sfb for that key.
                     for(int k = 0; k < thisKeySfbMap.Count; k++)
@@ -347,18 +330,23 @@ namespace Keyrita.Operations
                         // Add same finger stats for the bigram. Because we know that each bigram which is classified as an sfb will be hit with the same finger, it doesn't
                         // matter if we are searching for sfbs, sfs, or skipgrams(n). Just make sure to use the correct frequency data.
                         mResult.TotalSfbs += bigramFreq[ch1][ch2];
-                        mResult.SfbDistancePerKey[i][j] += (bigramFreq[ch1][ch2] / totalBg) * distance;
+                        double sfbDistance = ((bigramFreq[ch1][ch2] / totalBg) * distance) * fingerWeight;
+                        mResult.SfbDistancePerKey[i][j] += sfbDistance;
+                        mResult.TotalSfbDistance += sfbDistance;
+
                         mResult.TotalSfs += skipgram2Freq[ch1][ch2];
-                        mResult.SfsDistancePerKey[i][j] += (skipgram2Freq[ch1][ch2] / totalSkipgram2) * distance;
+                        double sfsDistance = ((skipgram2Freq[ch1][ch2] / totalSkipgram2) * distance) * fingerWeight;
+                        mResult.SfsDistancePerKey[i][j] += sfsDistance;
+                        mResult.TotalSfsDistance += sfsDistance;
 
                         // i and j have the same finger.
-                        LogUtils.Assert(characterToFinger[ch1] == characterToFinger[ch2], "An SFB should always use the same fingers for both keys");
+                        LogUtils.Assert(keyToFinger[i][j] == keyToFinger[secondCharPos.Item1][secondCharPos.Item2], "An SFB should always use the same fingers for both keys");
 
-                        mResult.SfbsPerFinger[characterToFinger[ch1]] += bigramFreq[ch1][ch2];
-                        mResult.SfsPerFinger[characterToFinger[ch1]] += skipgram2Freq[ch1][ch2];
+                        mResult.SfbsPerFinger[keyToFinger[i][j]] += bigramFreq[ch1][ch2];
+                        mResult.SfsPerFinger[keyToFinger[i][j]] += skipgram2Freq[ch1][ch2];
 
-                        mResult.SfbsPerHand[(int)FingerUtil.GetHandForFingerAsInt(characterToFinger[ch1])] += bigramFreq[ch1][ch2];
-                        mResult.SfsPerHand[(int)FingerUtil.GetHandForFingerAsInt(characterToFinger[ch1])] += skipgram2Freq[ch1][ch2];
+                        mResult.SfbsPerHand[(int)FingerUtil.GetHandForFingerAsInt(keyToFinger[i][j])] += bigramFreq[ch1][ch2];
+                        mResult.SfsPerHand[(int)FingerUtil.GetHandForFingerAsInt(keyToFinger[i][j])] += skipgram2Freq[ch1][ch2];
                     }
                 }
             }
@@ -373,6 +361,9 @@ namespace Keyrita.Operations
             double totalBg = SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
             uint[][] skipgram2Freq = SettingState.MeasurementSettings.CharFrequencyData.Skipgram2Freq;
 
+            var finger = mK2f.KeyToFinger[k1i][k1j];
+            var fingerWeight = SettingState.FingerSettings.FingerWeights.GetValueAt(finger);
+
             for (int i = 0; i < ch1SameFingerMap.Count; i++)
             {
                 var sameFingerPos = ch1SameFingerMap[i];
@@ -382,7 +373,7 @@ namespace Keyrita.Operations
                 var otherCh = kb[sameFingerPos.Item1][sameFingerPos.Item2];
                 if (otherCh == ch1)
                 {
-                    var distance = FingerUtil.MovementDistance[k1i, k1j, k2i, k2j];
+                    var distance = FingerUtil.MovementDistance[k1i, k1j, k2i, k2j] * fingerWeight;
 
                     otherCh = ch2;
                     subCh1 = bigramFreq[otherCh][ch1];
@@ -391,21 +382,26 @@ namespace Keyrita.Operations
                     mResult.TotalSfbs -= subCh1;
                     mResult.TotalSfbs += subCh2;
 
-                    mResult.SfbDistancePerKey[k1i][k1j] -= (subCh2 / totalBg) * distance;
-                    mResult.SfbDistancePerKey[k1i][k1j] += (subCh1 / totalBg) * distance;
+                    mResult.TotalSfbDistance -= (subCh2 / totalBg) * distance;
+                    mResult.TotalSfbDistance += (subCh1 / totalBg) * distance;
 
                     subCh1 = skipgram2Freq[otherCh][ch1];
                     subCh2 = skipgram2Freq[ch1][otherCh];
 
-                    mResult.SfsDistancePerKey[k1i][k1j] -= (subCh2 / totalBg) * distance;
-                    mResult.SfsDistancePerKey[k1i][k1j] += (subCh1 / totalBg) * distance;
+                    mResult.TotalSfsDistance -= (subCh2 / totalBg) * distance;
+                    mResult.TotalSfsDistance += (subCh1 / totalBg) * distance;
 
                     mResult.TotalSfs -= subCh1;
                     mResult.TotalSfs += subCh2;
                 }
                 else
                 {
-                    var distance = FingerUtil.MovementDistance[k1i, k1j, sameFingerPos.Item1, sameFingerPos.Item2];
+                    var finger2 = mK2f.KeyToFinger[sameFingerPos.Item1][sameFingerPos.Item2];
+                    var fingerWeight2 = SettingState.FingerSettings.FingerWeights.GetValueAt(finger2);
+
+                    var baseDistance = FingerUtil.MovementDistance[k1i, k1j, sameFingerPos.Item1, sameFingerPos.Item2];
+                    var distance = baseDistance * fingerWeight;
+                    var distance2 = baseDistance * fingerWeight2;
 
                     subCh1 = bigramFreq[otherCh][ch1];
                     subCh2 = bigramFreq[ch1][otherCh];
@@ -418,10 +414,10 @@ namespace Keyrita.Operations
                     mResult.TotalSfbs += subCh4;
 
                     // The distance[i, j] = the distance from that key to every other bigram.
-                    mResult.SfbDistancePerKey[k1i][k1j] -= (subCh2 / totalBg) * distance;
-                    mResult.SfbDistancePerKey[k1i][k1j] += (subCh4 / totalBg) * distance;
-                    mResult.SfbDistancePerKey[sameFingerPos.Item1][sameFingerPos.Item2] -= (subCh1 / totalBg) * distance;
-                    mResult.SfbDistancePerKey[sameFingerPos.Item1][sameFingerPos.Item2] += (subCh3 / totalBg) * distance;
+                    mResult.TotalSfbDistance -= (subCh2 / totalBg) * distance;
+                    mResult.TotalSfbDistance += (subCh4 / totalBg) * distance;
+                    mResult.TotalSfbDistance -= (subCh1 / totalBg) * distance2;
+                    mResult.TotalSfbDistance += (subCh3 / totalBg) * distance2;
 
                     // Now do sfs.
                     subCh1 = skipgram2Freq[otherCh][ch1];
@@ -429,10 +425,10 @@ namespace Keyrita.Operations
                     subCh3 = skipgram2Freq[otherCh][ch2];
                     subCh4 = skipgram2Freq[ch2][otherCh];
 
-                    mResult.SfsDistancePerKey[k1i][k1j] -= (subCh2 / totalBg) * distance;
-                    mResult.SfsDistancePerKey[k1i][k1j] += (subCh4 / totalBg) * distance;
-                    mResult.SfsDistancePerKey[sameFingerPos.Item1][sameFingerPos.Item2] -= (subCh1 / totalBg) * distance;
-                    mResult.SfsDistancePerKey[sameFingerPos.Item1][sameFingerPos.Item2] += (subCh3 / totalBg) * distance;
+                    mResult.TotalSfsDistance -= (subCh2 / totalBg) * distance;
+                    mResult.TotalSfsDistance += (subCh4 / totalBg) * distance;
+                    mResult.TotalSfsDistance -= (subCh1 / totalBg) * distance2;
+                    mResult.TotalSfsDistance += (subCh3 / totalBg) * distance2;
 
                     mResult.TotalSfs -= subCh1;
                     mResult.TotalSfs -= subCh2;

@@ -112,7 +112,7 @@ namespace Keyrita.Util
         {
             "1e\tA",
             "1f\tS",
-            "22\tD",
+            "20\tD",
             "21\tF",
             "22\tG",
             "23\tH",
@@ -204,7 +204,7 @@ namespace Keyrita.Util
             // Write basic header info.
             writer.Write("KBD\t");
             writer.Write(name);
-            writer.Write("\t\"");
+            writer.Write("\t");
             writer.Write(description);
             writer.Write("\"\r\n");
             writer.WriteLine();

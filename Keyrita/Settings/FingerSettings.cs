@@ -218,12 +218,59 @@ namespace Keyrita.Settings
         }
     }
 
+    public class EffortMapSetting : PerkeySetting<double>
+    {
+        // Penalty applied to key scores just for existing at their location :D
+        // Eventually let the user set these and discriminate their own way!
+        private static double[][] KEY_LOCATION_PENALTY = new double[KeyboardStateSetting.ROWS][]
+        {
+            new double[KeyboardStateSetting.COLS]{ 1.91, 1.45, 1.21, 1.33, 1.45,  1.21, 1.33, 1.21, 1.45, 1.91 },
+            new double[KeyboardStateSetting.COLS]{ 1.22, 0.78, 0.66, 0.60, 1.57,  1.57, 0.60, 0.66, 0.78, 1.22 },
+            new double[KeyboardStateSetting.COLS]{ 2.12, 1.81, 1.7, 1.33, 2.24,  1.33, 1.33, 1.7, 1.81, 2.00 }
+        };
+
+        public EffortMapSetting() : base("Effort Map", eSettingAttributes.None)
+        {
+        }
+
+        public double MaxEffort { get; private set; }
+
+        protected void NormalizeEffortMap(double maxValue)
+        {
+            MaxEffort = 0;
+
+            for(int i = 0; i < mKeyState.GetLength(0); i++)
+            {
+                for(int j = 0; j < mKeyState.GetLength(1); j++)
+                {
+                    double normalized = (mDesiredKeyState[i, j] / maxValue) * maxValue;
+                    mDesiredKeyState[i, j] = normalized;
+                    MaxEffort += normalized;
+                }
+            }
+        }
+
+        public override void SetToDefault()
+        {
+            for(int i = 0; i < KEY_LOCATION_PENALTY.Length; i++)
+            {
+                for(int j = 0; j < KEY_LOCATION_PENALTY[i].Length; j++)
+                {
+                    mDesiredKeyState[i, j] = KEY_LOCATION_PENALTY[i][j];
+                }
+            }
+
+            NormalizeEffortMap(3.0);
+            this.SetToDesiredValue();
+        }
+    }
+
     /// <summary>
     /// Weights describing the penalty for having an same finger grams on each finger.
     /// </summary>
-    public class FingerWeights : PerFingerSetting<double>
+    public class FingerWeightsSetting : PerFingerSetting<double>
     {
-        public FingerWeights()
+        public FingerWeightsSetting()
             : base("Finger Speed Weights", eSettingAttributes.None)
         {
         }

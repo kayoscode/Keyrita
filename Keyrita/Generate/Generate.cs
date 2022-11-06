@@ -59,11 +59,10 @@ namespace Keyrita.Generate
                                 int[] expectedC2f, int[] c2f,
                                 long expectedTotalSfbs, long totalSfbs,
                                 long expectedTotalSfs, long totalSfs,
-                                double[][] expectedSfbDistPerKey, double[][] sfbDistPerkey,
-                                double[][] expectedSfsDistPerKey, double[][] sfsDistPerkey,
-                                long expectedTotalScissors, long totalScissors,
-                                long[][] expectedPerKeyScissors, long[][] perKeyScissors,
-                                double[][] expectedKeyLag, double[][] keyLag)
+                                double expectedSfbDistance, double sfbTotalDistance,
+                                double expectedSfsDistance, double sfsTotalDistance,
+                                double expectedWeightdScissors, double totalWeightedScissors,
+                                double expectedKeyLag, double keyLag)
 
         {
             // Check the transformed kb state.
@@ -89,23 +88,22 @@ namespace Keyrita.Generate
 
             // Two finger stats.
             if(expectedTotalSfbs != totalSfbs || expectedTotalSfs != totalSfs ||
-                !Utils.CompareDoubleArrayDoubles(expectedSfbDistPerKey, sfbDistPerkey) ||
-                !Utils.CompareDoubleArrayDoubles(expectedSfsDistPerKey, sfsDistPerkey))
+                !Utils.AreClose(expectedSfbDistance, sfbTotalDistance) ||
+                !Utils.AreClose(expectedSfsDistance, sfsTotalDistance))
             {
                 LogUtils.Assert(false, "Same finger stats should have been preserved");
                 return false;
             }
 
             // Check scissors.
-            if(expectedTotalScissors != totalScissors ||
-                !Utils.CompareDoubleArray(expectedPerKeyScissors, perKeyScissors))
+            if(!Utils.AreClose(expectedWeightdScissors, totalWeightedScissors))
             {
                 LogUtils.Assert(false, "Scissors should have returned back to the expected value after a double swap");
                 return false;
             }
 
             // Check key speed.
-            if(!Utils.CompareDoubleArrayDoubles(expectedKeyLag, keyLag))
+            if(!Utils.AreClose(expectedKeyLag, keyLag))
             {
                 LogUtils.Assert(false, "Key lag should have returned back to the expected value after a double swap");
                 return false;
@@ -129,13 +127,12 @@ namespace Keyrita.Generate
             var expectedKbState = Utils.CopyDoubleArray(kbStateResult.TransformedKbState);
             var expectedC2k = Utils.CopyArray(c2kResult.CharacterToKey);
             var expectedC2f = Utils.CopyArray(c2fResult.CharacterToFinger);
-            var expectedSfbDistPerKey = Utils.CopyDoubleArray(tfs.SfbDistancePerKey);
-            var expectedSfsDistPerKey = Utils.CopyDoubleArray(tfs.SfsDistancePerKey);
+            var expectedTotalSfbDistance = tfs.TotalSfbDistance;
+            var expectedTotalSfsDistance = tfs.TotalSfsDistance;
             var expectedTotalSfbs = tfs.TotalSfbs;
             var expectedTotalSfs = tfs.TotalSfs;
-            var expectedTotalScissors = scissorsResult.TotalResult;
-            var expectedScissorsPerKey = Utils.CopyDoubleArray(scissorsResult.PerKeyResult);
-            var expectedKeyLag = Utils.CopyDoubleArray(keyLagResult.PerKeyResult);
+            var expectedWeightedScissors = scissorsResult.TotalWeightedResult;
+            var expectedKeyLag = keyLagResult.TotalResult;
 
             int swapCount = 5000;
 
@@ -159,10 +156,9 @@ namespace Keyrita.Generate
 
                 if (!CheckStats(expectedKbState, kbStateResult.TransformedKbState, expectedC2k, c2kResult.CharacterToKey,
                     expectedC2f, c2fResult.CharacterToFinger, expectedTotalSfbs, tfs.TotalSfbs, expectedTotalSfs, tfs.TotalSfs,
-                    expectedSfbDistPerKey, tfs.SfbDistancePerKey, expectedSfsDistPerKey, tfs.SfsDistancePerKey,
-                    expectedTotalScissors, scissorsResult.TotalResult,
-                    expectedScissorsPerKey, scissorsResult.PerKeyResult,
-                    expectedKeyLag, keyLagResult.PerKeyResult))
+                    expectedTotalSfbDistance, tfs.TotalSfbDistance, expectedTotalSfsDistance, tfs.TotalSfsDistance,
+                    expectedWeightedScissors, scissorsResult.TotalWeightedResult,
+                    expectedKeyLag, keyLagResult.TotalResult))
                 {
                     return false;
                 }
@@ -188,10 +184,9 @@ namespace Keyrita.Generate
 
             if (!CheckStats(expectedKbState, kbStateResult.TransformedKbState, expectedC2k, c2kResult.CharacterToKey,
                 expectedC2f, c2fResult.CharacterToFinger, expectedTotalSfbs, tfs.TotalSfbs, expectedTotalSfs, tfs.TotalSfs,
-                expectedSfbDistPerKey, tfs.SfbDistancePerKey, expectedSfsDistPerKey, tfs.SfsDistancePerKey,
-                expectedTotalScissors, scissorsResult.TotalResult,
-                expectedScissorsPerKey, scissorsResult.PerKeyResult,
-                expectedKeyLag, keyLagResult.PerKeyResult))
+                expectedTotalSfbDistance, tfs.TotalSfbDistance, expectedTotalSfsDistance, tfs.TotalSfsDistance,
+                expectedWeightedScissors, scissorsResult.TotalWeightedResult,
+                expectedKeyLag, keyLagResult.TotalResult))
             {
                 return false;
             }
@@ -305,8 +300,9 @@ namespace Keyrita.Generate
             var kbStateResult = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
             int rows = KeyboardStateSetting.ROWS;
             int cols = KeyboardStateSetting.COLS;
-            int optimizationCount = 2500;
-            double numOptimizations = (double)optimizationCount;
+            int optimiaztionBatchSize = 5000;
+            int batches = 5;
+            double numOptimizations = (double)optimiaztionBatchSize * batches;
             Stopwatch timer = new Stopwatch();
             var lockedKeys = SettingState.KeyboardSettings.LockedKeys.KeyStateCopy;
 
@@ -320,7 +316,7 @@ namespace Keyrita.Generate
             // Only proceed if the cache swapping system isn't obviously broken.
             if (TestSwaps())
             {
-                FastRandom random = new FastRandom((uint)mRand.Next(100000));
+                //FastRandom random = new FastRandom((uint)mRand.Next(100000));
                 timer.Start();
                 var keyLagResult = (KeyLagResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyLag];
 
@@ -328,43 +324,63 @@ namespace Keyrita.Generate
                 bestScore = keyLagResult.TotalResult;
                 bestLayout = Utils.CopyKeyboardState(kbStateResult.TransformedKbState, bestLayout, rows, cols);
 
-                for (int count = 0; count < optimizationCount; count++)
+                for(int batch = 0; batch < batches; batch++)
                 {
-                    int k1i = keyLagResult.WorstKey.Item1;
-                    int k1j = keyLagResult.WorstKey.Item2;
-                    int k2i = random.NextInt(rows);
-                    int k2j = random.NextInt(cols);
+                    int k1i = 0;
+                    int k1j = 0;
+                    int k2i = 0;
+                    int k2j = 0;
 
-                    if (k1i != k2i && k1j != k2j &&
-                            !lockedKeys[k1i, k1j] && !lockedKeys[k2i, k2j])
+                    for (int count = 0; count < optimiaztionBatchSize; count++)
                     {
-                        AnalysisGraphSystem.GenerateSignalSwapKeys(k1i, k1j, k2i, k2j);
+                        int numSwaps = mRand.Next((int)(20 * (1 - (count / numOptimizations))) + 1) + 5;
+
+                        for (int i = 0; i < numSwaps; i++)
+                        {
+                            k1i = mRand.Next(rows);
+                            k1j = mRand.Next(cols);
+                            k2i = mRand.Next(rows);
+                            k2j = mRand.Next(cols);
+
+                            if (k1i != k2i && k1j != k2j &&
+                                !lockedKeys[k1i, k1j] && !lockedKeys[k2i, k2j])
+                            {
+                                AnalysisGraphSystem.GenerateSignalSwapKeys(k1i, k1j, k2i, k2j);
+                            }
+                            else
+                            {
+                                i -= 1;
+                            }
+                        }
+
+                        // Optimize the layout. 
+                        long swaps = BestSwapOptimizer(keyLagResult, lockedKeys);
+                        totalSwaps += swaps;
+
+                        if (keyLagResult.TotalResult < bestScore)
+                        {
+                            bestScore = keyLagResult.TotalResult;
+                            bestLayout = Utils.CopyKeyboardState(kbStateResult.TransformedKbState, bestLayout, rows, cols);
+                        }
                     }
 
-                    int numSwaps = random.NextInt((int)(20 * (1 - (count / numOptimizations))) + 1) + 5;
-
-                    for (int i = 0; i < numSwaps - 1; i++)
+                    LogUtils.LogInfo($"Batch complete: {bestScore}");
+                    for (int i = 0; i < 2500; i++)
                     {
+                        k1i = mRand.Next(rows);
+                        k1j = mRand.Next(cols);
+                        k2i = mRand.Next(rows);
+                        k2j = mRand.Next(cols);
+
                         if (k1i != k2i && k1j != k2j &&
                             !lockedKeys[k1i, k1j] && !lockedKeys[k2i, k2j])
                         {
                             AnalysisGraphSystem.GenerateSignalSwapKeys(k1i, k1j, k2i, k2j);
                         }
-
-                        k1i = random.NextInt(rows);
-                        k1j = random.NextInt(cols);
-                        k2i = random.NextInt(rows);
-                        k2j = random.NextInt(cols);
-                    }
-
-                    // Optimize the layout. 
-                    long swaps = BestSwapOptimizer(keyLagResult, lockedKeys);
-                    totalSwaps += swaps;
-
-                    if (keyLagResult.TotalResult < bestScore)
-                    {
-                        bestScore = keyLagResult.TotalResult;
-                        bestLayout = Utils.CopyKeyboardState(kbStateResult.TransformedKbState, bestLayout, rows, cols);
+                        else
+                        {
+                            i -= 1;
+                        }
                     }
                 }
 
@@ -378,10 +394,10 @@ namespace Keyrita.Generate
                 }
 
                 timer.Stop();
-                long olps = optimizationCount / (timer.ElapsedMilliseconds / 1000);
+                double olps = numOptimizations / (timer.ElapsedMilliseconds / 1000);
                 LogUtils.LogInfo($"Optimized layouts per second: {olps}");
                 LogUtils.LogInfo($"Best score: {bestScore}");
-                LogUtils.LogInfo($"Average swaps per optimization: {totalSwaps / (double)optimizationCount}");
+                LogUtils.LogInfo($"Average swaps per optimization: {totalSwaps / numOptimizations}");
                 LogUtils.LogInfo($"Total swaps: {totalSwaps}");
 
                 string chars = SettingState.MeasurementSettings.CharFrequencyData.AvailableCharSet;

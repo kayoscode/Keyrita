@@ -76,42 +76,44 @@ namespace Keyrita.Operations
         protected eTrigramClassification[][][] mTgClassifications;
         public override bool RespondsToGenerateSwapKeysEvent => true;
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
+        protected void AdjustTrigramFrequency(eTrigramClassification classification, long freq)
+        {
+
+        }
+
         // Helper array for fingers during swap keys to avoid allocation :( Gosh this will be hard to maintain.
         // Store the previous trigram classifications to make swap keys a snappy operation. Just reclassify the ones affected.
-        eTrigramClassification[,,] mPreviousClassifications;
+        [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
+        protected void ReclassifyTrigrams(List<(int, long, byte[])> trigramSet)
+        {
+            for (int i = 0; i < trigramSet.Count; i++)
+            {
+                // If character2 is involved in this trigram, then the finger needs to be set to finger 1
+
+                // All the fingers for each of the characters involved in the trigram have already been updated.
+                // So we can get the new classification simply by using the trigram byte array.
+                int finger1 = mC2f.CharacterToFinger[trigramSet[i].Item3[0]];
+                int finger2 = mC2f.CharacterToFinger[trigramSet[i].Item3[1]];
+                int finger3 = mC2f.CharacterToFinger[trigramSet[i].Item3[2]];
+
+                eTrigramClassification newClassification = mTgClassifications[finger1][finger2][finger3];
+            }
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public override void SwapKeys(int k1i, int k1j, int k2i, int k2j)
         {
             // Trying to do something to make alternations work, lets see what happens.
-            byte c1 = mKb.TransformedKbState[k2i][k2j];
-            byte c2 = mKb.TransformedKbState[k1i][k1j];
+            //byte c1 = mKb.TransformedKbState[k2i][k2j];
+            //byte c2 = mKb.TransformedKbState[k1i][k1j];
 
             // Subtract off the previous classification, and add on the new classification.
+            //var tgSet1 = mCharToTgSet.InvolvedTrigrams[c1];
+            //var tgSet2 = mCharToTgSet.InvolvedTrigrams[c2];
 
-            var tgSet1 = mCharToTgSet.InvolvedTrigrams[c1];
-            var tgSet2 = mCharToTgSet.InvolvedTrigrams[c2];
-
-            for (int i = 0; i < tgSet1.Count; i++)
-            {
-                int previousFinger1 = 0;
-                int previousFinger2 = 0;
-                int previousFinger3 = 0;
-
-                // If character2 is involved in this trigram, then the finger needs to be set to finger 1
-
-                // All the fingers for each of the characters involved in the trigram have already been updated.
-                // So we can get the new classification simply by using the trigram byte array.
-                int finger1 = mC2f.CharacterToFinger[tgSet1[i].Item3[0]];
-                int finger2 = mC2f.CharacterToFinger[tgSet1[i].Item3[1]];
-                int finger3 = mC2f.CharacterToFinger[tgSet1[i].Item3[2]];
-
-                eTrigramClassification newClassification = mTgClassifications[finger1][finger2][finger3];
-            }
-
-            for (int i = 0; i < tgSet2.Count; i++)
-            {
-            }
+            //ReclassifyTrigrams(tgSet1);
+            //ReclassifyTrigrams(tgSet2);
         }
 
         public override AnalysisResult GetResult()
@@ -246,11 +248,6 @@ namespace Keyrita.Operations
         {
             // Only allocate the previous classifications array if we have to.
             int expectedTgClassificationLen = SettingState.MeasurementSettings.CharFrequencyData.AvailableCharSet.Length;
-            if (this.mPreviousClassifications == null ||
-                this.mPreviousClassifications.Length != expectedTgClassificationLen)
-            {
-                this.mPreviousClassifications = new eTrigramClassification[expectedTgClassificationLen, expectedTgClassificationLen, expectedTgClassificationLen];
-            }
 
             mC2f = (TransformedCharacterToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransformedCharacterToFingerAsInt];
             var charToFinger = mC2f.CharacterToFinger;

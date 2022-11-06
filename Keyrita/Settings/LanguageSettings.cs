@@ -214,13 +214,13 @@ namespace Keyrita.Settings
                     }
 
                     mSkipgramFreq = new uint[skgFreq.GetLength(0)][][];
-                    for(int i = 0; i < mSkipgramFreq.GetLength(0); i++)
+                    for(int i = 0; i < skgFreq.GetLength(0); i++)
                     {
-                        mSkipgramFreq[i] = new uint[mSkipgramFreq.GetLength(1)][];
-                        for(int j = 0; j < mSkipgramFreq.GetLength(1); j++)
+                        mSkipgramFreq[i] = new uint[skgFreq.GetLength(1)][];
+                        for(int j = 0; j < skgFreq.GetLength(1); j++)
                         {
-                            mSkipgramFreq[i][j] = new uint[mSkipgramFreq.GetLength(2)];
-                            for(int k = 0; k < mSkipgramFreq.GetLength(2); k++)
+                            mSkipgramFreq[i][j] = new uint[skgFreq.GetLength(2)];
+                            for(int k = 0; k < skgFreq.GetLength(2); k++)
                             {
                                 mSkipgramFreq[i][j][k] = skgFreq[i, j, k];
                             }

@@ -67,6 +67,7 @@ namespace Keyrita.Measurements
         }
 
         public long TotalResult { get; set; }
+        public double TotalWeightedResult { get; set; }
         public long[] PerHandResult { get; private set; } = new long[Utils.GetTokens<eHand>().Count()];
         public long[] PerFingerResult { get; private set; } = new long[Utils.GetTokens<eFinger>().Count()];
         public long[][] PerKeyResult { get; private set; } = new long[KeyboardStateSetting.ROWS][]
@@ -95,6 +96,10 @@ namespace Keyrita.Measurements
             var kb = mKbState.TransformedKbState;
             var bigramFreq = SettingState.MeasurementSettings.CharFrequencyData.BigramFreq;
 
+            var finger = mK2f.KeyToFinger[k1i][k1j];
+            var fingerWeight = SettingState.FingerSettings.FingerWeights.GetValueAt(finger);
+            double bgCount = SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
+
             for(int k = 0; k < si.Count; k++)
             {
                 var otherKeyPos = si[k];
@@ -110,11 +115,14 @@ namespace Keyrita.Measurements
                     mResult.TotalResult -= subCh1;
                     mResult.TotalResult += subCh2;
 
-                    mResult.PerKeyResult[k1i][k1j] -= subCh1;
-                    mResult.PerKeyResult[k1i][k1j] += subCh2;
+                    mResult.TotalWeightedResult -= (subCh1 / bgCount) * fingerWeight;
+                    mResult.TotalWeightedResult += (subCh2 / bgCount) * fingerWeight;
                 }
                 else
                 {
+                    var finger2 = mK2f.KeyToFinger[otherKeyPos.Item1][otherKeyPos.Item2];
+                    var fingerWeight2 = SettingState.FingerSettings.FingerWeights.GetValueAt(finger2);
+
                     subCh1 = bigramFreq[otherCh][ch1];
                     subCh2 = bigramFreq[ch1][otherCh];
                     subCh3 = bigramFreq[otherCh][ch2];
@@ -125,10 +133,10 @@ namespace Keyrita.Measurements
                     mResult.TotalResult += subCh3;
                     mResult.TotalResult += subCh4;
 
-                    mResult.PerKeyResult[k1i][k1j] -= subCh1;
-                    mResult.PerKeyResult[k1i][k1j] += subCh3;
-                    mResult.PerKeyResult[otherKeyPos.Item1][otherKeyPos.Item2] -= subCh2;
-                    mResult.PerKeyResult[otherKeyPos.Item1][otherKeyPos.Item2] += subCh4;
+                    mResult.TotalWeightedResult -= (subCh1 / bgCount) * fingerWeight;
+                    mResult.TotalWeightedResult += (subCh3 / bgCount) * fingerWeight;
+                    mResult.TotalWeightedResult -= (subCh2 / bgCount) * fingerWeight2;
+                    mResult.TotalWeightedResult += (subCh4 / bgCount) * fingerWeight2;
                 }
             }
         }
@@ -163,6 +171,7 @@ namespace Keyrita.Measurements
         protected override void Compute()
         {
             mResult = new ScissorsResult(NodeId);
+            mResult.TotalWeightedResult = 0;
             mKbState = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
             var kb = mKbState.TransformedKbState;
 
@@ -173,6 +182,8 @@ namespace Keyrita.Measurements
             var totalBg = SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
             var scissorIndices = SettingState.KeyboardSettings.ScissorMap;
 
+            List<(double, long, int, int)> allScissors = new List<(double, long, int, int)>();
+
             // We only care about the top and bottoms rows. Scissors will obviously be much lower for the pinkies. But
             // that does mean more common keys might go in those slots
             for (int i = 0; i < KeyboardStateSetting.ROWS; i++) 
@@ -181,14 +192,24 @@ namespace Keyrita.Measurements
                 {
                     long scissorTotal = 0;
                     var si = scissorIndices.GetScissorsAt(i, j);
-                    var finger = keyToFinger[i][j];
+
+                    var finger = mK2f.KeyToFinger[i][j];
+                    var fingerWeight = SettingState.FingerSettings.FingerWeights.GetValueAt(finger);
+
                     var hand = FingerUtil.GetHandForFingerAsInt(finger);
 
                     for(int k = 0; k < si.Count; k++)
                     {
-                        scissorTotal += bgFreq[kb[si[k].Item1][si[k].Item2]][kb[i][j]];
+                        uint scissorScore = bgFreq[kb[si[k].Item1][si[k].Item2]][kb[i][j]];
+                        double weightedScissorScore = ((double)scissorScore / SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount) * fingerWeight;
+                        scissorTotal += scissorScore;
+
+                        allScissors.Add((weightedScissorScore, scissorScore, kb[i][j], kb[si[k].Item1][si[k].Item2]));
                     }
 
+                    double weightedScissorTotal = ((double)scissorTotal / SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount) * fingerWeight;
+
+                    mResult.TotalWeightedResult += weightedScissorTotal;
                     mResult.TotalResult += scissorTotal;
                     mResult.PerFingerResult[finger] += scissorTotal;
                     mResult.PerHandResult[(int)hand] += scissorTotal;
@@ -196,6 +217,21 @@ namespace Keyrita.Measurements
                     // Set the value for this key and normalize.
                     mResult.PerKeyResult[i][j] = scissorTotal;
                 }
+            }
+
+            // Sort them, then remove the unnecessary ones.
+            allScissors.Sort(new Comparison<(double, long, int, int)>((a, b) =>
+            {
+                if (a.Item1 == b.Item1) return 0;
+                return a.Item1 > b.Item1 ? -1 : 1;
+            }));
+
+            LogUtils.LogInfo("Worst scissors: ");
+            for(int i = 0; i < 10; i++)
+            {
+                char c1 = SettingState.MeasurementSettings.CharFrequencyData.AvailableCharSet[allScissors[i].Item3];
+                char c2 = SettingState.MeasurementSettings.CharFrequencyData.AvailableCharSet[allScissors[i].Item4];
+                LogUtils.LogInfo($"{c1} -> {c2} : [{allScissors[i].Item2}]");
             }
         }
     }
