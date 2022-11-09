@@ -224,9 +224,9 @@ namespace Keyrita.Settings
         // Eventually let the user set these and discriminate their own way!
         private static double[][] KEY_LOCATION_PENALTY = new double[KeyboardStateSetting.ROWS][]
         {
-            new double[KeyboardStateSetting.COLS]{ 1.91, 1.45, 1.21, 1.33, 1.45,  1.21, 1.33, 1.21, 1.45, 1.91 },
-            new double[KeyboardStateSetting.COLS]{ 1.22, 0.78, 0.66, 0.60, 1.57,  1.57, 0.60, 0.66, 0.78, 1.22 },
-            new double[KeyboardStateSetting.COLS]{ 2.12, 1.81, 1.7, 1.33, 2.24,  1.33, 1.33, 1.7, 1.81, 2.00 }
+            new double[KeyboardStateSetting.COLS]{ 3.0, 2.5, 2.1, 2.3, 2.6, 3.4, 2.2, 2.0, 2.4, 3.6 },
+            new double[KeyboardStateSetting.COLS]{ 1.6, 1.3, 1.1, 1.0, 2.9, 2.9, 1.0, 1.1, 1.3, 1.6 },
+            new double[KeyboardStateSetting.COLS]{ 2.7, 2.4, 1.8, 2.2, 3.7, 2.2, 1.8, 2.4, 2.7, 3.3 }
         };
 
         public EffortMapSetting() : base("Effort Map", eSettingAttributes.None)
@@ -283,9 +283,9 @@ namespace Keyrita.Settings
             mDesiredState[(int)eFinger.LeftMiddle] = 1.15;
             mDesiredState[(int)eFinger.LeftIndex] = 1;
 
-            mDesiredState[(int)eFinger.RightRing] = 1;
+            mDesiredState[(int)eFinger.RightIndex] = 1;
             mDesiredState[(int)eFinger.RightMiddle] = 1.15;
-            mDesiredState[(int)eFinger.RightIndex] = 1.5;
+            mDesiredState[(int)eFinger.RightRing] = 1.5;
             mDesiredState[(int)eFinger.RightPinkie] = 2.4;
 
             SetToDesiredValue();

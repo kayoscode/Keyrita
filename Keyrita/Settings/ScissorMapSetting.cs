@@ -84,6 +84,9 @@ namespace Keyrita.Settings
             AddScissorIndices((1, 9), (2, 8));
             AddScissorIndices((1, 3), (2, 2));
 
+            // Newly added.
+            AddScissorIndices((0, 3), (1, 2));
+
             SetToDesiredValue();
         }
 

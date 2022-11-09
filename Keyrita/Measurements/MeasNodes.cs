@@ -48,7 +48,7 @@ namespace Keyrita.Measurements
             eMeasurements.FingerBalance,
             eMeasurements.FingerLag,
             eMeasurements.HomeRowUsage,
-            eMeasurements.Scissors
+            eMeasurements.Scissors,
         };
 
         public static IEnumerable<eMeasurements> DynamicMeasurements = new List<eMeasurements>()

@@ -76,6 +76,10 @@ namespace Keyrita.Operations.OperationUtil
         {
         }
 
+        public virtual void SwapBack()
+        {
+        }
+
         /// <summary>
         /// Standard constructor.
         /// Input nodes should be added in the constructor.

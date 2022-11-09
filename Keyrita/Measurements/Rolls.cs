@@ -41,7 +41,7 @@ namespace Keyrita.Measurements
             TrigramStatsResult tgs = (TrigramStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TrigramStats];
 
             SortedTrigramSetResult tgSet = (SortedTrigramSetResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.SortedTrigramSet];
-            long totalTgs = tgSet.TrigramCoverage;
+            double totalTgs = tgSet.TrigramCoverage;
 
             mResult.TotalRolls = tgs.TotalRolls / totalTgs * 100;
             mResult.InRolls = tgs.InRolls / totalTgs * 100;

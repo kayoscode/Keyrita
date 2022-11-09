@@ -79,6 +79,20 @@ namespace Keyrita.Operations.OperationUtil
             }
         }
 
+        /// <summary>
+        /// Swap back to the previou state, each operator should have implemented the ability to do this.
+        /// This shouldn't be called if Swap has not already been called.
+        /// Each node needs to understand how to swap back, but they don't need to know how to swap back multiple times.
+        /// Therefore this should only be called once per swap signal.
+        /// </summary>
+        public static void GenerateSignalSwapBack()
+        {
+            for(int i = 0; i < GenerateSwapKeysNodes.Count; i++)
+            {
+                GenerateSwapKeysNodes[i].SwapBack();
+            }
+        }
+
         public static GraphNode GetInstalledOperation(Enum node)
         {
             if(node != null && ActiveNodes.TryGetValue(node, out GraphNode output))

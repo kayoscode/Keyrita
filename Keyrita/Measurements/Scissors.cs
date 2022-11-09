@@ -84,10 +84,17 @@ namespace Keyrita.Measurements
     public class ScissorsIntermediate : GraphNode
     {
         protected ScissorsResult mResult;
+        protected ScissorsResult mResultBeforeSwap;
+
+        /// <summary>
+        /// Standard constructor.
+        /// </summary>
         public ScissorsIntermediate() : base(eInputNodes.ScissorsIntermediate)
         {
             AddInputNode(eInputNodes.TransfomedKbState);
             AddInputNode(eInputNodes.KeyToFingerAsInt);
+
+            mResultBeforeSwap = new ScissorsResult(this.NodeId);
         }
 
         protected void HandleCharSwap(byte ch1, byte ch2, List<(int, int)> si,
@@ -112,9 +119,6 @@ namespace Keyrita.Measurements
                     subCh1 = bigramFreq[otherCh][ch1];
                     subCh2 = bigramFreq[ch1][otherCh];
 
-                    mResult.TotalResult -= subCh1;
-                    mResult.TotalResult += subCh2;
-
                     mResult.TotalWeightedResult -= (subCh1 / bgCount) * fingerWeight;
                     mResult.TotalWeightedResult += (subCh2 / bgCount) * fingerWeight;
                 }
@@ -128,11 +132,6 @@ namespace Keyrita.Measurements
                     subCh3 = bigramFreq[otherCh][ch2];
                     subCh4 = bigramFreq[ch2][otherCh];
 
-                    mResult.TotalResult -= subCh1;
-                    mResult.TotalResult -= subCh2;
-                    mResult.TotalResult += subCh3;
-                    mResult.TotalResult += subCh4;
-
                     mResult.TotalWeightedResult -= (subCh1 / bgCount) * fingerWeight;
                     mResult.TotalWeightedResult += (subCh3 / bgCount) * fingerWeight;
                     mResult.TotalWeightedResult -= (subCh2 / bgCount) * fingerWeight2;
@@ -144,6 +143,9 @@ namespace Keyrita.Measurements
         public override bool RespondsToGenerateSwapKeysEvent => true;
         public override void SwapKeys(int k1i, int k1j, int k2i, int k2j)
         {
+            // The swap system only cares about the total weighted result. Store that to be copied back in the event of a swap back.
+            mResultBeforeSwap.TotalWeightedResult = mResult.TotalWeightedResult;
+
             // Only need to update the scissors total. Which means subtract the previous scissors from the new one.
             // NOTE: the keyboard state has already changed, so subtract the indices from the previous position instead of the new position.
             var kb = mKbState.TransformedKbState;
@@ -158,6 +160,11 @@ namespace Keyrita.Measurements
 
             HandleCharSwap(ch1, ch2, si1, k1i, k1j);
             HandleCharSwap(ch2, ch1, si2, k2i, k2j);
+        }
+
+        public override void SwapBack()
+        {
+            mResult.TotalWeightedResult = mResultBeforeSwap.TotalWeightedResult;
         }
 
         public override AnalysisResult GetResult()

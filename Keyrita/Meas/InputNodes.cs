@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing.Drawing2D;
 using System.Linq;
+using System.Printing.IndexedProperties;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using System.Text;
 using Keyrita.Measurements;
 using Keyrita.Operations.OperationUtil;
 using Keyrita.Settings;
@@ -36,7 +34,7 @@ namespace Keyrita.Operations
         {
         }
 
-        public List<(long, byte[])> MostSignificantTrigrams { get; set; } = new List<(long, byte[])>();
+        public List<(long Frequency, byte[] Chars)> MostSignificantTrigrams { get; set; } = new List<(long, byte[])>();
         public long TrigramCoverage { get; set; } = 0;
     }
 
@@ -94,7 +92,7 @@ namespace Keyrita.Operations
             long tgCoverage = 0;
             for(int i = 0; i < mResult.MostSignificantTrigrams.Count(); i++)
             {
-                tgCoverage += mResult.MostSignificantTrigrams[i].Item1;
+                tgCoverage += mResult.MostSignificantTrigrams[i].Frequency;
             }
 
             mResult.TrigramCoverage = tgCoverage;
@@ -112,8 +110,15 @@ namespace Keyrita.Operations
         /// 1. The index in the byte array this character resides.
         /// 2. The trigramFrequency.
         /// 3. The three characters representing the trigram. Do not mutate.
+        /// 
+        /// Maps any two characters to the set of trigrams they are both involved in.
         /// </summary>
-        public List<(int, long, byte[])>[] InvolvedTrigrams { get; set; }
+        public List<byte[]>[][] BothInvolvedTrigrams { get; set; }
+
+        /// <summary>
+        /// Maps two characters to the set of trigrams that includes the first, but not the second character.
+        /// </summary>
+        public List<byte[]>[][] FirstInvolvedTrigrams { get; set; }
     }
 
     /// <summary>
@@ -138,23 +143,66 @@ namespace Keyrita.Operations
 
         protected override void Compute()
         {
+            List<byte[]>[] charToTrigram = new List<byte[]>[SettingState.MeasurementSettings.CharFrequencyData.TrigramFreq.Length];
+
+            // Initialize result.
             mResult = new TransformedCharacterToTrigramSetResult(this.NodeId);
-            mResult.InvolvedTrigrams = new List<(int, long, byte[])>[SettingState.MeasurementSettings.CharFrequencyData.TrigramFreq.Length];
+            mResult.BothInvolvedTrigrams = new List<byte[]>[SettingState.MeasurementSettings.CharFrequencyData.TrigramFreq.Length][];
+            mResult.FirstInvolvedTrigrams = new List<byte[]>[SettingState.MeasurementSettings.CharFrequencyData.TrigramFreq.Length][];
 
-            var allTrigrams = (SortedTrigramSetResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.SortedTrigramSet];
-
-            for(int i = 0; i < mResult.InvolvedTrigrams.Count(); i++)
+            for(int i = 0; i < mResult.BothInvolvedTrigrams.Count(); i++)
             {
-                mResult.InvolvedTrigrams[i] = new();
+                mResult.BothInvolvedTrigrams[i] = new List<byte[]>[SettingState.MeasurementSettings.CharFrequencyData.TrigramFreq.Length];
+                mResult.FirstInvolvedTrigrams[i] = new List<byte[]>[SettingState.MeasurementSettings.CharFrequencyData.TrigramFreq.Length];
+                charToTrigram[i] = new List<byte[]>();
+
+                for(int j = 0; j < mResult.BothInvolvedTrigrams[i].Length; j++)
+                {
+                    mResult.BothInvolvedTrigrams[i][j] = new();
+                    mResult.FirstInvolvedTrigrams[i][j] = new();
+                }
             }
 
-            for(int i = 0; i < allTrigrams.MostSignificantTrigrams.Count; i++)
+            var allTrigrams = ((SortedTrigramSetResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.SortedTrigramSet]).MostSignificantTrigrams;
+
+            // Create a mapping from characters to trigrams.
+            for(int i = 0; i < allTrigrams.Count; i++)
             {
-                for(int j = 0; j < allTrigrams.MostSignificantTrigrams[i].Item2.Length; j++)
+                // Loop through every combination of characters
+                for(int j = 0; j < allTrigrams[i].Chars.Length; j++)
                 {
-                    mResult.InvolvedTrigrams[allTrigrams.MostSignificantTrigrams[i].Item2[j]].Add((j,
-                        allTrigrams.MostSignificantTrigrams[i].Item1,
-                        allTrigrams.MostSignificantTrigrams[i].Item2));
+                    if (!charToTrigram[allTrigrams[i].Chars[j]].Contains(allTrigrams[i].Chars))
+                    {
+                        charToTrigram[allTrigrams[i].Chars[j]].Add(allTrigrams[i].Chars);
+                    }
+                }
+            }
+
+            // Now create the resultant lists.
+            for(byte i = 0; i < charToTrigram.Length; i++)
+            {
+                for(byte j = 0; j < charToTrigram.Length; j++)
+                {
+                    // Create the both list, we want to include in either order all the trigrams that contain both letters.
+                    // All the trigrams that contain the first character (i) are in the first list and the ones that contain the second character (j) are in the other list.
+                    for(int k = 0; k < charToTrigram[i].Count; k++)
+                    {
+                        // If the trigram contains the second character, it goes in the both category.
+                        if (charToTrigram[i][k].Contains(j))
+                        {
+                            if (!mResult.BothInvolvedTrigrams[i][j].Contains(charToTrigram[i][k]))
+                            {
+                                mResult.BothInvolvedTrigrams[i][j].Add(charToTrigram[i][k]);
+                            }
+                        }
+                        else
+                        {
+                            if (!mResult.FirstInvolvedTrigrams[i][j].Contains(charToTrigram[i][k]))
+                            {
+                                mResult.FirstInvolvedTrigrams[i][j].Add(charToTrigram[i][k]);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -170,16 +218,20 @@ namespace Keyrita.Operations
         }
 
         public double TotalResult { get; set; }
+        public double EffortMapResult { get; set; }
     }
 
     public class KeyLag : GraphNode
     {
         // These all need to eventually be settings.
-        private const double SFB_WEIGHT = 1450;
-        private const double SFS_WEIGHT = 150;
-        private const double SCISSOR_WEIGHT = 1550;
+        private const double SFB_WEIGHT = 890;
+        private const double SFS_WEIGHT = 125;
+        private const double SCISSOR_WEIGHT = 670;
+        private const double EFFORT_WEIGHT = 45;
 
         private KeyLagResult mResult;
+        private KeyLagResult mResultBeforeSwap;
+
         public KeyLag() :
             base(eInputNodes.KeyLag)
         {
@@ -187,7 +239,9 @@ namespace Keyrita.Operations
             AddInputNode(eInputNodes.KeyToFingerAsInt);
             AddInputNode(eInputNodes.ScissorsIntermediate);
             AddInputNode(eInputNodes.TransfomedKbState);
+
             mResult = new KeyLagResult(NodeId);
+            mResultBeforeSwap = new KeyLagResult(NodeId);
         }
 
         public override AnalysisResult GetResult()
@@ -219,24 +273,30 @@ namespace Keyrita.Operations
             mResult.TotalResult += mTfs.TotalSfsDistance * SFS_WEIGHT;
             mResult.TotalResult += mSr.TotalWeightedResult * SCISSOR_WEIGHT;
 
-            double effortMapScore = 0;
+            mResult.EffortMapResult = 0;
+
             for(int i = 0; i < KeyboardStateSetting.ROWS; i++)
             {
                 for(int j = 0; j < KeyboardStateSetting.COLS; j++)
                 {
-                    effortMapScore += (SettingState.MeasurementSettings.CharFrequencyData.CharFreq[mKbState.TransformedKbState[i][j]] / totalBg) * 
+                    mResult.EffortMapResult += (SettingState.MeasurementSettings.CharFrequencyData.CharFreq[mKbState.TransformedKbState[i][j]] / totalBg) * 
                         SettingState.FingerSettings.EffortMap.GetValueAt(i, j);
                 }
             }
 
-            mResult.TotalResult *= effortMapScore;
+            mResult.TotalResult += mResult.EffortMapResult * EFFORT_WEIGHT;
         }
 
         public override bool RespondsToGenerateSwapKeysEvent => true;
         public override void SwapKeys(int k1i, int k1j, int k2i, int k2j)
         {
-            // So much would have changed by the time we get here, just recompute it.
-            ComputeResult();
+            mResultBeforeSwap.TotalResult = mResult.TotalResult;
+            Compute();
+        }
+
+        public override void SwapBack()
+        {
+            mResult.TotalResult = mResultBeforeSwap.TotalResult;
         }
     }
 
@@ -280,12 +340,15 @@ namespace Keyrita.Operations
     public class TwoFingerStats : GraphNode
     {
         protected TwoFingerStatsResult mResult;
+        protected TwoFingerStatsResult mResultBeforeSwap;
 
         public TwoFingerStats() : base(eInputNodes.TwoFingerStats)
         {
             AddInputNode(eInputNodes.KeyToFingerAsInt);
             AddInputNode(eInputNodes.TransfomedKbState);
             AddInputNode(eInputNodes.SameFingerMap);
+
+            mResultBeforeSwap = new TwoFingerStatsResult(this.NodeId);
         }
 
         private KeyToFingerAsIntResult mK2f;
@@ -382,14 +445,8 @@ namespace Keyrita.Operations
                     mResult.TotalSfbs -= subCh1;
                     mResult.TotalSfbs += subCh2;
 
-                    mResult.TotalSfbDistance -= (subCh2 / totalBg) * distance;
-                    mResult.TotalSfbDistance += (subCh1 / totalBg) * distance;
-
                     subCh1 = skipgram2Freq[otherCh][ch1];
                     subCh2 = skipgram2Freq[ch1][otherCh];
-
-                    mResult.TotalSfsDistance -= (subCh2 / totalBg) * distance;
-                    mResult.TotalSfsDistance += (subCh1 / totalBg) * distance;
 
                     mResult.TotalSfs -= subCh1;
                     mResult.TotalSfs += subCh2;
@@ -408,11 +465,6 @@ namespace Keyrita.Operations
                     subCh3 = bigramFreq[otherCh][ch2];
                     subCh4 = bigramFreq[ch2][otherCh];
 
-                    mResult.TotalSfbs -= subCh1;
-                    mResult.TotalSfbs -= subCh2;
-                    mResult.TotalSfbs += subCh3;
-                    mResult.TotalSfbs += subCh4;
-
                     // The distance[i, j] = the distance from that key to every other bigram.
                     mResult.TotalSfbDistance -= (subCh2 / totalBg) * distance;
                     mResult.TotalSfbDistance += (subCh4 / totalBg) * distance;
@@ -429,11 +481,6 @@ namespace Keyrita.Operations
                     mResult.TotalSfsDistance += (subCh4 / totalBg) * distance;
                     mResult.TotalSfsDistance -= (subCh1 / totalBg) * distance2;
                     mResult.TotalSfsDistance += (subCh3 / totalBg) * distance2;
-
-                    mResult.TotalSfs -= subCh1;
-                    mResult.TotalSfs -= subCh2;
-                    mResult.TotalSfs += subCh3;
-                    mResult.TotalSfs += subCh4;
                 }
             }
         }
@@ -442,6 +489,10 @@ namespace Keyrita.Operations
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public override void SwapKeys(int k1i, int k1j, int k2i, int k2j)
         {
+            // The previous swap event only cares about the total sfs distance and sfb distance.
+            mResultBeforeSwap.TotalSfbDistance = mResult.TotalSfbDistance;
+            mResultBeforeSwap.TotalSfsDistance = mResult.TotalSfsDistance;
+
             var sameFingerMap = mSfm.SameFingerKeysPerKey;
 
             // This list of keys will contain all the keys which were an sfb with key1 before the swap.
@@ -453,6 +504,12 @@ namespace Keyrita.Operations
 
             HandleCharSwap(ch1, ch2, ch1SameFingerMap, k1i, k1j, k2i, k2j);
             HandleCharSwap(ch2, ch1, ch2SameFingerMap, k2i, k2j, k1i, k1j);
+        }
+
+        public override void SwapBack()
+        {
+            mResult.TotalSfbDistance = mResultBeforeSwap.TotalSfbDistance;
+            mResult.TotalSfsDistance = mResultBeforeSwap.TotalSfsDistance;
         }
 
         public override AnalysisResult GetResult()
@@ -645,6 +702,20 @@ namespace Keyrita.Operations
 
             mResult.CharacterToFinger[ch1] = mK2f.KeyToFinger[k2i][k2j];
             mResult.CharacterToFinger[ch2] = mK2f.KeyToFinger[k1i][k1j];
+
+            mPreviousSwap1i = k1i;
+            mPreviousSwap1j = k1j;
+            mPreviousSwap2i = k2i;
+            mPreviousSwap2j = k2j;
+        }
+
+        private int mPreviousSwap1i;
+        private int mPreviousSwap1j;
+        private int mPreviousSwap2i;
+        private int mPreviousSwap2j;
+        public override void SwapBack()
+        {
+            SwapKeys(mPreviousSwap1i, mPreviousSwap1j, mPreviousSwap2i, mPreviousSwap2j);
         }
     }
 
@@ -713,6 +784,20 @@ namespace Keyrita.Operations
 
             mResult.CharacterToKey[ch2] = (k1i, k1j);
             mResult.CharacterToKey[ch1] = (k2i, k2j);
+
+            mPreviousSwap1i = k1i;
+            mPreviousSwap1j = k1j;
+            mPreviousSwap2i = k2i;
+            mPreviousSwap2j = k2j;
+        }
+
+        private int mPreviousSwap1i;
+        private int mPreviousSwap1j;
+        private int mPreviousSwap2i;
+        private int mPreviousSwap2j;
+        public override void SwapBack()
+        {
+            SwapKeys(mPreviousSwap1i, mPreviousSwap1j, mPreviousSwap2i, mPreviousSwap2j);
         }
     }
 
@@ -858,6 +943,20 @@ namespace Keyrita.Operations
             byte temp = mResult.TransformedKbState[k1i][k1j];
             mResult.TransformedKbState[k1i][k1j] = mResult.TransformedKbState[k2i][k2j];
             mResult.TransformedKbState[k2i][k2j] = temp;
+
+            mPreviousSwap1i = k1i;
+            mPreviousSwap1j = k1j;
+            mPreviousSwap2i = k2i;
+            mPreviousSwap2j = k2j;
+        }
+
+        private int mPreviousSwap1i;
+        private int mPreviousSwap1j;
+        private int mPreviousSwap2i;
+        private int mPreviousSwap2j;
+        public override void SwapBack()
+        {
+            SwapKeys(mPreviousSwap1i, mPreviousSwap1j, mPreviousSwap2i, mPreviousSwap2j);
         }
 
         public override AnalysisResult GetResult()
