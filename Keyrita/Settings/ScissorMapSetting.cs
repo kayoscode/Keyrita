@@ -35,7 +35,7 @@ namespace Keyrita.Settings
         public override bool HasValue => mScissorMapState != null;
         protected override bool ValueHasChanged => MapMatches(mPendingScissorMapState, mScissorMapState) > 0;
 
-        protected override void ConformToLimits()
+        protected override void ModifyLimits()
         {
         }
 

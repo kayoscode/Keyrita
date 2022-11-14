@@ -26,7 +26,6 @@ namespace Keyrita.Measurements
         {
             mResult = new RedirectsResult(NodeId);
             AddInputNode(eInputNodes.TrigramStats);
-            AddInputNode(eInputNodes.SortedTrigramSet);
         }
 
         public override AnalysisResult GetResult()
@@ -36,8 +35,7 @@ namespace Keyrita.Measurements
 
         protected override void Compute()
         {
-            SortedTrigramSetResult tgSet = (SortedTrigramSetResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.SortedTrigramSet];
-            double totalTgs = tgSet.TrigramCoverage;
+            double totalTgs = SettingState.MeasurementSettings.TrigramCoverage.Value;
 
             TrigramStatsResult tgs = (TrigramStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TrigramStats];
             mResult.TotalRedirects = tgs.TotalRedirects / totalTgs * 100;

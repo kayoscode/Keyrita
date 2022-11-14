@@ -139,7 +139,7 @@ namespace Keyrita.Settings
             SettingState.KeyboardSettings.KeyboardValid.AddDependent(this);
         }
 
-        protected override void ConformToLimits()
+        protected override void ModifyLimits()
         {
             mValidTokens.Clear();
 
@@ -175,7 +175,7 @@ namespace Keyrita.Settings
         /// <summary>
         /// Scan the keyboard and see if we are valid.
         /// </summary>
-        protected override void ConformToLimits()
+        protected override void ModifyLimits()
         {
             mValidTokens.Clear();
 
@@ -233,7 +233,7 @@ namespace Keyrita.Settings
             SettingState.KeyboardSettings.KeyboardLanguage.AddDependent(this);
         }
 
-        protected override void ConformToLimits()
+        protected override void ModifyLimits()
         {
             mValidTokens.Clear();
 
@@ -318,7 +318,7 @@ namespace Keyrita.Settings
             SettingState.KeyboardSettings.KeyboardDisplay.AddDependent(this);
         }
 
-        protected override void ConformToLimits()
+        protected override void ModifyLimits()
         {
             if (SettingState.KeyboardSettings.KeyboardDisplay.Value.Equals(eKeyboardDisplay.GridView))
             {
@@ -463,7 +463,7 @@ namespace Keyrita.Settings
             return mKeyState[row, col];
         }
 
-        protected override sealed void ConformToLimits()
+        protected override sealed void ModifyLimits()
         {
             ChangeLimits(mNewKeyState);
         }

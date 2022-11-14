@@ -182,7 +182,7 @@ namespace Keyrita.Settings.SettingUtil
         {
         }
 
-        protected override void ConformToLimits()
+        protected override void ModifyLimits()
         {
         }
 

@@ -61,7 +61,7 @@ namespace Keyrita.Settings.SettingUtil
         {
         }
 
-        protected override void ConformToLimits()
+        protected override void ModifyLimits()
         {
         }
 
@@ -90,7 +90,6 @@ namespace Keyrita.Settings.SettingUtil
                     mValue = mPendingValue;
                 });
             }
-
             else if (!mPendingValue.Equals(Value))
             {
                 string description = $"Changing concrete value {mValue} to {mPendingValue}";

@@ -360,7 +360,7 @@ namespace Keyrita.Settings
             return mState[finger];
         }
 
-        protected override sealed void ConformToLimits()
+        protected override sealed void ModifyLimits()
         {
             ChangeLimits(mNewState);
         }

@@ -52,7 +52,7 @@ namespace Keyrita.Settings.SettingUtil
         /// <summary>
         /// Swap to other state to trigger a setting change + effect.
         /// </summary>
-        protected override sealed void ConformToLimits()
+        protected override sealed void ModifyLimits()
         {
             LimitValue = !Value;
         }

@@ -233,13 +233,14 @@ namespace Keyrita.Measurements
                 return a.Item1 > b.Item1 ? -1 : 1;
             }));
 
-            LogUtils.LogInfo("Worst scissors: ");
-            for(int i = 0; i < 10; i++)
-            {
-                char c1 = SettingState.MeasurementSettings.CharFrequencyData.AvailableCharSet[allScissors[i].Item3];
-                char c2 = SettingState.MeasurementSettings.CharFrequencyData.AvailableCharSet[allScissors[i].Item4];
-                LogUtils.LogInfo($"{c1} -> {c2} : [{allScissors[i].Item2}]");
-            }
+            // TODO: Use this for the worst scissors metric
+            //LogUtils.LogInfo("Worst scissors: ");
+            //for(int i = 0; i < 10; i++)
+            //{
+                //char c1 = SettingState.MeasurementSettings.CharFrequencyData.AvailableCharSet[allScissors[i].Item3];
+                //char c2 = SettingState.MeasurementSettings.CharFrequencyData.AvailableCharSet[allScissors[i].Item4];
+                //LogUtils.LogInfo($"{c1} -> {c2} : [{allScissors[i].Item2}]");
+            //}
         }
     }
 }

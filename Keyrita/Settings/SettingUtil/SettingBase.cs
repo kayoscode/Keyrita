@@ -162,7 +162,7 @@ namespace Keyrita.Settings.SettingUtil
         /// When one of the values of a dependent changes, 
         /// use this function to modify the limits for this setting.
         /// </summary>
-        protected abstract void ConformToLimits();
+        protected abstract void ModifyLimits();
 
         /// <summary>
         /// When the value of this setting changes, make changes in the system.
@@ -275,7 +275,7 @@ namespace Keyrita.Settings.SettingUtil
 
                     foreach (SettingBase dependent in mDependents)
                     {
-                        dependent.ConformToLimits();
+                        dependent.ModifyLimits();
                         dependent.SetToNewLimits();
                         dependent.LimitsChangedNotifications.NotifyGui(dependent);
                     }

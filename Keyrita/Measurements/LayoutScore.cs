@@ -16,11 +16,11 @@ namespace Keyrita.Measurements
 
     public class LayoutScore : DynamicMeasurement
     {
-        protected double KEY_LAG_WEIGHT = 5;
-        protected double ROLES_WEIGHT = -100;
+        protected double KEY_LAG_WEIGHT = 8;
+        protected double ROLES_WEIGHT = -20;
         protected double REDIRECTS_WEIGHT = 150;
-        protected double ONE_HANDS_WEIGHT = 0; 
-        protected double ALTERNATIONS_WEIGHT = 0; 
+        protected double ONE_HANDS_WEIGHT = -20; 
+        protected double ALTERNATIONS_WEIGHT = -20; 
 
         private LayoutScoreResult mResult;
         public LayoutScore() : base(eMeasurements.LayoutScore)

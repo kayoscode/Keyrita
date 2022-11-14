@@ -133,9 +133,9 @@ namespace Keyrita.Generate
             return true;
         }
 
-        protected bool TestSwaps(int seed = 100)
+        protected bool TestSwaps()
         {
-            Random random = new Random(51);
+            Random random = new Random();
 
             // Values to compare against.
             var kbStateResult = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
@@ -161,13 +161,13 @@ namespace Keyrita.Generate
             var expectedAlternations = trigramStatsResult.TotalAlternations;
             var expectedLayoutScore = layoutScoreResult.TotalScore;
 
-            int swapCount = 100;
+            int swapCount = 10000;
 
             LogUtils.LogInfo("Starting key swap tests.");
             Stopwatch sw = new Stopwatch();
             sw.Start();
 
-            for(int j = 0; j < 1; j++)
+            for(int j = 0; j <= 1; j++)
             {
                 for (int i = 0; i < swapCount; i++)
                 {
@@ -179,15 +179,15 @@ namespace Keyrita.Generate
                     // It never makes sense to swap a key with itself, wont even bother to make sure that behaves properly.
                     if (k1i == k2i && k1j == k2j) continue;
 
-                    //AnalysisGraphSystem.GenerateSignalSwapKeys(k1i, k1j, k2i, k2j);
+                    AnalysisGraphSystem.GenerateSignalSwapKeys(k1i, k1j, k2i, k2j);
 
                     if(j == 1)
                     {
-                        //AnalysisGraphSystem.GenerateSignalSwapBack();
+                        AnalysisGraphSystem.GenerateSignalSwapBack();
                     }
                     else
                     {
-                        //AnalysisGraphSystem.GenerateSignalSwapKeys(k1i, k1j, k2i, k2j);
+                        AnalysisGraphSystem.GenerateSignalSwapKeys(k1i, k1j, k2i, k2j);
                     }
 
                     if (!CheckStats(expectedKbState, kbStateResult.TransformedKbState, expectedC2k, c2kResult.CharacterToKey,
@@ -350,7 +350,7 @@ namespace Keyrita.Generate
             var kbStateResult = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
             int rows = KeyboardStateSetting.ROWS;
             int cols = KeyboardStateSetting.COLS;
-            int optimiaztionBatchSize = 5000;
+            int optimiaztionBatchSize = 500;
             int batches = 1;
             double numOptimizations = (double)optimiaztionBatchSize * batches;
             Stopwatch timer = new Stopwatch();
@@ -364,7 +364,7 @@ namespace Keyrita.Generate
             }
 
             // Only proceed if the cache swapping system isn't obviously broken.
-            if (TestSwaps(51))
+            if (TestSwaps())
             {
                 timer.Start();
                 var layoutScoreResult = (LayoutScoreResult)AnalysisGraphSystem.ResolvedNodes[eMeasurements.LayoutScore];

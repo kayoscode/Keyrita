@@ -87,10 +87,6 @@ namespace Keyrita.Operations
                     return new SameFingerMap();
                 case eInputNodes.ScissorsIntermediate:
                     return new ScissorsIntermediate();
-                case eInputNodes.TransformedCharacterToTrigramSet:
-                    return new TransformedCharacterToTrigramSet();
-                case eInputNodes.SortedTrigramSet:
-                    return new SortedTrigramSet();
                 default:
                     return null;
             }

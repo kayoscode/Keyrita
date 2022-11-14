@@ -66,7 +66,7 @@ namespace Keyrita.Settings
             TrySetToPending();
         }
 
-        protected override void ConformToLimits()
+        protected override void ModifyLimits()
         {
             if (!SettingState.KeyboardSettings.AvailableCharSet.Collection.Contains(mValue))
             {
@@ -102,7 +102,7 @@ namespace Keyrita.Settings
             SettingState.KeyboardSettings.SelectedKey.AddDependent(this);
         }
 
-        protected override void ConformToLimits()
+        protected override void ModifyLimits()
         {
             mHeatMapData.Clear();
             mValueHasChanged = true;
