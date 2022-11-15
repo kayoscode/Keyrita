@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Keyrita.Operations;
-using Keyrita.Operations.OperationUtil;
+using Keyrita.Analysis;
+using Keyrita.Analysis.AnalysisUtil;
 using Keyrita.Settings;
 using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
@@ -23,7 +23,7 @@ namespace Keyrita.Measurements
     public class UserFacingScissors : FingerHandMeasurement
     {
         private UserFacingScissorsResult mResult;
-        public UserFacingScissors() : base(eMeasurements.Scissors)
+        public UserFacingScissors(AnalysisGraph graph) : base(eMeasurements.Scissors, graph)
         {
             AddInputNode(eInputNodes.ScissorsIntermediate);
             mResult = new UserFacingScissorsResult(this.NodeId);
@@ -37,7 +37,7 @@ namespace Keyrita.Measurements
         protected override void Compute()
         {
             double bgTotal = SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
-            var mScissorsResult = (ScissorsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.ScissorsIntermediate];
+            var mScissorsResult = (ScissorsResult)AnalysisGraph.ResolvedNodes[eInputNodes.ScissorsIntermediate];
             mResult.TotalResult = mScissorsResult.TotalResult / bgTotal * 100;
 
             // Set meas results.
@@ -89,7 +89,7 @@ namespace Keyrita.Measurements
         /// <summary>
         /// Standard constructor.
         /// </summary>
-        public ScissorsIntermediate() : base(eInputNodes.ScissorsIntermediate)
+        public ScissorsIntermediate(AnalysisGraph graph) : base(eInputNodes.ScissorsIntermediate, graph)
         {
             AddInputNode(eInputNodes.TransfomedKbState);
             AddInputNode(eInputNodes.KeyToFingerAsInt);
@@ -179,10 +179,10 @@ namespace Keyrita.Measurements
         {
             mResult = new ScissorsResult(NodeId);
             mResult.TotalWeightedResult = 0;
-            mKbState = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
+            mKbState = (TransformedKbStateResult)AnalysisGraph.ResolvedNodes[eInputNodes.TransfomedKbState];
             var kb = mKbState.TransformedKbState;
 
-            mK2f = (KeyToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyToFingerAsInt];
+            mK2f = (KeyToFingerAsIntResult)AnalysisGraph.ResolvedNodes[eInputNodes.KeyToFingerAsInt];
             var keyToFinger = mK2f.KeyToFinger;
 
             var bgFreq = SettingState.MeasurementSettings.CharFrequencyData.BigramFreq;

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Windows.Documents;
 using System.Xml;
 using Keyrita.Measurements;
-using Keyrita.Operations.OperationUtil;
+using Keyrita.Analysis.AnalysisUtil;
 using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
 
@@ -91,11 +91,11 @@ namespace Keyrita.Settings
         {
             if(this.IsOn)
             {
-                AnalysisGraphSystem.InstallNode(this.SInstance);
+                AnalysisGraphSystem.MainAnalysisGraph.InstallNode(this.SInstance);
             }
             else
             {
-                AnalysisGraphSystem.RemoveNode(this.SInstance);
+                AnalysisGraphSystem.MainAnalysisGraph.RemoveNode(this.SInstance);
             }
         }
 

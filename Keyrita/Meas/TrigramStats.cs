@@ -6,11 +6,11 @@ using System.Security.Cryptography;
 using System.Threading;
 using System.Windows.Documents;
 using System.Windows.Documents.Serialization;
-using Keyrita.Operations.OperationUtil;
+using Keyrita.Analysis.AnalysisUtil;
 using Keyrita.Settings;
 using Keyrita.Util;
 
-namespace Keyrita.Operations
+namespace Keyrita.Analysis
 {
     /// <summary>
     /// All the valid trigram classification values.
@@ -40,6 +40,8 @@ namespace Keyrita.Operations
         public long TotalAlternations { get; set; }
 
         public long TotalRedirects { get; set; }
+        public long TotalBadRedirects { get; set; }
+
         public long TotalOneHands { get; set; }
         public long OneHandsLeft { get; set; }
         public long OneHandsRight { get; set; }
@@ -53,8 +55,8 @@ namespace Keyrita.Operations
         protected TrigramStatsResult mResult;
         protected TrigramStatsResult mPreviousResult;
 
-        public TrigramStats()
-            : base(eInputNodes.TrigramStats)
+        public TrigramStats(AnalysisGraph graph)
+            : base(eInputNodes.TrigramStats, graph)
         {
             mResult = new TrigramStatsResult(this.NodeId);
             mPreviousResult = new TrigramStatsResult(this.NodeId);
@@ -120,8 +122,7 @@ namespace Keyrita.Operations
                 case eTrigramClassification.Unclassified:
                     break;
                 case eTrigramClassification.BadRedirect:
-                    // TODO
-                    mResult.TotalRedirects -= freq;
+                    mResult.TotalBadRedirects -= freq;
                     break;
             }
 
@@ -148,8 +149,7 @@ namespace Keyrita.Operations
                 case eTrigramClassification.Unclassified:
                     break;
                 case eTrigramClassification.BadRedirect:
-                    // TODO
-                    mResult.TotalRedirects += freq;
+                    mResult.TotalBadRedirects += freq;
                     break;
             }
         }
@@ -207,7 +207,9 @@ namespace Keyrita.Operations
             mPreviousResult.TotalRolls = mResult.TotalRolls;
             mPreviousResult.InRolls = mResult.InRolls;
             mPreviousResult.OutRolls = mResult.OutRolls;
+
             mPreviousResult.TotalRedirects = mResult.TotalRedirects;
+            mPreviousResult.TotalBadRedirects = mResult.TotalBadRedirects;
             mPreviousResult.TotalAlternations = mResult.TotalAlternations;
             mPreviousResult.TotalOneHands = mResult.TotalOneHands;
 
@@ -236,7 +238,9 @@ namespace Keyrita.Operations
             mResult.TotalRolls = mPreviousResult.TotalRolls;
             mResult.InRolls = mPreviousResult.InRolls;
             mResult.OutRolls = mPreviousResult.OutRolls;
+
             mResult.TotalRedirects = mPreviousResult.TotalRedirects;
+            mResult.TotalBadRedirects = mPreviousResult.TotalBadRedirects;
             mResult.TotalAlternations = mPreviousResult.TotalAlternations;
             mResult.TotalOneHands = mPreviousResult.TotalOneHands;
         }
@@ -357,8 +361,8 @@ namespace Keyrita.Operations
 
         protected override void Compute()
         {
-            mC2f = (TransformedCharacterToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransformedCharacterToFingerAsInt];
-            mKb = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[
+            mC2f = (TransformedCharacterToFingerAsIntResult)AnalysisGraph.ResolvedNodes[eInputNodes.TransformedCharacterToFingerAsInt];
+            mKb = (TransformedKbStateResult)AnalysisGraph.ResolvedNodes[
                 eInputNodes.TransfomedKbState];
 
             ComputeResults();
@@ -374,6 +378,7 @@ namespace Keyrita.Operations
             long totalOutRolls = 0;
             long totalAlternations = 0;
             long totalRedirects = 0;
+            long totalBadRedirects = 0;
             long totalOneHands = 0;
             long oneHandsLeft = 0;
             long oneHandsRight = 0;
@@ -412,8 +417,7 @@ namespace Keyrita.Operations
                     case eTrigramClassification.Unclassified:
                         break;
                     case eTrigramClassification.BadRedirect:
-                        // TODO
-                        totalRedirects += freq;
+                        totalBadRedirects += freq;
                         break;
                 }
             }
@@ -422,7 +426,9 @@ namespace Keyrita.Operations
             mResult.InRolls = totalInRolls;
             mResult.OutRolls = totalOutRolls;
             mResult.TotalAlternations = totalAlternations;
+
             mResult.TotalRedirects = totalRedirects;
+            mResult.TotalBadRedirects = totalBadRedirects;
             mResult.TotalOneHands = totalOneHands;
             mResult.OneHandsLeft = oneHandsLeft;
             mResult.OneHandsRight = oneHandsRight;

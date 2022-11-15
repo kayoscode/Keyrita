@@ -29,6 +29,20 @@ namespace Keyrita.Util
     internal static class Utils
     {
         /// <summary>
+        /// Returns the number of cores on the current CPU.
+        /// </summary>
+        /// <returns></returns>
+        public static int GetNumCores()
+        {
+            int cores = 1;
+            string coresVar = System.Environment.GetEnvironmentVariable("NUMBER_OF_PROCESSORS");
+            if (coresVar != null)
+                cores = int.Parse(coresVar);
+
+            return cores;
+        }
+
+        /// <summary>
         /// From an enum name and value, returns the result parsed to an Enum.
         /// </summary>
         /// <param name="enumName"></param>

@@ -1,6 +1,6 @@
 ﻿using System;
-using Keyrita.Operations;
-using Keyrita.Operations.OperationUtil;
+using Keyrita.Analysis;
+using Keyrita.Analysis.AnalysisUtil;
 using Keyrita.Settings;
 
 namespace Keyrita.Measurements
@@ -22,7 +22,7 @@ namespace Keyrita.Measurements
     {
         private RedirectsResult mResult;
 
-        public Redirects() : base(eMeasurements.Redirects)
+        public Redirects(AnalysisGraph graph) : base(eMeasurements.Redirects, graph)
         {
             mResult = new RedirectsResult(NodeId);
             AddInputNode(eInputNodes.TrigramStats);
@@ -37,7 +37,7 @@ namespace Keyrita.Measurements
         {
             double totalTgs = SettingState.MeasurementSettings.TrigramCoverage.Value;
 
-            TrigramStatsResult tgs = (TrigramStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TrigramStats];
+            TrigramStatsResult tgs = (TrigramStatsResult)AnalysisGraph.ResolvedNodes[eInputNodes.TrigramStats];
             mResult.TotalRedirects = tgs.TotalRedirects / totalTgs * 100;
 
             SetResult(0, mResult.TotalRedirects);

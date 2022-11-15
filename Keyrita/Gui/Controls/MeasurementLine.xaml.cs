@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
+using Keyrita.Analysis.AnalysisUtil;
 using Keyrita.Measurements;
-using Keyrita.Operations.OperationUtil;
 using Keyrita.Util;
 
 namespace Keyrita.Gui.Controls
@@ -53,13 +53,13 @@ namespace Keyrita.Gui.Controls
             Grid.SetColumn(measName, 0);
             mMeasurementGrid.Children.Add(measName);
 
-            for(uint i = 0; i < mMeasurementOp.NumUICols; i++)
+            for(uint i = 0; i < mMeasurementNode.NumUICols; i++)
             {
                 TextBlock colResult = new TextBlock();
                 colResult.VerticalAlignment = VerticalAlignment.Center;
-                colResult.Text = String.Format("{0:0.##}", mMeasurementOp.UIRowValue(i));
+                colResult.Text = String.Format("{0:0.##}", mMeasurementNode.UIRowValue(i));
                 colResult.FontSize = 15;
-                colResult.Foreground = mMeasurementOp.UIRowColor(i);
+                colResult.Foreground = mMeasurementNode.UIRowColor(i);
                 colResult.Padding = new Thickness(5, 0, 0, 0);
 
                 mMeasurementGrid.Children.Add(colResult);
@@ -83,19 +83,19 @@ namespace Keyrita.Gui.Controls
         private void UpdateMeasurementOp(Enum newValue)
         {
             // Unregister setting change listeners.
-            if (mMeasurementOp != null)
+            if (mMeasurementNode != null)
             {
-                mMeasurementOp.ValueChangedNotifications.Remove(SyncWithMeasurement);
+                mMeasurementNode.ValueChangedNotifications.Remove(SyncWithMeasurement);
             }
 
             mMeasurement = newValue;
-            mMeasurementOp = AnalysisGraphSystem.GetInstalledOperation((Enum)mMeasurement) as MeasurementNode;
+            mMeasurementNode = AnalysisGraphSystem.MainAnalysisGraph.GetInstalledNode((Enum)mMeasurement) as MeasurementNode;
 
-            if(mMeasurementOp != null)
+            if(mMeasurementNode != null)
             {
                 this.Visibility = Visibility.Visible;
                 this.ToolTip = mMeasurement.UIToolTip();
-                this.mMeasurementOp.ValueChangedNotifications.Add(SyncWithMeasurement);
+                this.mMeasurementNode.ValueChangedNotifications.Add(SyncWithMeasurement);
                 SyncWithMeasurement(null);
             }
             else
@@ -117,7 +117,7 @@ namespace Keyrita.Gui.Controls
         }
 
         protected Enum mMeasurement;
-        protected MeasurementNode mMeasurementOp;
+        protected MeasurementNode mMeasurementNode;
 
         #endregion
 

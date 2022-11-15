@@ -220,13 +220,23 @@ namespace Keyrita.Settings
 
     public class EffortMapSetting : PerkeySetting<double>
     {
-        // Penalty applied to key scores just for existing at their location :D
-        // Eventually let the user set these and discriminate their own way!
+        /// <summary>
+        /// Weight applied for using each key, copied from oxelizer :D
+        /// </summary>
         private static double[][] KEY_LOCATION_PENALTY = new double[KeyboardStateSetting.ROWS][]
         {
-            new double[KeyboardStateSetting.COLS]{ 3.0, 2.5, 2.1, 2.3, 2.6, 3.4, 2.2, 2.0, 2.4, 3.6 },
-            new double[KeyboardStateSetting.COLS]{ 1.6, 1.3, 1.1, 1.0, 2.9, 2.9, 1.0, 1.1, 1.3, 1.6 },
-            new double[KeyboardStateSetting.COLS]{ 2.7, 2.4, 1.8, 2.2, 3.7, 2.2, 1.8, 2.4, 2.7, 3.3 }
+            new double[KeyboardStateSetting.COLS]
+            {
+                3.0, 2.4, 2.0, 2.2, 2.4,  3.3, 2.2, 2.0, 2.4, 3.0,
+            },
+            new double[KeyboardStateSetting.COLS]
+            {
+                1.8, 1.3, 1.1, 1.0, 2.6,  2.6, 1.0, 1.1, 1.3, 1.8,
+            },
+            new double[KeyboardStateSetting.COLS]
+            {
+                3.5, 3.0, 2.7, 2.2, 3.7,  2.2, 1.8, 2.4, 2.8, 3.3
+            }
         };
 
         public EffortMapSetting() : base("Effort Map", eSettingAttributes.None)

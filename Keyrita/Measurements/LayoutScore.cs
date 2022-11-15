@@ -1,6 +1,6 @@
 ﻿using System;
-using Keyrita.Operations;
-using Keyrita.Operations.OperationUtil;
+using Keyrita.Analysis;
+using Keyrita.Analysis.AnalysisUtil;
 using Keyrita.Settings;
 
 namespace Keyrita.Measurements
@@ -16,14 +16,15 @@ namespace Keyrita.Measurements
 
     public class LayoutScore : DynamicMeasurement
     {
-        protected double KEY_LAG_WEIGHT = 8;
-        protected double ROLES_WEIGHT = -20;
-        protected double REDIRECTS_WEIGHT = 150;
-        protected double ONE_HANDS_WEIGHT = -20; 
-        protected double ALTERNATIONS_WEIGHT = -20; 
+        protected double KEY_LAG_WEIGHT = 1.0;
+        protected double ROLES_WEIGHT = 10;
+        protected double REDIRECTS_WEIGHT = 25;
+        protected double BAD_REDIRECTS_WEIGHT = 80;
+        protected double ONE_HANDS_WEIGHT = 2; 
+        protected double ALTERNATIONS_WEIGHT = 5; 
 
         private LayoutScoreResult mResult;
-        public LayoutScore() : base(eMeasurements.LayoutScore)
+        public LayoutScore(AnalysisGraph graph) : base(eMeasurements.LayoutScore, graph)
         {
             AddInputNode(eInputNodes.KeyLag);
             AddInputNode(eInputNodes.TrigramStats);
@@ -51,8 +52,8 @@ namespace Keyrita.Measurements
         protected override void Compute()
         {
             mResult = new LayoutScoreResult(this.NodeId);
-            mKeyLag = (KeyLagResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyLag];
-            mTgStats = (TrigramStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TrigramStats];
+            mKeyLag = (KeyLagResult)AnalysisGraph.ResolvedNodes[eInputNodes.KeyLag];
+            mTgStats = (TrigramStatsResult)AnalysisGraph.ResolvedNodes[eInputNodes.TrigramStats];
 
             ComputeResult();
 
@@ -67,6 +68,7 @@ namespace Keyrita.Measurements
 
             mResult.TotalScore += (mTgStats.TotalRolls / tgTotal) * ROLES_WEIGHT;
             mResult.TotalScore += (mTgStats.TotalRedirects / tgTotal) * REDIRECTS_WEIGHT;
+            mResult.TotalScore += (mTgStats.TotalBadRedirects / tgTotal) * BAD_REDIRECTS_WEIGHT;
             mResult.TotalScore += (mTgStats.TotalOneHands / tgTotal) * ONE_HANDS_WEIGHT;
             mResult.TotalScore += (mTgStats.TotalAlternations / tgTotal) * ALTERNATIONS_WEIGHT;
         }

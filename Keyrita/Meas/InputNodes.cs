@@ -4,11 +4,11 @@ using System.Linq;
 using System.Printing.IndexedProperties;
 using System.Runtime.CompilerServices;
 using Keyrita.Measurements;
-using Keyrita.Operations.OperationUtil;
+using Keyrita.Analysis.AnalysisUtil;
 using Keyrita.Settings;
 using Keyrita.Util;
 
-namespace Keyrita.Operations
+namespace Keyrita.Analysis
 {
     public enum eInputNodes
     {
@@ -43,15 +43,15 @@ namespace Keyrita.Operations
     {
         // These all need to eventually be settings.
         private const double SFB_WEIGHT = 890;
-        private const double SFS_WEIGHT = 125;
-        private const double SCISSOR_WEIGHT = 670;
+        private const double SFS_WEIGHT = 135;
+        private const double SCISSOR_WEIGHT = 800;
         private const double EFFORT_WEIGHT = 45;
 
         private KeyLagResult mResult;
         private KeyLagResult mResultBeforeSwap;
 
-        public KeyLag() :
-            base(eInputNodes.KeyLag)
+        public KeyLag(AnalysisGraph graph) :
+            base(eInputNodes.KeyLag, graph)
         {
             AddInputNode(eInputNodes.TwoFingerStats);
             AddInputNode(eInputNodes.KeyToFingerAsInt);
@@ -74,10 +74,10 @@ namespace Keyrita.Operations
 
         protected override void Compute()
         {
-            mK2f = (KeyToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyToFingerAsInt];
-            mTfs = (TwoFingerStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TwoFingerStats];
-            mSr = (ScissorsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.ScissorsIntermediate];
-            mKbState = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
+            mK2f = (KeyToFingerAsIntResult)AnalysisGraph.ResolvedNodes[eInputNodes.KeyToFingerAsInt];
+            mTfs = (TwoFingerStatsResult)AnalysisGraph.ResolvedNodes[eInputNodes.TwoFingerStats];
+            mSr = (ScissorsResult)AnalysisGraph.ResolvedNodes[eInputNodes.ScissorsIntermediate];
+            mKbState = (TransformedKbStateResult)AnalysisGraph.ResolvedNodes[eInputNodes.TransfomedKbState];
             ComputeResult();
         }
 
@@ -160,7 +160,7 @@ namespace Keyrita.Operations
         protected TwoFingerStatsResult mResult;
         protected TwoFingerStatsResult mResultBeforeSwap;
 
-        public TwoFingerStats() : base(eInputNodes.TwoFingerStats)
+        public TwoFingerStats(AnalysisGraph graph) : base(eInputNodes.TwoFingerStats, graph)
         {
             AddInputNode(eInputNodes.KeyToFingerAsInt);
             AddInputNode(eInputNodes.TransfomedKbState);
@@ -177,9 +177,9 @@ namespace Keyrita.Operations
         {
             mResult = new TwoFingerStatsResult(NodeId);
 
-            mK2f = (KeyToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyToFingerAsInt];
-            mKb = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
-            mSfm = (SameFingerMapResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.SameFingerMap];
+            mK2f = (KeyToFingerAsIntResult)AnalysisGraph.ResolvedNodes[eInputNodes.KeyToFingerAsInt];
+            mKb = (TransformedKbStateResult)AnalysisGraph.ResolvedNodes[eInputNodes.TransfomedKbState];
+            mSfm = (SameFingerMapResult)AnalysisGraph.ResolvedNodes[eInputNodes.SameFingerMap];
 
             uint[][] bigramFreq = SettingState.MeasurementSettings.CharFrequencyData.BigramFreq;
             double totalBg = SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
@@ -358,7 +358,7 @@ namespace Keyrita.Operations
     {
         protected SameFingerMapResult mResult;
 
-        public SameFingerMap() : base(eInputNodes.SameFingerMap)
+        public SameFingerMap(AnalysisGraph graph) : base(eInputNodes.SameFingerMap, graph)
         {
             AddInputNode(eInputNodes.KeyToFingerAsInt);
         }
@@ -373,7 +373,7 @@ namespace Keyrita.Operations
         protected override void Compute()
         {
             mResult = new SameFingerMapResult(this.NodeId);
-            var keyToFinger = (KeyToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyToFingerAsInt];
+            var keyToFinger = (KeyToFingerAsIntResult)AnalysisGraph.ResolvedNodes[eInputNodes.KeyToFingerAsInt];
             var k2f = keyToFinger.KeyToFinger;
 
             for(int i = 0; i < KeyboardStateSetting.ROWS; i++)
@@ -424,7 +424,7 @@ namespace Keyrita.Operations
     {
         private FingerAsIntToHomePositionResult mResult;
 
-        public FingerAsIntToHomePosition() : base(eInputNodes.FingerAsIntToHomePosition)
+        public FingerAsIntToHomePosition(AnalysisGraph graph) : base(eInputNodes.FingerAsIntToHomePosition, graph)
         {
             mResult = new FingerAsIntToHomePositionResult(this.NodeId);
         }
@@ -475,7 +475,7 @@ namespace Keyrita.Operations
     {
         private TransformedCharacterToFingerAsIntResult mResult;
 
-        public TransformedCharacterToFingerAsInt() : base(eInputNodes.TransformedCharacterToFingerAsInt)
+        public TransformedCharacterToFingerAsInt(AnalysisGraph graph) : base(eInputNodes.TransformedCharacterToFingerAsInt, graph)
         {
             mResult = new TransformedCharacterToFingerAsIntResult(this.NodeId);
             AddInputNode(eInputNodes.TransformedCharacterToKey);
@@ -493,9 +493,9 @@ namespace Keyrita.Operations
 
         protected override void Compute()
         {
-            TransformedCharacterToKeyResult c2k = (TransformedCharacterToKeyResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransformedCharacterToKey];
-            mK2f = (KeyToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyToFingerAsInt];
-            mKb = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
+            TransformedCharacterToKeyResult c2k = (TransformedCharacterToKeyResult)AnalysisGraph.ResolvedNodes[eInputNodes.TransformedCharacterToKey];
+            mK2f = (KeyToFingerAsIntResult)AnalysisGraph.ResolvedNodes[eInputNodes.KeyToFingerAsInt];
+            mKb = (TransformedKbStateResult)AnalysisGraph.ResolvedNodes[eInputNodes.TransfomedKbState];
 
             // Defaulted to None.
             mResult.CharacterToFinger = new int[c2k.CharacterToKey.Length];
@@ -555,7 +555,7 @@ namespace Keyrita.Operations
         private CharacterSetAsListResult mCharacterListResult;
         private TransformedKbStateResult mTransformedKbStateResult;
 
-        public TransformedCharacterToKey() : base(eInputNodes.TransformedCharacterToKey)
+        public TransformedCharacterToKey(AnalysisGraph graph) : base(eInputNodes.TransformedCharacterToKey, graph)
         {
             mResult = new TransformedCharacterToKeyResult(this.NodeId);
             AddInputNode(eInputNodes.TransfomedKbState);
@@ -569,10 +569,10 @@ namespace Keyrita.Operations
 
         protected override void Compute()
         {
-            mCharacterListResult = (CharacterSetAsListResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.CharacterSetAsList];
+            mCharacterListResult = (CharacterSetAsListResult)AnalysisGraph.ResolvedNodes[eInputNodes.CharacterSetAsList];
             var characterSet = mCharacterListResult.CharacterSet;
 
-            mTransformedKbStateResult = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
+            mTransformedKbStateResult = (TransformedKbStateResult)AnalysisGraph.ResolvedNodes[eInputNodes.TransfomedKbState];
             var kbs = mTransformedKbStateResult.TransformedKbState;
 
             // For every key in the characterset, map it to an index on the keyboard.
@@ -632,7 +632,7 @@ namespace Keyrita.Operations
     class CharacterSetAsList : GraphNode
     {
         protected CharacterSetAsListResult mResult;
-        public CharacterSetAsList() : base(eInputNodes.CharacterSetAsList)
+        public CharacterSetAsList(AnalysisGraph graph) : base(eInputNodes.CharacterSetAsList, graph)
         {
         }
 
@@ -665,7 +665,7 @@ namespace Keyrita.Operations
     {
         protected KeyToFingerAsIntResult mResult;
 
-        public KeyToFingerAsInt() : base(eInputNodes.KeyToFingerAsInt)
+        public KeyToFingerAsInt(AnalysisGraph graph) : base(eInputNodes.KeyToFingerAsInt, graph)
         {
         }
 
@@ -719,7 +719,7 @@ namespace Keyrita.Operations
         protected TransformedKbStateResult mResult;
         protected CharacterSetAsListResult mCharacterSetAsList;
 
-        public TransformedKbState() : base(eInputNodes.TransfomedKbState)
+        public TransformedKbState(AnalysisGraph graph) : base(eInputNodes.TransfomedKbState, graph)
         {
             AddInputNode(eInputNodes.CharacterSetAsList);
         }
@@ -728,7 +728,7 @@ namespace Keyrita.Operations
         {
             mResult = new TransformedKbStateResult(this.NodeId);
 
-            mCharacterSetAsList = (CharacterSetAsListResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.CharacterSetAsList];
+            mCharacterSetAsList = (CharacterSetAsListResult)AnalysisGraph.ResolvedNodes[eInputNodes.CharacterSetAsList];
             var characterSet = mCharacterSetAsList.CharacterSet;
             var kbs = SettingState.KeyboardSettings.KeyboardState;
 

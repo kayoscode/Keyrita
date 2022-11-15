@@ -5,19 +5,13 @@ using Keyrita.Settings;
 using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
 
-namespace Keyrita.Operations.OperationUtil
+namespace Keyrita.Analysis.AnalysisUtil
 {
     /// <summary>
-    /// Class responsible for creating and maintaining the analysis graph.
-    /// Threaded support.
+    /// Holds all nodes used by a graph.
     /// </summary>
-    public static class AnalysisGraphSystem
+    public class AnalysisGraph
     {
-        private static IDictionary<Enum, GraphNode> ActiveNodes = new Dictionary<Enum, GraphNode>();
-        public static IDictionary<Enum, AnalysisResult> ResolvedNodes = new Dictionary<Enum, AnalysisResult>();
-
-        private static List<GraphNode> GenerateSwapKeysNodes = new List<GraphNode>();
-
         private static IReadOnlyDictionary<Type, NodeFactory> GraphNodeFactory = new Dictionary<Type, NodeFactory>()
         {
             { typeof(eMeasurements), new MeasFactory() },
@@ -25,10 +19,25 @@ namespace Keyrita.Operations.OperationUtil
         };
 
         /// <summary>
+        /// The currently installed list of nodes.
+        /// </summary>
+        private IDictionary<Enum, GraphNode> ActiveNodes = new Dictionary<Enum, GraphNode>();
+        
+        /// <summary>
+        /// The resolved nodes as a dictionary.
+        /// </summary>
+        public IDictionary<Enum, AnalysisResult> ResolvedNodes = new Dictionary<Enum, AnalysisResult>();
+
+        /// <summary>
+        /// The nodes affected by key swapping.
+        /// </summary>
+        private List<GraphNode> GenerateSwapKeysNodes = new List<GraphNode>();
+
+        /// <summary>
         /// Sets up the generate algorithm to quickly swap keys during its lifetime.
         /// Creates the order such that it guarantees by the time a node runs, all its dependents have run.
         /// </summary>
-        public static void PreprocessSwapKeysResolveOrder()
+        public void PreprocessSwapKeysResolveOrder()
         {
             GenerateSwapKeysNodes.Clear();
             Dictionary<Enum, GraphNode> insertedNodes = new Dictionary<Enum, GraphNode>();
@@ -39,7 +48,7 @@ namespace Keyrita.Operations.OperationUtil
             }
         }
 
-        private static void PreprocessSwapKeysResolveOrderNode(Dictionary<Enum, GraphNode> insertedNodes, GraphNode node)
+        private void PreprocessSwapKeysResolveOrderNode(Dictionary<Enum, GraphNode> insertedNodes, GraphNode node)
         {
             if (!node.RespondsToGenerateSwapKeysEvent)
             {
@@ -67,7 +76,7 @@ namespace Keyrita.Operations.OperationUtil
         /// <param name="k1j"></param>
         /// <param name="k2i"></param>
         /// <param name="k2j"></param>
-        public static void GenerateSignalSwapKeys(int k1i, int k1j, int k2i, int k2j)
+        public void GenerateSignalSwapKeys(int k1i, int k1j, int k2i, int k2j)
         {
             // Instead of completely re analyzing, trigger swap keys event so each measurement can just respond to deltas.
             // This ensures we don't have to clear previous data, reallocate, nor re analyze the entire system.
@@ -85,7 +94,7 @@ namespace Keyrita.Operations.OperationUtil
         /// Each node needs to understand how to swap back, but they don't need to know how to swap back multiple times.
         /// Therefore this should only be called once per swap signal.
         /// </summary>
-        public static void GenerateSignalSwapBack()
+        public void GenerateSignalSwapBack()
         {
             for(int i = 0; i < GenerateSwapKeysNodes.Count; i++)
             {
@@ -93,7 +102,12 @@ namespace Keyrita.Operations.OperationUtil
             }
         }
 
-        public static GraphNode GetInstalledOperation(Enum node)
+        /// <summary>
+        /// Returns a specific node by id.
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
+        public GraphNode GetInstalledNode(Enum node)
         {
             if(node != null && ActiveNodes.TryGetValue(node, out GraphNode output))
             {
@@ -107,13 +121,13 @@ namespace Keyrita.Operations.OperationUtil
         /// Installs a node into this network.
         /// </summary>
         /// <param name="node"></param>
-        public static void InstallNode(Enum node)
+        public void InstallNode(Enum node)
         {
             LogUtils.Assert(GraphNodeFactory.ContainsKey(node.GetType()), "Invalid node type");
 
             if (!ActiveNodes.ContainsKey(node))
             {
-                ActiveNodes[node] = GraphNodeFactory[node.GetType()].CreateOp(node);
+                ActiveNodes[node] = GraphNodeFactory[node.GetType()].CreateOp(node, this);
 
                 LogUtils.Assert(ActiveNodes[node] != null, "Unimplemented node type.");
 
@@ -129,7 +143,7 @@ namespace Keyrita.Operations.OperationUtil
         /// TODO:
         /// </summary>
         /// <param name="op"></param>
-        public static void RemoveNode(Enum node)
+        public void RemoveNode(Enum node)
         {
             LogUtils.Assert(GraphNodeFactory.ContainsKey(node.GetType()), "Invalid node type");
 
@@ -142,7 +156,7 @@ namespace Keyrita.Operations.OperationUtil
         /// <summary>
         /// Whether or not the analyzer is in a position to get a valid result.
         /// </summary>
-        public static bool CanAnalyze =>
+        public bool CanAnalyze =>
                 SettingState.MeasurementSettings.CharFrequencyData.HasValue &&
                        SettingState.KeyboardSettings.KeyboardValid.Value.Equals(eOnOff.On) &&
                        SettingState.MeasurementSettings.AnalysisEnabled.Value.Equals(eOnOff.On);
@@ -150,7 +164,7 @@ namespace Keyrita.Operations.OperationUtil
         /// <summary>
         /// Computes the results of all ops.
         /// </summary>
-        public static void ResolveGraph()
+        public void ResolveGraph()
         {
             if (CanAnalyze)
             {
@@ -170,7 +184,7 @@ namespace Keyrita.Operations.OperationUtil
         /// Resolves a single operation and ensures the dependents are all resolved. Othewise it resolves them.
         /// </summary>
         /// <param name="node"></param>
-        public static void ResolveNode(GraphNode node)
+        public void ResolveNode(GraphNode node)
         {
             if (ResolvedNodes.ContainsKey(node.NodeId))
             {
@@ -188,6 +202,30 @@ namespace Keyrita.Operations.OperationUtil
 
             LogUtils.Assert(result != null);
             ResolvedNodes[node.NodeId] = result;
+        }
+    }
+
+    /// <summary>
+    /// Class responsible for creating and maintaining the analysis graph.
+    /// Threaded support.
+    /// </summary>
+    public static class AnalysisGraphSystem
+    {
+        public static AnalysisGraph MainAnalysisGraph { get; private set; }
+
+        static AnalysisGraphSystem()
+        {
+            MainAnalysisGraph = new AnalysisGraph();
+        }
+
+        /// <summary>
+        /// Creates a new analysis graph completely isolated from any of the others.
+        /// Returns an id to that graph, but thread id 0 is the main graph.
+        /// </summary>
+        /// <returns></returns>
+        public static AnalysisGraph CreateNewGraph()
+        {
+            return new AnalysisGraph();
         }
     }
 }

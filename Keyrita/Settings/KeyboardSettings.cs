@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Xml;
 using Keyrita.Gui;
-using Keyrita.Operations.OperationUtil;
+using Keyrita.Analysis.AnalysisUtil;
 using Keyrita.Serialization;
 using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
@@ -119,7 +119,7 @@ namespace Keyrita.Settings
 
         protected override void DoAction()
         {
-            AnalysisGraphSystem.ResolveGraph();
+            AnalysisGraphSystem.MainAnalysisGraph.ResolveGraph();
         }
     }
 
