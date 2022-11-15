@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Keyrita.Operations;
-using Keyrita.Operations.OperationUtil;
+using Keyrita.Analysis;
+using Keyrita.Analysis.AnalysisUtil;
 using Keyrita.Settings;
 
 namespace Keyrita.Measurements
@@ -26,11 +26,10 @@ namespace Keyrita.Measurements
     {
         private AltsResult mResult;
 
-        public Alts() : base(eMeasurements.Alternations)
+        public Alts(AnalysisGraph graph) : base(eMeasurements.Alternations, graph)
         {
             mResult = new AltsResult(NodeId);
             AddInputNode(eInputNodes.TrigramStats);
-            AddInputNode(eInputNodes.SortedTrigramSet);
         }
 
         public override AnalysisResult GetResult()
@@ -40,11 +39,9 @@ namespace Keyrita.Measurements
 
         protected override void Compute()
         {
-            TrigramStatsResult tgs = (TrigramStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TrigramStats];
-            SortedTrigramSetResult tgSet = (SortedTrigramSetResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.SortedTrigramSet];
-            long totalTgs = tgSet.TrigramCoverage;
+            TrigramStatsResult tgs = (TrigramStatsResult)AnalysisGraph.ResolvedNodes[eInputNodes.TrigramStats];
 
-            mResult.TotalAlternations = tgs.TotalAlternations / totalTgs * 100;
+            mResult.TotalAlternations = tgs.TotalAlternations / (double)SettingState.MeasurementSettings.TrigramCoverage.Value * 100;
 
             SetResult(0, mResult.TotalAlternations);
         }

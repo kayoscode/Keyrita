@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Keyrita.Operations;
-using Keyrita.Operations.OperationUtil;
+using Keyrita.Analysis;
+using Keyrita.Analysis.AnalysisUtil;
 using Keyrita.Settings;
 using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
@@ -23,7 +23,7 @@ namespace Keyrita.Measurements
     public class UserFacingScissors : FingerHandMeasurement
     {
         private UserFacingScissorsResult mResult;
-        public UserFacingScissors() : base(eMeasurements.Scissors)
+        public UserFacingScissors(AnalysisGraph graph) : base(eMeasurements.Scissors, graph)
         {
             AddInputNode(eInputNodes.ScissorsIntermediate);
             mResult = new UserFacingScissorsResult(this.NodeId);
@@ -37,7 +37,7 @@ namespace Keyrita.Measurements
         protected override void Compute()
         {
             double bgTotal = SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
-            var mScissorsResult = (ScissorsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.ScissorsIntermediate];
+            var mScissorsResult = (ScissorsResult)AnalysisGraph.ResolvedNodes[eInputNodes.ScissorsIntermediate];
             mResult.TotalResult = mScissorsResult.TotalResult / bgTotal * 100;
 
             // Set meas results.
@@ -84,10 +84,17 @@ namespace Keyrita.Measurements
     public class ScissorsIntermediate : GraphNode
     {
         protected ScissorsResult mResult;
-        public ScissorsIntermediate() : base(eInputNodes.ScissorsIntermediate)
+        protected ScissorsResult mResultBeforeSwap;
+
+        /// <summary>
+        /// Standard constructor.
+        /// </summary>
+        public ScissorsIntermediate(AnalysisGraph graph) : base(eInputNodes.ScissorsIntermediate, graph)
         {
             AddInputNode(eInputNodes.TransfomedKbState);
             AddInputNode(eInputNodes.KeyToFingerAsInt);
+
+            mResultBeforeSwap = new ScissorsResult(this.NodeId);
         }
 
         protected void HandleCharSwap(byte ch1, byte ch2, List<(int, int)> si,
@@ -112,9 +119,6 @@ namespace Keyrita.Measurements
                     subCh1 = bigramFreq[otherCh][ch1];
                     subCh2 = bigramFreq[ch1][otherCh];
 
-                    mResult.TotalResult -= subCh1;
-                    mResult.TotalResult += subCh2;
-
                     mResult.TotalWeightedResult -= (subCh1 / bgCount) * fingerWeight;
                     mResult.TotalWeightedResult += (subCh2 / bgCount) * fingerWeight;
                 }
@@ -128,11 +132,6 @@ namespace Keyrita.Measurements
                     subCh3 = bigramFreq[otherCh][ch2];
                     subCh4 = bigramFreq[ch2][otherCh];
 
-                    mResult.TotalResult -= subCh1;
-                    mResult.TotalResult -= subCh2;
-                    mResult.TotalResult += subCh3;
-                    mResult.TotalResult += subCh4;
-
                     mResult.TotalWeightedResult -= (subCh1 / bgCount) * fingerWeight;
                     mResult.TotalWeightedResult += (subCh3 / bgCount) * fingerWeight;
                     mResult.TotalWeightedResult -= (subCh2 / bgCount) * fingerWeight2;
@@ -144,6 +143,9 @@ namespace Keyrita.Measurements
         public override bool RespondsToGenerateSwapKeysEvent => true;
         public override void SwapKeys(int k1i, int k1j, int k2i, int k2j)
         {
+            // The swap system only cares about the total weighted result. Store that to be copied back in the event of a swap back.
+            mResultBeforeSwap.TotalWeightedResult = mResult.TotalWeightedResult;
+
             // Only need to update the scissors total. Which means subtract the previous scissors from the new one.
             // NOTE: the keyboard state has already changed, so subtract the indices from the previous position instead of the new position.
             var kb = mKbState.TransformedKbState;
@@ -160,6 +162,11 @@ namespace Keyrita.Measurements
             HandleCharSwap(ch2, ch1, si2, k2i, k2j);
         }
 
+        public override void SwapBack()
+        {
+            mResult.TotalWeightedResult = mResultBeforeSwap.TotalWeightedResult;
+        }
+
         public override AnalysisResult GetResult()
         {
             return mResult;
@@ -172,10 +179,10 @@ namespace Keyrita.Measurements
         {
             mResult = new ScissorsResult(NodeId);
             mResult.TotalWeightedResult = 0;
-            mKbState = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
+            mKbState = (TransformedKbStateResult)AnalysisGraph.ResolvedNodes[eInputNodes.TransfomedKbState];
             var kb = mKbState.TransformedKbState;
 
-            mK2f = (KeyToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyToFingerAsInt];
+            mK2f = (KeyToFingerAsIntResult)AnalysisGraph.ResolvedNodes[eInputNodes.KeyToFingerAsInt];
             var keyToFinger = mK2f.KeyToFinger;
 
             var bgFreq = SettingState.MeasurementSettings.CharFrequencyData.BigramFreq;
@@ -226,13 +233,14 @@ namespace Keyrita.Measurements
                 return a.Item1 > b.Item1 ? -1 : 1;
             }));
 
-            LogUtils.LogInfo("Worst scissors: ");
-            for(int i = 0; i < 10; i++)
-            {
-                char c1 = SettingState.MeasurementSettings.CharFrequencyData.AvailableCharSet[allScissors[i].Item3];
-                char c2 = SettingState.MeasurementSettings.CharFrequencyData.AvailableCharSet[allScissors[i].Item4];
-                LogUtils.LogInfo($"{c1} -> {c2} : [{allScissors[i].Item2}]");
-            }
+            // TODO: Use this for the worst scissors metric
+            //LogUtils.LogInfo("Worst scissors: ");
+            //for(int i = 0; i < 10; i++)
+            //{
+                //char c1 = SettingState.MeasurementSettings.CharFrequencyData.AvailableCharSet[allScissors[i].Item3];
+                //char c2 = SettingState.MeasurementSettings.CharFrequencyData.AvailableCharSet[allScissors[i].Item4];
+                //LogUtils.LogInfo($"{c1} -> {c2} : [{allScissors[i].Item2}]");
+            //}
         }
     }
 }

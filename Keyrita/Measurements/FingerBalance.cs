@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
 using Keyrita.Measurements;
-using Keyrita.Operations;
-using Keyrita.Operations.OperationUtil;
+using Keyrita.Analysis;
+using Keyrita.Analysis.AnalysisUtil;
 using Keyrita.Settings;
 using Keyrita.Util;
 
@@ -23,7 +23,7 @@ namespace Keyrita.Meas
     public class FingerBalance : FingerHandMeasurement
     {
         private FingerBalanceResult mResult;
-        public FingerBalance() : base(eMeasurements.FingerBalance)
+        public FingerBalance(AnalysisGraph graph) : base(eMeasurements.FingerBalance, graph)
         {
             mResult = new FingerBalanceResult(this.NodeId);
             AddInputNode(eInputNodes.TransfomedKbState);
@@ -37,10 +37,10 @@ namespace Keyrita.Meas
 
         protected override void Compute()
         {
-            TransformedKbStateResult kbState = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
+            TransformedKbStateResult kbState = (TransformedKbStateResult)AnalysisGraph.ResolvedNodes[eInputNodes.TransfomedKbState];
             var kb = kbState.TransformedKbState;
             
-            TransformedCharacterToFingerAsIntResult c2f = (TransformedCharacterToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransformedCharacterToFingerAsInt];
+            TransformedCharacterToFingerAsIntResult c2f = (TransformedCharacterToFingerAsIntResult)AnalysisGraph.ResolvedNodes[eInputNodes.TransformedCharacterToFingerAsInt];
             var charToFinger = c2f.CharacterToFinger;
 
             uint[] charFreq = SettingState.MeasurementSettings.CharFrequencyData.CharFreq;

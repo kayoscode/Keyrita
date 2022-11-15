@@ -2,31 +2,49 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Windows.Documents;
 using System.Windows.Documents.Serialization;
-using Keyrita.Operations.OperationUtil;
+using Keyrita.Analysis.AnalysisUtil;
 using Keyrita.Settings;
 using Keyrita.Util;
 
-namespace Keyrita.Operations
+namespace Keyrita.Analysis
 {
+    /// <summary>
+    /// All the valid trigram classification values.
+    /// </summary>
+    public enum eTrigramClassification : byte
+    {
+        Unclassified,
+        Inroll,
+        Outroll,
+        Alternation,
+        Redirect,
+        BadRedirect,
+        OneHand,
+        SameFingerTrigram,
+    }
+
     public class TrigramStatsResult : AnalysisResult
     {
         public TrigramStatsResult(Enum resultId) : base(resultId)
         {
         }
 
-        public double TotalRolls { get; set; }
-        public double InRolls { get; set; }
-        public double OutRolls { get; set; }
+        public long TotalRolls { get; set; }
+        public long InRolls { get; set; }
+        public long OutRolls { get; set; }
 
-        public double TotalAlternations { get; set; }
+        public long TotalAlternations { get; set; }
 
-        public double TotalRedirects { get; set; }
-        public double TotalOneHands { get; set; }
-        public double OneHandsLeft { get; set; }
-        public double OneHandsRight { get; set; }
+        public long TotalRedirects { get; set; }
+        public long TotalBadRedirects { get; set; }
+
+        public long TotalOneHands { get; set; }
+        public long OneHandsLeft { get; set; }
+        public long OneHandsRight { get; set; }
     }
 
     /// <summary>
@@ -35,12 +53,14 @@ namespace Keyrita.Operations
     public class TrigramStats : GraphNode
     {
         protected TrigramStatsResult mResult;
+        protected TrigramStatsResult mPreviousResult;
 
-        public TrigramStats()
-            : base(eInputNodes.TrigramStats)
+        public TrigramStats(AnalysisGraph graph)
+            : base(eInputNodes.TrigramStats, graph)
         {
             mResult = new TrigramStatsResult(this.NodeId);
-            AddInputNode(eInputNodes.TransformedCharacterToTrigramSet);
+            mPreviousResult = new TrigramStatsResult(this.NodeId);
+
             AddInputNode(eInputNodes.TransfomedKbState);
             AddInputNode(eInputNodes.TransformedCharacterToFingerAsInt);
 
@@ -76,44 +96,153 @@ namespace Keyrita.Operations
         protected eTrigramClassification[][][] mTgClassifications;
         public override bool RespondsToGenerateSwapKeysEvent => true;
 
-        [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
-        protected void AdjustTrigramFrequency(eTrigramClassification classification, long freq)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void AdjustToNewTrigramClassification(eTrigramClassification oldClassification, eTrigramClassification classification, long freq)
         {
-
-        }
-
-        // Helper array for fingers during swap keys to avoid allocation :( Gosh this will be hard to maintain.
-        // Store the previous trigram classifications to make swap keys a snappy operation. Just reclassify the ones affected.
-        [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
-        protected void ReclassifyTrigrams(List<(int, long, byte[])> trigramSet)
-        {
-            for (int i = 0; i < trigramSet.Count; i++)
+            switch (oldClassification)
             {
-                // If character2 is involved in this trigram, then the finger needs to be set to finger 1
+                case eTrigramClassification.Alternation:
+                    mResult.TotalAlternations -= freq;
+                    break;
+                case eTrigramClassification.Inroll:
+                    mResult.InRolls -= freq;
+                    break;
+                case eTrigramClassification.Outroll:
+                    mResult.OutRolls -= freq;
+                    break;
+                case eTrigramClassification.OneHand:
+                    mResult.TotalOneHands -= freq;
+                    break;
+                case eTrigramClassification.Redirect:
+                    mResult.TotalRedirects -= freq;
+                    break;
+                case eTrigramClassification.SameFingerTrigram:
+                    // TODO
+                    break;
+                case eTrigramClassification.Unclassified:
+                    break;
+                case eTrigramClassification.BadRedirect:
+                    mResult.TotalBadRedirects -= freq;
+                    break;
+            }
 
-                // All the fingers for each of the characters involved in the trigram have already been updated.
-                // So we can get the new classification simply by using the trigram byte array.
-                int finger1 = mC2f.CharacterToFinger[trigramSet[i].Item3[0]];
-                int finger2 = mC2f.CharacterToFinger[trigramSet[i].Item3[1]];
-                int finger3 = mC2f.CharacterToFinger[trigramSet[i].Item3[2]];
-
-                eTrigramClassification newClassification = mTgClassifications[finger1][finger2][finger3];
+            switch (classification)
+            {
+                case eTrigramClassification.Alternation:
+                    mResult.TotalAlternations += freq;
+                    break;
+                case eTrigramClassification.Inroll:
+                    mResult.InRolls += freq;
+                    break;
+                case eTrigramClassification.Outroll:
+                    mResult.OutRolls += freq;
+                    break;
+                case eTrigramClassification.OneHand:
+                    mResult.TotalOneHands += freq;
+                    break;
+                case eTrigramClassification.Redirect:
+                    mResult.TotalRedirects += freq;
+                    break;
+                case eTrigramClassification.SameFingerTrigram:
+                    // TODO
+                    break;
+                case eTrigramClassification.Unclassified:
+                    break;
+                case eTrigramClassification.BadRedirect:
+                    mResult.TotalBadRedirects += freq;
+                    break;
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void ReclassifyTrigrams(List<byte[]> trigramSet, int c1, int c2)
+        {
+            for (int i = 0; i < trigramSet.Count; i++)
+            {
+                int newFinger1 = mC2f.CharacterToFinger[trigramSet[i][0]];
+                int newFinger2 = mC2f.CharacterToFinger[trigramSet[i][1]];
+                int newFinger3 = mC2f.CharacterToFinger[trigramSet[i][2]];
+
+                int previousFinger1 = newFinger1;
+                int previousFinger2 = newFinger2;
+                int previousFinger3 = newFinger3;
+
+                if(c1 == trigramSet[i][0])
+                {
+                    previousFinger1 = mC2f.CharacterToFinger[c2];
+                }
+                else if(c2 == trigramSet[i][0])
+                {
+                    previousFinger1 = mC2f.CharacterToFinger[c1];
+                }
+                
+                if(c1 == trigramSet[i][1])
+                {
+                    previousFinger2 = mC2f.CharacterToFinger[c2];
+                }
+                else if(c2 == trigramSet[i][1])
+                {
+                    previousFinger2 = mC2f.CharacterToFinger[c1];
+                }
+
+                if(c1 == trigramSet[i][2])
+                {
+                    previousFinger3 = mC2f.CharacterToFinger[c2];
+                }
+                else if(c2 == trigramSet[i][2])
+                {
+                    previousFinger3 = mC2f.CharacterToFinger[c1];
+                }
+
+                eTrigramClassification previousClassification = mTgClassifications[previousFinger1][previousFinger2][previousFinger3];
+                eTrigramClassification newClassification = mTgClassifications[newFinger1][newFinger2][newFinger3];
+
+                AdjustToNewTrigramClassification(previousClassification, newClassification,
+                    SettingState.MeasurementSettings.CharFrequencyData.TrigramFreq[trigramSet[i][0]][trigramSet[i][1]][trigramSet[i][2]]);
+            }
+        }
+
         public override void SwapKeys(int k1i, int k1j, int k2i, int k2j)
         {
+            mPreviousResult.TotalRolls = mResult.TotalRolls;
+            mPreviousResult.InRolls = mResult.InRolls;
+            mPreviousResult.OutRolls = mResult.OutRolls;
+
+            mPreviousResult.TotalRedirects = mResult.TotalRedirects;
+            mPreviousResult.TotalBadRedirects = mResult.TotalBadRedirects;
+            mPreviousResult.TotalAlternations = mResult.TotalAlternations;
+            mPreviousResult.TotalOneHands = mResult.TotalOneHands;
+
             // Trying to do something to make alternations work, lets see what happens.
-            //byte c1 = mKb.TransformedKbState[k2i][k2j];
-            //byte c2 = mKb.TransformedKbState[k1i][k1j];
+            byte c1 = mKb.TransformedKbState[k1i][k1j];
+            byte c2 = mKb.TransformedKbState[k2i][k2j];
+
+            LogUtils.Assert(c1 != c2);
 
             // Subtract off the previous classification, and add on the new classification.
-            //var tgSet1 = mCharToTgSet.InvolvedTrigrams[c1];
-            //var tgSet2 = mCharToTgSet.InvolvedTrigrams[c2];
+            var tgSet1 = SettingState.MeasurementSettings.CharacterToTrigramSet.FirstInvolvedTrigrams[c1][c2];
+            var tgSet2 = SettingState.MeasurementSettings.CharacterToTrigramSet.FirstInvolvedTrigrams[c2][c1];
 
-            //ReclassifyTrigrams(tgSet1);
-            //ReclassifyTrigrams(tgSet2);
+            // Update stats for the trigrams that contain both letters.
+            var bothLettersTgs1 = SettingState.MeasurementSettings.CharacterToTrigramSet.BothInvolvedTrigrams[c1][c2];
+
+            ReclassifyTrigrams(tgSet1, c1, c2);
+            ReclassifyTrigrams(tgSet2, c1, c2);
+            ReclassifyTrigrams(bothLettersTgs1, c1, c2);
+
+            mResult.TotalRolls = mResult.InRolls + mResult.OutRolls;
+        }
+
+        public override void SwapBack()
+        {
+            mResult.TotalRolls = mPreviousResult.TotalRolls;
+            mResult.InRolls = mPreviousResult.InRolls;
+            mResult.OutRolls = mPreviousResult.OutRolls;
+
+            mResult.TotalRedirects = mPreviousResult.TotalRedirects;
+            mResult.TotalBadRedirects = mPreviousResult.TotalBadRedirects;
+            mResult.TotalAlternations = mPreviousResult.TotalAlternations;
+            mResult.TotalOneHands = mPreviousResult.TotalOneHands;
         }
 
         public override AnalysisResult GetResult()
@@ -123,20 +252,6 @@ namespace Keyrita.Operations
 
         private TransformedCharacterToFingerAsIntResult mC2f;
         private TransformedKbStateResult mKb;
-        private TransformedCharacterToTrigramSetResult mCharToTgSet;
-        private SortedTrigramSetResult mTgSet;
-
-        protected enum eTrigramClassification : byte
-        {
-            Unclassified,
-            Inroll,
-            Outroll,
-            Alternation,
-            Redirect,
-            BadRedirect,
-            OneHand,
-            SameFingerTrigram,
-        }
 
         /// <summary>
         /// Matches the trigram with a pattern and returns its classification.
@@ -246,27 +361,24 @@ namespace Keyrita.Operations
 
         protected override void Compute()
         {
-            // Only allocate the previous classifications array if we have to.
-            int expectedTgClassificationLen = SettingState.MeasurementSettings.CharFrequencyData.AvailableCharSet.Length;
+            mC2f = (TransformedCharacterToFingerAsIntResult)AnalysisGraph.ResolvedNodes[eInputNodes.TransformedCharacterToFingerAsInt];
+            mKb = (TransformedKbStateResult)AnalysisGraph.ResolvedNodes[
+                eInputNodes.TransfomedKbState];
 
-            mC2f = (TransformedCharacterToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransformedCharacterToFingerAsInt];
+            ComputeResults();
+        }
+
+        protected void ComputeResults()
+        {
             var charToFinger = mC2f.CharacterToFinger;
-
-            mKb = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
-            var transformedKb = mKb.TransformedKbState;
-
-            mTgSet = (SortedTrigramSetResult)AnalysisGraphSystem.ResolvedNodes[
-                eInputNodes.SortedTrigramSet];
-            var trigrams = mTgSet.MostSignificantTrigrams;
-
-            mCharToTgSet = (TransformedCharacterToTrigramSetResult)AnalysisGraphSystem.ResolvedNodes[
-                eInputNodes.TransformedCharacterToTrigramSet];
+            var trigrams = SettingState.MeasurementSettings.SortedTrigramSet.SortedTrigramSet;
 
             // Index 0 is for the total, index 1 is for in rolls and index 2 is for out rolls.
             long totalInRolls = 0;
             long totalOutRolls = 0;
             long totalAlternations = 0;
             long totalRedirects = 0;
+            long totalBadRedirects = 0;
             long totalOneHands = 0;
             long oneHandsLeft = 0;
             long oneHandsRight = 0;
@@ -274,11 +386,11 @@ namespace Keyrita.Operations
 
             for (int i = 0; i < trigrams.Count; i++)
             {
-                int firstFinger = charToFinger[trigrams[i].Item2[0]];
-                int secondFinger = charToFinger[trigrams[i].Item2[1]];
-                int thirdFinger = charToFinger[trigrams[i].Item2[2]];
+                int firstFinger = charToFinger[trigrams[i][0]];
+                int secondFinger = charToFinger[trigrams[i][1]];
+                int thirdFinger = charToFinger[trigrams[i][2]];
 
-                long freq = trigrams[i].Item1;
+                long freq = SettingState.MeasurementSettings.CharFrequencyData.TrigramFreq[trigrams[i][0]][trigrams[i][1]][trigrams[i][2]];
 
                 eTrigramClassification tgClassification = mTgClassifications[firstFinger][secondFinger][thirdFinger];
 
@@ -305,8 +417,7 @@ namespace Keyrita.Operations
                     case eTrigramClassification.Unclassified:
                         break;
                     case eTrigramClassification.BadRedirect:
-                        // TODO
-                        totalRedirects += freq;
+                        totalBadRedirects += freq;
                         break;
                 }
             }
@@ -315,7 +426,9 @@ namespace Keyrita.Operations
             mResult.InRolls = totalInRolls;
             mResult.OutRolls = totalOutRolls;
             mResult.TotalAlternations = totalAlternations;
+
             mResult.TotalRedirects = totalRedirects;
+            mResult.TotalBadRedirects = totalBadRedirects;
             mResult.TotalOneHands = totalOneHands;
             mResult.OneHandsLeft = oneHandsLeft;
             mResult.OneHandsRight = oneHandsRight;

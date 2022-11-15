@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Keyrita.Interop.NativeAnalysis;
-using Keyrita.Operations;
-using Keyrita.Operations.OperationUtil;
+using Keyrita.Analysis;
+using Keyrita.Analysis.AnalysisUtil;
 using Keyrita.Settings;
 using Keyrita.Util;
 
@@ -25,7 +25,7 @@ namespace Keyrita.Measurements
     {
         protected SFBResult mResult;
 
-        public Sfbs() : base(eMeasurements.SameFingerBigram)
+        public Sfbs(AnalysisGraph graph) : base(eMeasurements.SameFingerBigram, graph)
         {
             AddInputNode(eInputNodes.TwoFingerStats);
             mResult = new SFBResult(this.NodeId);
@@ -33,7 +33,7 @@ namespace Keyrita.Measurements
 
         protected override void Compute()
         {
-            var tfs = (TwoFingerStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TwoFingerStats];
+            var tfs = (TwoFingerStatsResult)AnalysisGraph.ResolvedNodes[eInputNodes.TwoFingerStats];
             double totalBigramCount = (double)SettingState.MeasurementSettings.CharFrequencyData.BigramHitCount;
 
             mResult.TotalResult = tfs.TotalSfbs / totalBigramCount * 100;
@@ -75,7 +75,7 @@ namespace Keyrita.Measurements
     {
         protected SFSResult mResult;
 
-        public Sfss() : base(eMeasurements.SameFingerSkipgrams)
+        public Sfss(AnalysisGraph graph) : base(eMeasurements.SameFingerSkipgrams, graph)
         {
             AddInputNode(eInputNodes.TwoFingerStats);
             mResult = new SFSResult(NodeId);
@@ -83,7 +83,7 @@ namespace Keyrita.Measurements
 
         protected override void Compute()
         {
-            var sameFingerStats = (TwoFingerStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TwoFingerStats];
+            var sameFingerStats = (TwoFingerStatsResult)AnalysisGraph.ResolvedNodes[eInputNodes.TwoFingerStats];
             double totalSg2Hits = (double)SettingState.MeasurementSettings.CharFrequencyData.Skipgram2HitCount;
 
             mResult.TotalResult = sameFingerStats.TotalSfs / totalSg2Hits * 100;

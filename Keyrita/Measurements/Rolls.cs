@@ -1,6 +1,6 @@
 ﻿using System;
-using Keyrita.Operations;
-using Keyrita.Operations.OperationUtil;
+using Keyrita.Analysis;
+using Keyrita.Analysis.AnalysisUtil;
 using Keyrita.Settings;
 
 namespace Keyrita.Measurements
@@ -24,11 +24,10 @@ namespace Keyrita.Measurements
     {
         private RollResult mResult;
 
-        public Rolls() : base(eMeasurements.Rolls)
+        public Rolls(AnalysisGraph graph) : base(eMeasurements.Rolls, graph)
         {
             mResult = new RollResult(this.NodeId);
             AddInputNode(eInputNodes.TrigramStats);
-            AddInputNode(eInputNodes.SortedTrigramSet);
         }
 
         public override AnalysisResult GetResult()
@@ -38,10 +37,9 @@ namespace Keyrita.Measurements
 
         protected override void Compute()
         {
-            TrigramStatsResult tgs = (TrigramStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TrigramStats];
+            TrigramStatsResult tgs = (TrigramStatsResult)AnalysisGraph.ResolvedNodes[eInputNodes.TrigramStats];
 
-            SortedTrigramSetResult tgSet = (SortedTrigramSetResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.SortedTrigramSet];
-            long totalTgs = tgSet.TrigramCoverage;
+            double totalTgs = SettingState.MeasurementSettings.TrigramCoverage.Value;
 
             mResult.TotalRolls = tgs.TotalRolls / totalTgs * 100;
             mResult.InRolls = tgs.InRolls / totalTgs * 100;

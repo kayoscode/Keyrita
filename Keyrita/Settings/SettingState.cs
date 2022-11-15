@@ -84,6 +84,15 @@ namespace Keyrita.Settings
         public TrigramDepthSetting TrigramDepth { get; } =
             new TrigramDepthSetting();
 
+        public SortedTrigramSetSetting SortedTrigramSet { get; } =
+            new SortedTrigramSetSetting();
+
+        public TrigramCoverageSetting TrigramCoverage { get; } =
+            new TrigramCoverageSetting();
+
+        public CharacterToTrigramSetSetting CharacterToTrigramSet { get; } =
+            new CharacterToTrigramSetSetting();
+
         public IReadOnlyDictionary<int, ConcreteValueSetting<double>> RowOffsets => mRowOffsets;
         protected Dictionary<int, ConcreteValueSetting<double>> mRowOffsets = new Dictionary<int, ConcreteValueSetting<double>>();
 

@@ -4,7 +4,7 @@ using Keyrita.Settings;
 using Keyrita.Settings.SettingUtil;
 using Keyrita.Util;
 
-namespace Keyrita.Operations.OperationUtil
+namespace Keyrita.Analysis.AnalysisUtil
 {
     /// <summary>
     /// The result of an analysis node.
@@ -76,13 +76,18 @@ namespace Keyrita.Operations.OperationUtil
         {
         }
 
+        public virtual void SwapBack()
+        {
+        }
+
         /// <summary>
         /// Standard constructor.
         /// Input nodes should be added in the constructor.
         /// </summary>
-        public GraphNode(Enum id)
+        public GraphNode(Enum id, AnalysisGraph graph)
         {
             NodeId = id;
+            AnalysisGraph = graph;
         }
 
         public void PerformComputation()
@@ -100,7 +105,7 @@ namespace Keyrita.Operations.OperationUtil
         {
             foreach(Enum op in Inputs)
             {
-                AnalysisGraphSystem.InstallNode(op);
+                AnalysisGraph.InstallNode(op);
             }
         }
 
@@ -119,5 +124,7 @@ namespace Keyrita.Operations.OperationUtil
         /// </summary>
         /// <returns></returns>
         public abstract AnalysisResult GetResult();
+
+        protected AnalysisGraph AnalysisGraph { get; private set; }
     }
 }

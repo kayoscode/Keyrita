@@ -35,7 +35,7 @@ namespace Keyrita.Settings
         public override bool HasValue => mScissorMapState != null;
         protected override bool ValueHasChanged => MapMatches(mPendingScissorMapState, mScissorMapState) > 0;
 
-        protected override void ConformToLimits()
+        protected override void ModifyLimits()
         {
         }
 
@@ -83,6 +83,9 @@ namespace Keyrita.Settings
             AddScissorIndices((1, 0), (2, 1));
             AddScissorIndices((1, 9), (2, 8));
             AddScissorIndices((1, 3), (2, 2));
+
+            // Newly added.
+            AddScissorIndices((0, 3), (1, 2));
 
             SetToDesiredValue();
         }

@@ -2,8 +2,8 @@
 using System;
 using System.Linq;
 using Keyrita.Measurements;
-using Keyrita.Operations;
-using Keyrita.Operations.OperationUtil;
+using Keyrita.Analysis;
+using Keyrita.Analysis.AnalysisUtil;
 using Keyrita.Settings;
 using Keyrita.Util;
 
@@ -24,7 +24,7 @@ namespace Keyrita.Meas
     public class HomeUsage : FingerHandMeasurement
     {
         private HomeUsageResult mResult;
-        public HomeUsage() : base(eMeasurements.HomeRowUsage)
+        public HomeUsage(AnalysisGraph graph) : base(eMeasurements.HomeRowUsage, graph)
         {
             mResult = new HomeUsageResult(this.NodeId);
             AddInputNode(eInputNodes.TransfomedKbState);
@@ -39,13 +39,13 @@ namespace Keyrita.Meas
 
         protected override void Compute()
         {
-            TransformedKbStateResult kbState = (TransformedKbStateResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransfomedKbState];
+            TransformedKbStateResult kbState = (TransformedKbStateResult)AnalysisGraph.ResolvedNodes[eInputNodes.TransfomedKbState];
             var kb = kbState.TransformedKbState;
             
-            TransformedCharacterToFingerAsIntResult c2f = (TransformedCharacterToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TransformedCharacterToFingerAsInt];
+            TransformedCharacterToFingerAsIntResult c2f = (TransformedCharacterToFingerAsIntResult)AnalysisGraph.ResolvedNodes[eInputNodes.TransformedCharacterToFingerAsInt];
             var charToFinger = c2f.CharacterToFinger;
 
-            FingerAsIntToHomePositionResult f2h = (FingerAsIntToHomePositionResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.FingerAsIntToHomePosition];
+            FingerAsIntToHomePositionResult f2h = (FingerAsIntToHomePositionResult)AnalysisGraph.ResolvedNodes[eInputNodes.FingerAsIntToHomePosition];
             var fingerToHome = f2h.FingerToHomePosition;
 
             uint[] charFreq = SettingState.MeasurementSettings.CharFrequencyData.CharFreq;

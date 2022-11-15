@@ -269,7 +269,7 @@ namespace Keyrita.Settings
             // Nothing to do.
         }
 
-        protected override void ConformToLimits()
+        protected override void ModifyLimits()
         {
             // This setting doesn't use a pending value!
         }

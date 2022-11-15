@@ -1,6 +1,6 @@
 ﻿using System;
-using Keyrita.Operations;
-using Keyrita.Operations.OperationUtil;
+using Keyrita.Analysis;
+using Keyrita.Analysis.AnalysisUtil;
 using Keyrita.Settings;
 using Keyrita.Util;
 
@@ -21,7 +21,7 @@ namespace Keyrita.Measurements
     {
         protected FingerLagResult mResult;
 
-        public FingerLag() : base(eMeasurements.FingerLag)
+        public FingerLag(AnalysisGraph graph) : base(eMeasurements.FingerLag, graph)
         {
             AddInputNode(eInputNodes.KeyLag);
             AddInputNode(eInputNodes.KeyToFingerAsInt);
@@ -31,10 +31,10 @@ namespace Keyrita.Measurements
         {
             mResult = new FingerLagResult(NodeId);
 
-            var ks = (KeyLagResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyLag];
+            var ks = (KeyLagResult)AnalysisGraph.ResolvedNodes[eInputNodes.KeyLag];
             var keyLag = ks.PerKeyResult;
 
-            var k2f = (KeyToFingerAsIntResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.KeyToFingerAsInt];
+            var k2f = (KeyToFingerAsIntResult)AnalysisGraph.ResolvedNodes[eInputNodes.KeyToFingerAsInt];
             var keyToFinger = k2f.KeyToFinger;
 
             // Go through each key on the keyboard and get the finger used for it.

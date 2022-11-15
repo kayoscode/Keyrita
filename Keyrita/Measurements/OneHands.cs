@@ -1,6 +1,6 @@
 ﻿using System;
-using Keyrita.Operations;
-using Keyrita.Operations.OperationUtil;
+using Keyrita.Analysis;
+using Keyrita.Analysis.AnalysisUtil;
 using Keyrita.Settings;
 
 namespace Keyrita.Measurements
@@ -24,7 +24,7 @@ namespace Keyrita.Measurements
     {
         private OneHandsResult mResult;
 
-        public OneHands() : base(eMeasurements.OneHands)
+        public OneHands(AnalysisGraph graph) : base(eMeasurements.OneHands, graph)
         {
             mResult = new OneHandsResult(NodeId);
             AddInputNode(eInputNodes.TrigramStats);
@@ -37,10 +37,9 @@ namespace Keyrita.Measurements
 
         protected override void Compute()
         {
-            SortedTrigramSetResult tgSet = (SortedTrigramSetResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.SortedTrigramSet];
-            long totalTgs = tgSet.TrigramCoverage;
+            double totalTgs = SettingState.MeasurementSettings.TrigramCoverage.Value;
 
-            TrigramStatsResult tgs = (TrigramStatsResult)AnalysisGraphSystem.ResolvedNodes[eInputNodes.TrigramStats];
+            TrigramStatsResult tgs = (TrigramStatsResult)AnalysisGraph.ResolvedNodes[eInputNodes.TrigramStats];
             mResult.TotalOneHands = tgs.TotalOneHands / totalTgs * 100;
             mResult.OneHandsLeft = tgs.OneHandsLeft / totalTgs * 100;
             mResult.OneHandsRight = tgs.OneHandsRight / totalTgs * 100;

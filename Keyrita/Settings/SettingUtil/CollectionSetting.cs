@@ -103,7 +103,7 @@ namespace Keyrita.Settings.SettingUtil
         {
         }
 
-        protected override sealed void ConformToLimits()
+        protected override sealed void ModifyLimits()
         {
             mNewLimits.Clear();
             ChangeLimits(mNewLimits);

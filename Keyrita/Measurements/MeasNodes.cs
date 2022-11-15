@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using System.Windows.Media;
 using System.Xml.XPath;
 using Keyrita.Gui;
-using Keyrita.Operations.OperationUtil;
+using Keyrita.Analysis.AnalysisUtil;
 using Keyrita.Settings;
 using Keyrita.Util;
 
@@ -48,7 +48,7 @@ namespace Keyrita.Measurements
             eMeasurements.FingerBalance,
             eMeasurements.FingerLag,
             eMeasurements.HomeRowUsage,
-            eMeasurements.Scissors
+            eMeasurements.Scissors,
         };
 
         public static IEnumerable<eMeasurements> DynamicMeasurements = new List<eMeasurements>()
@@ -73,8 +73,8 @@ namespace Keyrita.Measurements
             Down
         }
 
-        protected MeasurementNode(Enum id) 
-            : base(id)
+        protected MeasurementNode(Enum id, AnalysisGraph graph) 
+            : base(id, graph)
         {
         }
 
@@ -99,8 +99,8 @@ namespace Keyrita.Measurements
     /// </summary>
     public abstract class DynamicMeasurement : MeasurementNode
     {
-        protected DynamicMeasurement(Enum id) :
-            base(id)
+        protected DynamicMeasurement(Enum id, AnalysisGraph graph) :
+            base(id, graph)
         {
         }
 
@@ -166,8 +166,8 @@ namespace Keyrita.Measurements
         /// Standard constructor.
         /// </summary>
         /// <param name="id"></param>
-        protected FingerHandMeasurement(Enum id) 
-            : base(id)
+        protected FingerHandMeasurement(Enum id, AnalysisGraph graph) 
+            : base(id, graph)
         {
         }
 
