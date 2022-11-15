@@ -1,4 +1,4 @@
-# Keyrita Beta 0.7.1
+# Keyrita Beta 0.8.0
 Keyrita is a user-friendly keyboard layout analyzer and generator. No more editing your layouts in notepads and waiting for stats. Now you can Swap keys, and instantly view the results. You can undo/redo, save/load, copy/paste, and much more all with the click of a button! Keyrita is also designed to be fine-tuned to allow users to express their preferences in an easy-to-understand way all so they can invent the best keyboard layout for them.
 
 ## Build
